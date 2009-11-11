@@ -1,0 +1,658 @@
+(:author "Nathan Froyd"
+ :email "froydnj@gmail.com"
+ :package "Ironclad"
+ :cl-package "IRONCLAD"
+ :version #.(asdf:component-version (asdf:find-system :ironclad))
+ :homepage "http://www.method-combination.net/lisp/ironclad/"
+ :download "http://www.method-combination.net/lisp/files/ironclad.tar.gz")
+
+(:h1 ${package})
+
+(:p ${package} " is a cryptography library written entirely in Common
+Lisp.  It includes support for several popular " (:xref "ciphers"
+"ciphers") ", " (:xref "digests" "digests") ", and " (:xref "macs"
+"MACs") ".  Rudimentary support for " (:xref "public-key" "public-key
+cryptography") " is included.  For several implementations that support
+Gray Streams, " (:xref "gray-streams" "support") " is included for
+convenient stream wrappers.")
+
+(:p ${package} " was written primarily by " ${author} " (" ${email} ").")
+
+(:h2 "Installation")
+
+(:p ${package} " can be downloaded at " (:url ${download} ${download}) ".
+The latest version is " ${version} ".")
+
+(:p "It comes with an ASDF system definition, so " `(ASDF:OOS
+'ASDF:LOAD-OP :IRONCLAD)` " should be all that you need to get started.
+The testsuite can be run by substituting " `ASDF:TEST-OP` " for "
+`ASDF:LOAD-OP` " in the form above.")
+
+(:p ${package} " has been tested in the following implementations:")
+
+(:ul
+(:li "SBCL x86/linux (primary development platform)")
+(:li "SBCL x86-64/solaris")
+(:li "CMUCL x86/linux")
+(:li "ABCL with Sun's 1.5.0 JVM")
+(:li "Lispworks 5.0.1 x86/linux")
+(:li "Allegro 8.0 x86/linux")
+(:li "Allegro 8.1 x86/linux")
+(:li "Allegro 8.1 x86-64/linux")
+(:li "Allegro 8.1 sparc/solaris")
+(:li "CLISP 2.41 x86/linux")
+(:li "CLISP 2.44 x86/cygwin")
+(:li "Clozure Common Lisp 1.2 x86-64/Linux"))
+
+(:p "All included tests should pass successfully.  If you use a platform
+not listed above, please send your platform information to the author so
+that he can add it to the above list.  If the tests do not all pass, you
+have found a bug; please report it.")
+
+(:h2 "License")
+
+(:p ${package} " is released under a MIT-like license; you can do pretty
+much anything you want to with the code except claim that you wrote
+it.")
+
+((:h2 id "ciphers") "Ciphers")
+
+(:describe :function (ironclad:make-cipher cipher))
+
+(:p "Return a cipher object suitable for use for both encryption and
+decryption.")
+
+(:p 'name' " denotes the encryption algorithm to use.  "
+@list-all-ciphers " will tell you the names of all supported ciphers;
+the short list of ones you are likely to be interested in is:")
+
+(:ul
+(:li "AES")
+(:li "DES")
+(:li "3DES")
+(:li "Blowfish")
+(:li "Twofish")
+(:li "RC5")
+(:li "RC6")
+(:li "Arcfour (RC4)"))
+
+(:p 'name' " can be a symbol in the " `KEYWORD` " package or the "
+`IRONCLAD` " package; " `:AES` " for AES, " `IRONCLAD:ARCFOUR` " for
+RC4, and so forth.")
+
+(:p 'mode' " describes the mode of operation for the cipher.  Stream
+ciphers such as Arcfour can operate in only one mode, " `stream` ".
+Block ciphers such as AES and DES can operate in several different
+modes:")
+
+(:ul
+(:li "ECB")
+(:li "CBC")
+(:li "OFB")
+(:li "CFB (note that Ironclad's CFB mode is 'n'-bit CFB, where 'n' is
+the " @block-length " of the cipher)")
+(:li "CFB8 (this seems to be the mode other crypto packages call
+'CFB')")
+(:li "CTR"))
+
+(:p 'mode' " should be a symbol in the " `KEYWORD` " or " `IRONCLAD` "
+packages; " `:STREAM` ", " `IRONCLAD:OFB` ", and so forth.  An error
+will be signaled if " 'mode' " is not appropriate for the cipher "
+'name' ".")
+
+(:p 'initialization-vector' " (IV) should be supplied only if " 'mode' "
+requires one.  " 'initialization-vector' " should be a " `(VECTOR
+(UNSIGNED-BYTE 8))` ".  The supplied IV should be the same length as the
+" @block-length " of " 'name' ".")
+
+(:p 'key' " is, of course, the key for the cipher.  " 'key' " should be
+a " `(VECTOR (UNSIGNED-BYTE 8))` ".")
+
+(:p "If " 'padding' " is supplied, the specified padding method will be
+used by " @encrypt " and " @decrypt " to handle short blocks when the "
+`:HANDLE-FINAL-BLOCK` " argument is supplied.  Depending on the mode
+specified, " 'padding' " may be ignored (e.g. OFB and CFB modes do not
+care about short blocks; neither do stream ciphers).")
+
+(:note 'padding' " is currently ignored in all modes (and, by extension,
+so is " `:HANDLE-FINAL-BLOCK` ").  This oversight is expected to be
+corrected in a future release.")
+
+(:describe :function (ironclad:encrypt (values n-bytes-consumed n-bytes-produced)))
+
+(:p "Encrypts data according to " 'cipher' " from " 'plaintext' "
+starting at " 'plaintext-start' " and continuing until "
+'plaintext-end' ".  The encrypted data is placed in "
+'ciphertext' " starting at " 'ciphertext-start' ".")
+
+(:describe :function (ironclad:decrypt (values n-bytes-consumed n-bytes-produced)))
+
+(:p "Decrypts data according to " 'cipher' " from " 'ciphertext' "
+starting at " 'ciphertext-start' " and continuing until "
+'ciphertext-end' ".  The decrypted data is placed in " 'plaintext' "
+starting at " 'plaintext-start' ".")
+
+(:describe :function (ironclad:encrypt-in-place (values n-bytes-consumed n-bytes-produced))
+                     (ironclad:decrypt-in-place (values n-bytes-consumed n-bytes-produced)))
+
+(:p "Encrypts or decrypts data in " 'text' " between " 'start' " and "
+'end' " \"in-place\" according to " 'cipher' ".  These functions are
+shorthand for:")
+
+(:pre "(encrypt cipher text text :plaintext-start start :plaintext-end end :ciphertext-start start)
+(decrypt cipher text text :ciphertext-start start :ciphertext-end end :plaintext-start start)")
+
+(:note @encrypt-in-place " and " @decrypt-in-place " do not support a "
+'handle-final-block' " parameter as " @encrypt " and " @decrypt " do.
+If you need the functionality that " 'handle-final-block' " provides,
+then you need to use " @encrypt " and " @decrypt ".")
+
+(:note 'n-bytes-consumed' " and " 'n-bytes-produced' " may not always be
+equal to the length of the data specified in the call to "
+@encrypt-in-place " or " @decrypt-in-place ".  This subtlely is also
+present in " @encrypt " or " @decrypt ".")
+
+(:h3 "Inquiry functions")
+
+(:describe :function (ironclad:list-all-ciphers list))
+
+(:p "Returns a list of cipher-names that may be validly passed to "
+@make-cipher ".")
+
+(:describe :function (ironclad:cipher-supported-p boolean))
+
+(:p "Returns T if " 'name' " would be in the list returned by "
+@list-all-ciphers ", NIL otherwise.")
+
+(:describe :function (ironclad:key-lengths list))
+
+(:p "Return a list of valid key lengths for " 'cipher' ".")
+
+(:describe :function (ironclad:block-length number))
+
+(:p "Return the number of octets " 'cipher' " processes at a time.  This
+function always returns 1 for stream ciphers.")
+
+((:h2 id "digests") "Digests")
+
+(:p "Digest functions, also known as hash functions, produce
+fixed-length output (a " 'digest' " or " 'hash' ") from a
+variable-length message.  The simplest example of a digest function is
+one that adds up all the bytes in the message modulo 256.  This digest
+function fails one test of a cryptographically secure hash function: it
+must be difficult to find a message with a given digest.  It also fails
+the other test: it must be difficult to find two messages with the same
+digest.")
+
+(:p "Ironclad provides several cryptographically secure digest functions
+and several non-cryptographically secure digest functions.")
+
+(:note "In the functions below, messages or parts thereof are provided
+as octet vectors; Ironclad has no facilities for producing digests of
+strings.  If you need to obtain the digest of a string, then you need to
+figure out how to convert it to an octet vector first.  This is a
+deliberate design decision.  Characters are not equivalent to bytes.
+See your local Unicode guru for more details.")
+
+(:describe :function (ironclad:make-digest digester))
+
+(:p "Returns a digest object.  " 'digest-name' " is a keyword naming the
+algorithm you wish " 'digester' " to use.  The algorithms you are likely
+to want to use are:")
+
+(:ul
+(:li "MD4")
+(:li "MD5")
+(:li "SHA1")
+(:li "SHA256")
+(:li "Tiger")
+(:li "Adler32")
+(:li "CRC32"))
+
+(:p "Other legitimate digest names can be found by calling "
+@list-all-digests ".  Like " @make-cipher ", " 'digest-name' " should be
+a symbol in the " `KEYWORD` " or " `IRONCLAD` " packages.")
+
+(:describe :generic-function (ironclad:update-digest (values)))
+
+(:p "Updates the internal state of " 'digester' " with the contents of "
+'thing' ".  The exact method is determined by the type of THING.")
+
+(:p "There are several methods defined on this generic function that
+take a particular digester and a " `(SIMPLE-ARRAY (UNSIGNED-BYTE 8)
+(*))` " as well as the usual " 'start' " and " 'end' " keyword
+arguments.  These methods update the state of " 'digester' " with the
+subsequence of the array denoted by " 'start' " and " 'end' ".  They are
+not listed here because there's one method for every type of digest
+that " ${package} " provides, and listing them would get very tedious
+for no benefit.  An example should suffice.")
+
+(:pre 
+"(let ((digester (ironclad:make-digest :sha1))
+      (array (make-array 16 :element-type '(unsigned-byte 8) :initial-element 0)))
+  ;; Update with 16 zeroes.
+  (ironclad:update-digest digester array)
+  ;; Update with 8 ones.
+  (fill array 1 :start 2 :end 10)
+  (ironclad:update-digest digester array :start 2 :end 10))")
+
+(:describe :method (ironclad:update-digest (t stream) digester))
+
+(:p "Update the internal state of " 'digester' " with the contents of "
+'stream' ", which must respond to " `READ-BYTE` " or " `READ-SEQUENCE` "
+with a " `(SIMPLE-ARRAY (UNSIGNED-BYTE 8) (*))` " and return "
+'digester' ".  It differs from " @digest-stream ", below, in that you
+may need to digest data before or after the contents of " 'stream' "
+(this happens, for instance, when signing the contents of some file).")
+
+(:describe :generic-function (ironclad:produce-digest digest))
+
+(:p "Return the digest of the data processed by " 'digester' " so far.
+The internal state of " 'digester' " is modified; if you wish to retain
+a copy of the digest, you must call " @copy-digest ".")
+
+(:p "If " 'digest' " is provided, the computed digest will be placed
+into " 'digest' " starting at " 'digest-start' ".  " 'digest' " must be
+a " `(SIMPLE-ARRAY (UNSIGNED-BYTE 8) (*))` ".  An "
+@insufficient-buffer-space " error will be signaled if there is
+insufficient space in " 'digest' ".")
+
+(:h3 "High-level convenience functions")
+
+(:p "Several high-level convenience functions that encapsulate common
+sequences of " @make-digest ", " @update-digest " and " @produce-digest
+" are provided by Ironclad as well.  They come in two flavors: the first
+takes a digest name as would be provided to " @make-digest ".  The
+second way to call these functions is to provide an actual digest object
+as the first argument.  So one can say:")
+
+(:pre "(ironclad:digest-sequence :md5 *buffer*)")
+
+(:p "or, equivalently:")
+
+(:pre
+"(let ((digester (make-digest :md5)))
+  (ironclad:digest-sequence digester *buffer*))")
+
+(:p "The second form comes in handy if you plan on " (:xref
+"digest-tips" "reusing the digest object") ".")
+
+(:describe :generic-function (ironclad:digest-sequence digest))
+
+(:p "Returns the digest of the subsequence of " 'sequence' " bounded by
+" 'start' " and " 'end' ", according to " 'digest-name' ".  " 'sequence'
+" must be a " `(SIMPLE-ARRAY (UNSIGNED-BYTE 8))` ".  " 'digest' " and "
+'digest-start' " are as in " @produce-digest ".")
+
+(:describe :generic-function (ironclad:digest-stream digest))
+
+(:p "Returns the digest of the contents of the stream specified by "
+'stream' ".  " `READ-BYTE` " must be a legal operation on " 'stream' "
+and return an " `(UNSIGNED-BYTE 8)` ".  In a similar fashion, "
+`READ-SEQUENCE` " on " 'stream' " must support reading into a "
+`(SIMPLE-ARRAY (UNSIGNED-BYTE 8))` ".  " 'digest' " and " 'digest-start'
+" are as in " @produce-digest ".")
+
+(:p "If " 'buffer' " is provided, it must be a " `(SIMPLE-ARRAY
+(UNSIGNED-BYTE 8) (*))` "; the portion of " 'buffer' " between " 'start'
+" and " 'end' " will be used to read the data from the stream.")
+
+(:describe :generic-function (ironclad:digest-file digest))
+
+(:p "Returns the digest of the contents of the file named by "
+'pathname' ".  " 'digest' " and " 'digest-start' " are as in "
+@produce-digest ".")
+
+(:p "If " 'buffer' " is provided, it must be a " `(SIMPLE-ARRAY
+(UNSIGNED-BYTE 8) (*))` "; the portion of " 'buffer' " between " 'start'
+" and " 'end' " will be used to read the data from the stream.")
+
+(:h3 "Inquiry functions")
+
+(:describe :function (ironclad:list-all-digests list))
+
+(:p "Returns a list whose elements may be validly passed to " @make-digest ".")
+
+(:describe :function (ironclad:digest-supported-p boolean))
+
+(:p "Returns T if " 'name' " would be in the list returned by "
+@list-all-digests ", NIL otherwise.")
+
+(:describe :function (ironclad:digest-length number))
+
+(:p "Returns the length of the digest computed by " 'digest' ", which
+may be a digest-name or a digest instance.")
+
+((:h3 id "digest-tips") "Miscellaneous")
+
+(:p "Ironclad digests are CLOS objects; the interesting thing about this
+for most purposes is that functions like " `REINITIALIZE-INSTANCE` " are
+supported.  This means one can write a fairly efficient clone of the "
+`md5sum` " program like so:")
+
+(:pre
+"(defun digest-sum-files (digest &rest files)
+  (unless files
+    (error \"no files given to digest\"))
+  (loop with buffer = (make-array 8192 :element-type '(unsigned-byte 8))
+     with digest = (make-array (ironclad:digest-length digest)
+                               :element-type '(unsigned-byte 8))
+     for file in files
+     for digester = (ironclad:make-digest digest)
+     then (reinitialize-instance digester)
+     do (ironclad:digest-file digester file :buffer buffer :digest digest)
+       (format t \"~A ~A~%\" (file-namestring file)
+               (ironclad:byte-array-to-hex-string digest))))")
+
+((:h2 id "macs") "Message authentication codes")
+
+(:p "A message authentication code is a cryptographic function of some
+data and a user-specified key.  Only a person knowing the key can
+recompute the MAC for the given message.  A MAC is useful where
+maintaining data integrity is required, but the secrecy of the data is
+not paramount.")
+
+(:p "Ironclad provides two different kinds of MACs: HMACs, specified in
+" (:url "http://www.ietf.org/rfc/rfc2109.txt" "RFC 2104") ", and CMACs,
+specified in " (:url "http://www.ietf.org/rfc/rfc4493.txt" "RFC 4493") "
+and NIST document 800-38B.")
+
+(:h3 "HMACs")
+
+(:p "Instances of HMACs are constructed by specifying a secret key and a
+digest-name.")
+
+(:describe :function (ironclad:make-hmac hmac))
+
+(:p "Return an HMAC instance based on the hash function " 'digest-name'
+" with secret key " 'key' ".")
+
+(:p "The returned object supports " `REINITIALIZE-INSTANCE` ":")
+
+(:describe :method (cl:reinitialize-instance (ironclad::hmac) hmac))
+
+(:p "The " `:KEY` " argument is the secret key, as provided to "
+@make-hmac ".")
+
+(:describe :function (ironclad:update-hmac hmac))
+
+(:p "Update the internal state of " 'hmac' " with the data in "
+'sequence' " bounded by " 'start' " and " 'end' ".  " 'sequence' " must
+be a " `(SIMPLE-ARRAY (UNSIGNED-BYTE 8) (*))` ".")
+
+(:describe :function (ironclad:hmac-digest digest))
+
+(:p "Returns the MAC (" 'digest' ") computed by " 'hmac' " thus far.
+The internal state of " 'hmac' " is not modified; this feature makes it
+possible to compute a \"rolling MAC\" of a document.  The length of "
+'digest' " is determined by the " @digest-length " of " 'digest-name' "
+passed to " @make-hmac " when " 'hmac' " was constructed.")
+
+(:p "If " 'buffer' " is provided, the computed MAC will be placed into "
+'buffer' " starting at " 'buffer-start' ".  " 'buffer' " must be a "
+`(SIMPLE-ARRAY (UNSIGNED-BYTE 8) (*))` ".  An "
+@insufficient-buffer-space " error will be signaled if there is
+insufficient space in " 'buffer' ".")
+
+(:h3 "CMACs")
+
+(:p "Instances of CMACs are constructed by specifying a secret key and a
+cipher-name.")
+
+(:describe :function (ironclad:make-cmac cmac))
+
+(:p "Return a CMAC instance based on the cipher " 'cipher-name' " with
+secret key " 'key' ".  " 'cipher-name' " must have a " @block-length "
+of either 8 or 16; this restriction is satisfied by most ciphers in
+Ironclad with the notable exception of stream ciphers.  " 'key' " must
+be an acceptable key for " 'cipher-name' ".")
+
+(:describe :function (ironclad:update-cmac cmac))
+
+(:p "Update the internal state of " 'cmac' " with the data in "
+'sequence' " bounded by " 'start' " and " 'end' ".  " 'sequence' " must
+be a " `(SIMPLE-ARRAY (UNSIGNED-BYTE 8) (*))` ".")
+
+(:describe :function (ironclad:cmac-digest digest))
+
+(:p "Returns the MAC (" 'digest' ") computed by " 'cmac' " thus far.
+The internal state of " 'cmac' " is not modified; this feature makes it
+possible to compute a \"rolling MAC\" of a document.  The length of "
+'digest' " is determined by the " @block-length " of " 'cipher-name' "
+passed to " @make-cmac " when " 'cmac' " was constructed.")
+
+((:h2 id "public-key") "Public-key Operations")
+
+(:p "Ironclad includes support for DSA signing and verification.
+Support for RSA encryption and decryption is provided as well, but it is
+\"raw\"--the various formatting schemes (e.g. PKCS-1) must be implemented
+by the user at this time.")
+
+(:h3 "Key construction")
+
+(:describe :generic-function (ironclad:make-public-key public-key))
+
+(:p "Return a public key according to " 'kind' ".  The " '&key' "
+arguments vary according to " 'kind' ".  The interesting bits are in the
+methods that specialize on " 'kind' ", below.")
+
+(:describe :method (ironclad:make-public-key ((eql :dsa)) private-key))
+
+(:p "Return a DSA public key.  " 'p' ", " 'q' ", " 'g' ", and " 'y' "
+are the usual parameters for DSA keys discussed in the literature.")
+
+(:describe :generic-function (ironclad:make-private-key private-key))
+
+(:p "Return a private key according to " 'kind' ".  The " '&key' "
+arguments vary according to " 'kind' ".  The interesting bits are in the
+methods that specialize on " 'kind' ", below.")
+
+(:describe :method (ironclad:make-private-key ((eql :dsa)) private-key))
+
+(:p "Return a DSA private key.  " 'p' ", " 'q' ", " 'g' ", " 'y' ", and
+" 'x' " are the usual parameters for DSA keys discussed in the
+literature.")
+
+(:h3 "Digital signatures")
+
+(:describe :generic-function (ironclad:sign-message signature))
+
+(:p "Return a signature of " 'message' " between " 'start' " and " 'end'
+" signed with " 'key' "; the class of " 'key' " determines the class of
+" 'signature' ".")
+
+(:describe :method (ironclad:sign-message (ironclad::dsa-private-key t) signature))
+
+(:p "This method places an additional constraint on the size of "
+'message' " specified by " 'start' " and " 'end' ": it must be exactly
+20 bytes long (the length of a SHA-1 digest).  " 'signature' " is a "
+@dsa-signature " object.")
+
+(:describe :generic-function (ironclad:verify-signature boolean))
+
+(:p "Verify whether " 'signature' " is the signature of " 'message' "
+between " 'start' " and " 'end' " using " 'key' ".  Return T or NIL
+depending on the result of verification.")
+
+(:describe :method (ironclad:verify-signature (ironclad::dsa-public-key t ironclad::dsa-signature) boolean))
+
+(:h4 "Signature objects")
+
+(:p "There is no one \"right\" way to format signatures into octet
+vectors; different applications may have different requirements.  "
+@sign-message " therefore returns objects and lets the user determine
+how to best format the values contained therein.")
+
+(:describe :class dsa-signature)
+
+(:p "A DSA signature object.")
+
+(:describe :function (ironclad:make-dsa-signature signature))
+
+(:p "Returns a DSA signature with the provided " 'r' " and " 's' "
+values.  " 'r' " and " 's' " may be either integers or they may be
+20-byte octet vectors.")
+
+(:describe :function (ironclad:dsa-signature-r integer))
+
+(:p "Returns the " 'r' " value of the provided DSA signature.")
+
+(:describe :function (ironclad:dsa-signature-s integer))
+
+(:p "Returns the " 's' " value of the provided DSA signature.")
+
+(:h3 "Encryption and decryption")
+
+(:describe :function (ironclad:encrypt-message encrypted-message))
+
+(:describe :function (ironclad:decrypt-message decrypted-message))
+
+((:h2 id "gray-streams") "Gray Streams")
+
+(:p "Ironclad includes support for several convenient stream
+abstractions based on Gray streams.  Gray streams support in Ironclad is
+included for SBCL, CMUCL, OpenMCL, Lispworks, and Allegro.")
+
+(:h3 "Octet streams")
+
+(:p "Octet streams are very similar to Common Lisp's " @string-stream ",
+except they deal in octets instead of characters.")
+
+(:describe :function (ironclad:make-octet-input-stream octet-input-stream))
+
+(:p "As " @make-string-input-stream ", only with octets instead of characters.")
+
+(:describe :function (ironclad:make-octet-output-stream octet-output-stream))
+
+(:p "As " @make-string-output-stream ", only with octets instead of characters.")
+
+(:describe :function (ironclad:get-output-stream-octets octet-vector))
+
+(:p "As " @get-output-stream-string ", only with an octet output-steam
+instead of a string output-stream.")
+
+(:h3 "Digest streams")
+
+(:p "Digest streams compute a digest of the data written to them
+according to a specific digest algorithm.")
+
+(:p "Example:")
+
+(:pre "(defun frobbing-function (stream)
+  ;; We want to compute a digest of the data being written to STREAM
+  ;; without involving our callees in the process.
+  (let* ((digesting-stream (crypto:make-digesting-stream :sha1))
+         (stream (make-broadcast-stream stream digesting-stream)))
+    ;; Feed data to STREAM.
+    (frob-guts stream)
+    ;; Do something with the digest computed.
+    (... (crypto:produce-digest digesting-stream) ...)
+    ...))")
+
+(:describe :function (ironclad:make-digesting-stream stream))
+
+(:p "Make a stream that computes a digest of the data written to it
+according to the algorithm " 'digest-name' ".  " @produce-digest " may
+be used to obtain a digest of all the data written to the stream.")
+
+(:note "Calling " @produce-digest " on a digest stream does not alter
+the internal state of the digest.")
+
+(:h2 "Utility Functions")
+
+(:describe :accessor (ironclad:ub16ref/le value)
+                     (ironclad:ub32ref/le value)
+                     (ironclad:ub64ref/le value))
+
+(:p "This family of functions accesses an unsigned 16-bit, 32-bit or
+64-bit value stored in little-endian order starting at " 'index' " in "
+'array' ".  " 'array' " must be a " `(SIMPLE-ARRAY (UNSIGNED-BYTE 8)
+(*))` ". These functions are SETFable.")
+
+(:describe :accessor (ironclad:ub16ref/be value)
+                     (ironclad:ub32ref/be value)
+                     (ironclad:ub64ref/be value))
+
+(:p "As the above, only the value is stored in big-endian order.")
+
+(:describe :function (ironclad:byte-array-to-hex-string string)
+                     (ironclad:ascii-string-to-byte-array vector))
+
+(:p `byte-array-to-hex-string` " converts the bytes of " 'vector' "
+between " 'start' " and " 'end' " into a hexadecimal string.  It is
+useful for converting digests to a more readable form.  " 'element-type'
+" indicates the element-type of the returned string.")
+
+(:p `ascii-string-to-byte-array` " is provided as a quick and dirty way
+to convert a string to a byte array suitable for feeding to "
+@update-digest " or " @encrypt ".  Care should be taken to ensure that
+the provided string is actually an ASCII string.  " 'start' " and "
+'end' " have their usual interpretations.")
+
+(:describe :function (ironclad:octets-to-integer number)
+                     (ironclad:integer-to-octets vector))
+
+(:p `octets-to-integer` " converts the bytes of " 'octet-vec' " between
+" 'start' " and " 'end' " to an integer as though the bytes denoted a
+number in base 256.  " 'big-endian' " is a boolean indicating whether
+the bytes are to be read in big-endian or little-endian order.  "
+'n-bits' " specifies how many bits should be considered as significant
+in the resulting number.")
+
+(:p `integer-to-octets` " is the reverse operation.")
+
+(:describe :function (ironclad:expt-mod number))
+
+(:p "Raises " 'n' " to the " 'exponent' " power modulo " 'modulus' " in
+a more efficient fashion than " `(MOD (EXPT N EXPONENT) MODULUS)` ".")
+
+(:h2 "Conditions")
+
+(:describe :condition ironclad-error)
+
+(:p "All errors signaled by Ironclad are of this type.  This type is a
+direct subtype of " `SIMPLE-ERROR` " without any extra slots or
+options.")
+
+(:describe :condition initialization-vector-not-supplied)
+
+(:p "This error is signaled by " @make-cipher " when an initialization
+vector is not provided and the requested mode requires an initialization
+vector.")
+
+(:describe :condition invalid-initialization-vector)
+
+(:p "This error is signaled when an invalid initialization vector is
+supplied to " @make-cipher " (e.g. when the length of the initialization
+vector does not match the block length of the cipher).")
+
+(:describe :condition invalid-key-length)
+
+(:p "This error is signaled when the key provided to " @make-cipher " is
+not of an acceptable length for the requested cipher.")
+
+(:describe :condition unsupported-cipher)
+
+(:p "This error is signaled when the " 'cipher-name' " provided to "
+@make-cipher " is not " @cipher-supported-p ".")
+
+(:describe :condition unsupported-mode)
+
+(:p "This error is signaled when the " 'mode' " provided to "
+@make-cipher " is not " @mode-supported-p ".")
+
+(:describe :condition unsupported-digest)
+
+(:p "This error is signaled when the " 'digest-name' " provided to "
+@make-digest " is not " @digest-supported-p ".")
+
+(:describe :condition insufficient-buffer-space)
+
+(:p "This error is signaled when Ironclad needs to stuff some data into a
+buffer (e.g. when the user provides " 'digest' " to " @produce-digest ") and
+there is insufficient space.")
+
+(:describe :condition key-not-supplied)
+
+(:p "This error is signaled when a " `:KEY` " argument is not provided
+to " @make-cipher ".")

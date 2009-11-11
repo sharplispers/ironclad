@@ -1,0 +1,569 @@
+-*- mode: outline -*-
+
+* Version 0.27, released 2009-03-28
+
+** bug fixes
+
+Fixed several issues that came up with Allegro CL 8.1.  (Thanks to
+Utz-Uwe Haus.)
+
+Fixed compilation issues when the user had a non-standard *PRINT-CASE*.
+(Thanks to Gustavo.)
+
+Fixed an issue with LispWorks's recent update for conformance with
+DEFSTRUCT's specification.  (Thanks to John Fremlin.)
+
+** improvements
+
+HMAC-DIGEST now supports placing the produced digest into a
+user-provided buffer.  Please see the documentation for details.
+
+HMAC now supports digests with larger block sizes than 64 bytes (such as
+SHA2-512).
+
+HMAC should be somewhat more efficient when producing digests.
+
+REINITIALIZE-INSTANCE is now supported on HMAC objects.  Please see the
+documentation for details.
+
+CLEAR-OUTPUT is now supported on digesting streams.
+
+** new features
+
+The SHA-224, SHA2-384 and SHA2-512 digest functions have been added,
+with tests.
+
+Key derivation functions from PKCS #5 have been added.
+
+On Gray streams-supporting implementations, WRITE-SEQUENCE is supported
+on several stream classes, with more to come.
+
+* Version 0.26, released 2008-05-17
+
+** bug fixes
+
+RC6 now compiles without error on non-x86 SBCL.  (Thanks to Kevin Reid.)
+
+** incompatible changes
+
+PRODUCE-DIGEST now *modifies* the state of the digest object passed to
+it.  If you want to preserve that state for later, you will have to
+explicitly call COPY-DIGEST.
+
+** improvements
+
+Compiler macros were added to improve the performance of
+DIGEST-{SEQUENCE,STREAM,FILE}.  (Thanks to Attila Lendvai for motivating
+this.)
+
+Digest performance should be improved due to using structures; this
+change should bring digest performance back in line with where it was
+circa version 0.22.
+
+* Version 0.25, released 2008-02-24
+
+** bug fixes
+
+CRC32 now works properly and agrees with other CRC32 implementations.
+(Thanks to Todd Sabin.)
+
+The testsuite is once again included.  (Thanks to Peter Graves for
+pointing out the missing files.)
+
+** improvements
+
+BYTE-ARRAY-TO-HEX-STRING and ASCII-STRING-TO-BYTE-ARRAY have been
+optimized and should perform better.  (Thanks to Attila Lendvai for the
+optimizations.)
+
+A compiler macro was added to improve the performance of MAKE-DIGEST.
+MAKE-DIGEST should also be faster in cases where the compiler macro does
+not apply.  (Thanks to Attila Lendvai for motivating this.)
+
+** new features
+
+The null cipher has been added to ease implementation of some security
+protocols.  It is a block cipher with a BLOCK-LENGTH of 8 bytes.
+
+* Version 0.24, released 2008-02-09
+
+** bug fixes
+
+A bogus DECLAIM in Whirlpool's implementation has been fixed.
+
+** improvements
+
+The way Whirlpool's registers are represented was changed slightly; the
+new representation should be slightly more efficient and silences an
+error in OpenMCL and LispWorks.  Due to the changes, it is recommended
+that you compile this version of Ironclad in a fresh Lisp instance.
+(Thanks to Chun Tian.)
+
+Lispworks support for octet streams has been added.  OpenMCL support for
+octet streams has been tweaked and should actually work now.  (Thanks to
+Chun Tian.)
+
+* Version 0.23, released 31-12-2007
+
+** bug fixes
+
+VERIFY-SIGNATURE for DSA signatures now respects the START and END
+keyword arguments.  (Thanks to Ildar.)
+
+** improvements
+
+More refactoring of the internals has been performed; Ironclad should be
+slightly smaller as a result.
+
+Digest finalization on most digest types should cons significantly less.
+
+** new features
+
+REINITIALIZE-INSTANCE is now supported on digest objects.
+
+CLEAR-OUTPUT is now supported on octet output streams.
+
+A compiler macro was added to improve the performance of MAKE-CIPHER.
+
+The Whirlpool digest function has been added, with tests.  (Thanks to
+Peter Gijsels.)
+
+DIGEST-FILE, DIGEST-STREAM, and UPDATE-DIGEST with a stream to update
+from now accept three new keyword arguments: :BUFFER to specify a
+temporary buffer into which the data from the file/stream should be
+read, and :START and :END to specify the extent of the buffer that
+should be used.
+
+DIGEST-FILE, DIGEST-STREAM, and DIGEST-SEQUENCE now also accept a digest
+object as their first argument in addition to a digest specifier.
+
+* Version 0.22, released 12-06-2007
+
+** bug fixes
+
+Fixed issues with octet streams and Allegro CL.  (Thanks to
+"quasilists".)
+
+Fixed a bug in some type declarations that was causing XCL to (rightly)
+complain when compiling Ironclad.  (Thanks to Peter Graves.)
+
+The rsa.lisp file previously advertised to be in the distribution is now
+actually present.  (Thanks to oudeis.)
+
+** new features
+
+Byte-wise CFB mode (:CFB8) encryption and decryption have been added.
+(Thanks to Robert J. Macomber for suggesting this might be necessary for
+interoperating with other crypto toolkits.)
+
+UPDATE-DIGEST has new methods that can update the digest from a stream.
+See the documentation for details.
+
+* Version 0.21, released 21-04-2007
+
+** bug fixes
+
+Rewrote internal key-checking logic to provide a better error message
+when a :KEY argument is not provided to MAKE-CIPHER.  (Thanks to Mark
+Carter.)
+
+Fixed LIST calls that exceeded CALL-ARGUMENTS-LIMIT.  (Thanks to piso on
+#lisp.)
+
+Fixed tests to use RTEST nickname rather than RT to avoid name conflicts
+for LispWorks users.  (Thanks to Sven Van Caekenberghe.)
+
+Fixed the Twofish, Blowfish, CAST5, and RC6 ciphers to work properly in
+LispWorks.  (Thanks to Sven Van Caekenberghe.)
+
+Fixed a problem with DEFINE-DIGEST-REGISTERS.  (Thanks to Sven Van
+Caekenberghe.)
+
+Fixed a problem with CMUCL and octet-streams.  (Thanks to Raymond Toy.)
+
+* Version 0.20.1, released 21-02-2007
+
+** bug fixes
+
+Fixed system definition to push onto *FEATURES* correctly in CMUCL.
+(Thanks to Raymond Toy.)
+
+Fixed several mismatches in the documentation between the arglists and
+the prose that described them.  (Thanks to Zach Beane.)
+
+Fixed IRONCLAD-TESTS to include the 3des test vectors.  (Thanks to
+Raymond Toy and fe[nl]ix on #lisp who reported this.)
+
+* Version 0.20, released 20-02-2007
+
+** bug fixes
+
+The "counting" part of CTR mode in SBCL has been fixed.
+
+A bug in SHA-1 and SHA-256's usage of LOOP has been fixed.
+
+** incompatible changes
+
+The interface to MAKE-CIPHER has been redone.  Please see the
+documentation for details.
+
+** improvements
+
+Square, TEA, and XTEA now come with test vectors.
+
+CRC24, CRC32, and Adler32 now come with test vectors.
+
+The test suite has been significantly reworked.  It is now somewhat
+faster to execute and the compilation time for the system IRONCLAD-TESTS
+has been significantly reduced.
+
+Documentation for the library has been written; see doc/ironclad.html.
+Corrections and suggestions for improvements are much appreciated.
+
+The internals of cipher definition and ENCRYPT/DECRYPT have been
+rewritten.  The net result is that the footprint of Ironclad has been
+reduced by ~25% (x86 SBCL) due to fewer methods being defined for each
+cipher.  Furthermore, adding new ciphers will add only a few methods,
+rather than the large number that were created before.
+
+** new features
+
+PRODUCE-DIGEST and DIGEST-{STREAM,SEQUENCE,FILE} can optionally place
+the computed digest into a preallocated user-supplied buffer.  Please
+see the documentation for these functions for details.  (Thanks to Zach
+Beane for suggesting this feature.)
+
+RSA encryption routines have been added.  These are very "raw"
+routines, undoubtedly in need of some polish.
+
+Support for CMACs (NIST 800-38B and RFC 4439) has been added.  (Thanks
+to Koga Kazuo for an initial implementation.)
+
+* Version 0.13, released 03-05-2006
+
+** improvements
+
+Added a (require :gray-streams) for CMUCL.  (Thanks to Raymond Toy for
+suggesting this.)
+
+SHA-1 should now work on older versions of CLISP.  (>= 2.34 or so)
+
+Tiger is now supported on all Common Lisps, not just SBCL.
+
+** new features
+
+The ARCFOUR stream cipher has been added, with tests.  A new mode for
+ARCFOUR and similar stream ciphers, imaginatively named :STREAM, is used
+when creating an ARCFOUR cipher context with MAKE-CIPHER.  (Thanks to
+Tim Daly Jr.)
+
+{EN,DE}CRYPT-IN-PLACE have been added to make the programmer's intent
+clearer and to provide shorter calls for common operations.
+
+Digesting streams, which compute a specified digest of data being
+written, are now available on all Lisps that support octet streams.
+The digest of the data written so far may be retrieved with
+PRODUCE-DIGEST.
+
+* Version 0.12, released 30-01-2006
+
+** bugfixes
+
+Fixed XTEA decryption.
+
+Fixed incorrect type declarations in the Adler32 digest.  (Thanks to
+Thas on #lisp.  Thanks to Xach for permission to borrow his code from
+Salza.)
+
+Fixed MAKE-OCTET-INPUT-STREAM to instantiate the right class.
+(Thanks to Eric Marsden.)
+
+** new features
+
+The RC2 block cipher has been added, with tests.
+
+Octet streams are now supported on Allegro CL and CMUCL.
+
+A family of functions, UB{16,32,64}REF/{BE,LE}, has been added for
+referencing (UNSIGNED-BYTE {16,32,64}) values of the appropriate
+endianness from octet vectors.  These functions are SETF-able.
+
+** improvements
+
+Exported EXPT-MOD from the IRONCLAD package.
+
+* Version 0.11, released 10-11-2005
+
+** bugfixes
+
+Fixed tests HMAC.0 and HMAC.1 (which would have worked had they referred
+to the proper ASCII-STRING-TO-BYTE-ARRAY...).  (Thanks to Raymond Toy.)
+
+Fixed CBC mode decryption to match CBC mode encryption.  *blush*
+(Thanks to Travis Cross.)  Sanity checks have been added to the test
+suite to make this sort of thing less likely to happen in the future.
+
+Fixed the initializer for CRC24; CRC24 now works properly.
+
+Fixed a hashing bug common to MD{2,4,5}, SHA-1, SHA-256, RIPEMD-128,
+RIPEMD-160, and Tiger when updating the digest state with an amount of
+data smaller than the space remaining in the internal buffer.  Tests
+have been added to ensure this doesn't happen again.
+
+Fixed DIGEST-SEQUENCE on SBCL and CMUCL to respect the fill-pointer of
+a vector.  (Thanks to Steve Smith.)
+
+** new features
+
+A new generic function to inspect supported key lengths for ciphers has
+been added.  By no small coincidence, it is named KEY-LENGTHS.  Please
+see its documentation string for details.  (Thanks to Travis Cross.)
+
+Counter mode (:CTR) encryption and decryption has been added.
+
+Octet streams, which are like string-streams, only for octet vectors,
+have been added.  As of this release, they only work in SBCL and
+OpenMCL; if your favorite implementation is not supported, patches are
+welcome.
+
+Asymmetric encryption routines have been included in this release; only
+DSA (signing and verification) routines are included.  Although test
+vectors are not (yet) included, this release of Ironclad was signed
+using routines from Ironclad.
+
+IMPORTANT: Please note that DSA signing of messages is on the *digest*
+of the message, not the message itself.  Please also note that the
+DSA signing routine requires *random* numbers; it currently uses
+CL:RANDOM for this purpose, which is probably *NOT* secure enough for
+your needs.  Please make any changes you deem necessary to the signing
+routine to accomodate your security level.
+
+Feedback is sought on the interface to the routines:
+
+- MAKE-PUBLIC-KEY
+- MAKE-PRIVATE-KEY
+- SIGN-MESSAGE
+- VERIFY-MESSAGE
+
+DEFGENERICs for ENCRYPT-MESSAGE and DECRYPT-MESSAGE have been included.
+No methods on them are currently defined.  Methods for RSA keys and
+ElGamal keys will likely be forthcoming in a future release.  Feedback
+is also requested for those functions as well.
+
+* Version 0.10, released 01-11-2005
+
+** bugfixes
+
+Exported several block cipher context class names that were previously
+unexported.
+
+Digesting files and streams now works properly on MCL and other Lisps
+that "mangle" stream-element-type.  (Thanks to Hoan Ton-That.)
+
+** new features
+
+Functions ASCII-STRING-TO-BYTE-ARRAY and BYTE-ARRAY-TO-HEX-STRING
+were moved from the IRONCLAD-TESTS package into Ironclad itself.  These
+functions seem useful enough to have around at all times.  Please see
+the docstrings for these functions for usage documentation.  (Thanks to
+kire on #lisp for suggesting this.)
+
+** improvements
+
+The memory footprint of Ironclad should be slightly reduced.
+
+MAKE-CIPHER throws real errors for unsupported ciphers
+(IRONCLAD:UNSUPPORTED-CIPHER) or modes (IRONCLAD:UNSUPPORTED-MODE),
+rather than NO-APPLICABLE-METHOD.
+
+* Version 0.9.1, released 13-09-2005
+
+** bugfixes
+
+Fixed problems related to non-ANSI use of SUBSEQ on circular lists.
+
+* Version 0.9, released 13-09-2005
+
+** bugfixes
+
+The TripleDES block cipher now passes all included test vectors.
+
+** new features
+
+The RC6 block cipher has been added, with tests.
+
+The MISTY1 block cipher has been added, with tests.  MISTY1 is unique
+among the current crop of ciphers supported by Ironclad, as an
+implementation that uses 16-bit arithmetic rather than 32-bit is
+straightforward.  Therefore, MISTY1's performance should be better than,
+say, DES or Blowfish on Common Lisp implementations that do not support
+unboxed 32-bit arithmetic.
+
+** performance improvements
+
+The performance of the SHA-1 and SHA-256 hash functions should be
+significantly improved.
+
+* Version 0.8, released 29-08-2005
+
+** bugfixes
+
+Added missing :LOAD-TOPLEVEL to EVAL-WHEN in blowfish.lisp; tests now
+pass on ACL 7.0, Linux/x86.  (Thanks to chavatar on #lisp.)
+
+Fixed a case when digesting a file would throw a TYPE-ERROR.  (Thanks to
+Hoan Ton-That.)
+
+Test vectors have been added for TripleDES, which immediately caught
+several bugs in the current implementation.  However, many of the
+TripleDES tests do not pass in the current release.  Using TripleDES
+until all tests pass is not recommended.
+
+Test vectors have been added for SHA-1, which immediately caught a bug
+in the production of digests.  This bug has been fixed.
+
+** new features
+
+The RC5 cipher has been added, with tests.
+
+The SHA-256 hash function has been added, with tests.
+
+* Version 0.7.2, released 24-08-2005
+
+** bugfixes
+
+Fixed calls to ROL32 to only use positive arguments.  This change should
+result in more tests (particularly the Twofish tests) passing on
+non-SBCL implementations.  (Thanks to Raymond Toy for tracking this one
+down.)
+
+Fixed some ACL 6.2 (trial) warnings related to multiply-defined
+functions, non-EVAL-WHEN'd DEFCONSTANT forms, unused variables, and an
+incomplete ASDF system definition.  These fixes should also eliminate
+warnings in other implementations as well.  (Thanks to chavatar on #lisp
+for motivating this.)
+
+* Version 0.7.1, released 23-08-2005
+
+** bugfixes
+
+UPDATE-HMAC now returns the HMAC object upon which it operated, rather
+than internal hashing state.  (Thanks to rich_holygoat on #lisp.)
+
+Condition names are now exported from the IRONCLAD package.
+
+FINALIZE-ADLER32-STATE was fixed to properly store and return the
+computed digest.  (Thanks to Raymond Toy.)
+
+The test suite now excludes Tiger on non-SBCL Common Lisps (since Tiger
+is currently only supported on SBCL).  (Thanks to Raymond Toy.)
+
+* Version 0.7, released 11-08-2005
+
+** incompatible changes
+
+Support for SBCL versions older than 0.9.0 has been removed.
+
+** bugfixes
+
+The RIPEMD family of hash functions now passes all included test vectors.
+
+The MD4 hash function now passes all included test vectors.
+
+The CAST5 block cipher now passes all included test vectors.
+
+When appropriate, ARRAY-DIMENSION-LIMIT is now used to specify types
+instead of ARRAY-TOTAL-SIZE-LIMIT.
+
+A bug related to an argument-passing mismatch between the low-level
+hashing routines and their high-level counterparts has been fixed.
+
+** new features
+
+TripleDES has been added.
+
+Real conditions (subclasses of IRONCLAD:IRONCLAD-ERROR) are now signaled
+in several exceptional situations.
+
+*** introspection changes
+
+New generic functions DIGEST-LENGTH and BLOCK-LENGTH have been added.
+Please see the documentation strings for these generic functions for
+details.
+
+* Version 0.6, released 21-02-2005
+
+** bugfixes
+
+Due to the addition of a real, functioning test suite, many bugs have
+been fixed, including an embarassing one involving decryption.  While
+not all of the provided digest functions and ciphers pass the test suite
+yet, the number of fixes brought about by adding the test suite called
+for a new release.
+
+The AES, Twofish, IDEA, DES, and Blowfish implementations pass the test
+suite along with the MD5, SHA-1 and Tiger hash function implementations.
+
+** new features
+
+The checksums Adler32, CRC24, and CRC32 have been added.
+
+The IDEA and Twofish ciphers have been added.
+
+New digest interfaces have been added.  Please check the documentation
+strings for MAKE-DIGEST, COPY-DIGEST, UPDATE-DIGEST, and PRODUCE-DIGEST
+for details.
+
+Support for HMACs has been added.
+
+** optimizations
+
+FETCH-UB32 and STORE-UB32 are now coded inline, which should eliminate
+bignum consing in some implementations.
+
+Better type declarations have been added to make the extraction of
+word-sized data from (UNSIGNED-BYTE 32) vectors less expensive.
+
+The Blowfish implementation has been optimized and should cons less.
+
+The AES implementation has been optimized and should be at least 2x faster.
+
+* Version 0.5, released 05-01-2005
+
+** bugfixes
+
+The Square cipher was severly broken in previous releases.  This
+oversight has been remedied.  Other ciphers were broken in similar
+ways (e.g. argument ordering problems) and the function definitions
+for the cipher operation modes were broken as well.  These problems have
+been fixed.
+
+** incompatible changes
+
+Strings are no longer "digestable"--you must convert the string to a
+byte vector before digesting it.
+
+Hex strings are no longer permitted as keys for ciphers.
+
+** introspection changes
+
+Added functions {DIGEST,CIPHER,MODE}-SUPPORTED-P and
+LIST-ALL-{DIGEST,CIPHER,MODE}S so applications can determine on the fly
+what algorithms are supported by the package.
+
+** test framework added
+
+Test vectors from official specifications have been added to the package
+and ASDF definitions for a test framework have been added as well.  Note
+that the testing suite is not yet fully operational. :)
+
+* Version 0.4, released 27-11-2004
+
+Cipher keys can now be specified as hexadecimal strings or as byte
+vectors.
+
+Various little cleanups were made.
+
+* Version 0.3, released 26-11-2004
+
+initial release
