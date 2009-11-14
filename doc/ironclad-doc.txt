@@ -31,11 +31,12 @@ The testsuite can be run by substituting " `ASDF:TEST-OP` " for "
 (:p ${package} " has been tested in the following implementations:")
 
 (:ul
-(:li "SBCL x86/linux (primary development platform)")
-(:li "SBCL x86-64/solaris")
+(:li "SBCL x86/linux x86-64/linux (primary development platforms)")
+(:li "SBCL x86-64/solaris x86/darwin")
 (:li "CMUCL x86/linux")
 (:li "ABCL with Sun's 1.5.0 JVM")
 (:li "Lispworks 5.0.1 x86/linux")
+(:li "Lispworks 5.1.2 x86-64/darwin x86/windows")
 (:li "Allegro 8.0 x86/linux")
 (:li "Allegro 8.1 x86/linux")
 (:li "Allegro 8.1 x86-64/linux")
