@@ -343,14 +343,14 @@ behavior."
 	   (type (simple-array (unsigned-byte 64) (*)) block)
 	   (type simple-octet-vector buffer)
            #.(burn-baby-burn))
-  ;; convert to 32-bit words
-  #+(and :cmu :big-endian)
+  ;; convert to 64-bit words
+  #+(and :cmu :big-endian :64-bit)
   (kernel:bit-bash-copy
    buffer (+ (* vm:vector-data-offset vm:word-bits)
              (* offset vm:byte-bits))
    block (* vm:vector-data-offset vm:word-bits)
    (* 128 vm:byte-bits))
-  #+(and :sbcl :big-endian)
+  #+(and :sbcl :big-endian :64-bit)
   (sb-kernel:ub8-bash-copy buffer offset block 0 128)
   #-(or (and :sbcl :big-endian) (and :cmu :big-endian))
   (loop for i of-type (integer 0 16) from 0

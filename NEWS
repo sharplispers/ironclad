@@ -1,5 +1,12 @@
 -*- mode: outline -*-
 
+* Version
+
+** bug fixes
+
+Fixed errors on 32-bit big-endian CMUCL and SBCL.  (Thanks to Raymond
+Toy.)
+
 * Version 0.27, released 2009-03-28
 
 ** bug fixes
