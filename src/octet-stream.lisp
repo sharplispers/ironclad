@@ -130,85 +130,85 @@
 (defmethod #.*stream-element-type-function* ((stream octet-stream))
   '(unsigned-byte 8))
 
-(defmacro define-stream-read-sequence (specializer &body body)
+(defmacro define-stream-read-sequence (specializer type &body body)
   #+sbcl
   `(defmethod sb-gray:stream-read-sequence ((stream ,specializer) seq &optional (start 0) end)
-     (cond
-       ((not (typep seq 'simple-octet-vector))
-        (call-next-method))
-       (t
+     (typecase seq
+       (,type
         (let ((end (or end (length seq))))
-          ,@body))))
+          ,@body))
+       (t
+        (call-next-method))))
   #+cmu
   `(defmethod ext:stream-read-sequence ((stream ,specializer) seq &optional (start 0) end)
-     (cond
-       ((not (typep seq 'simple-octet-vector))
-        (call-next-method))
-       (t
+     (typecase seq
+       (,type
         (let ((end (or end (length seq))))
-          ,@body))))
+          ,@body))
+       (t
+        (call-next-method))))
   #+allegro
   `(defmethod excl:stream-read-sequence ((stream ,specializer) seq &optional (start 0) end)
-     (cond
-       ((not (typep seq 'simple-octet-vector))
-        (call-next-method))
-       (t
+     (typecase seq
+       (,type
         (let ((end (or end (length seq))))
-          ,@body))))
+          ,@body))
+       (t
+        (call-next-method))))
   #+openmcl
   `(defmethod ccl:stream-read-vector ((stream ,specializer) seq start end)
-     (cond
-       ((not (typep seq 'simple-octet-vector))
-        (call-next-method))
+     (typecase seq
+       (,type
+        ,@body)
        (t
-        ,@body)))
+        (call-next-method))))
   #+lispworks
   `(defmethod stream:stream-read-sequence ((stream ,specializer) seq start end)
-     (cond
-       ((not (typep seq 'simple-octet-vector))
-        (call-next-method))
+     (typecase seq
+       (,type
+        ,@body)
        (t
-        ,@body))))
+        (call-next-method)))))
 
-(defmacro define-stream-write-sequence (specializer &body body)
+(defmacro define-stream-write-sequence (specializer type &body body)
   #+sbcl
   `(defmethod sb-gray:stream-write-sequence ((stream ,specializer) seq &optional (start 0) end)
-     (cond
-       ((not (typep seq 'simple-octet-vector))
-        (call-next-method))
-       (t
+     (typecase seq
+       (,type
         (let ((end (or end (length seq))))
-          ,@body))))
+          ,@body))
+       (t
+        (call-next-method))))
   #+cmu
   `(defmethod ext:stream-write-sequence ((stream ,specializer) seq &optional (start 0) end)
-     (cond
-       ((not (typep seq 'simple-octet-vector))
-        (call-next-method))
-       (t
+     (typecase seq
+       (,type
         (let ((end (or end (length seq))))
-          ,@body))))
+          ,@body))
+       (t
+        (call-next-method))))
   #+allegro
   `(defmethod stream:stream-write-sequence ((stream ,specializer) seq &optional (start 0) end)
-     (cond
-       ((not (typep seq 'simple-octet-vector))
-        (call-next-method))
-       (t
+     (typecase seq
+       (,type
         (let ((end (or end (length seq))))
-          ,@body))))
+          ,@body))
+       (t
+        (call-next-method))))
   #+openmcl
   `(defmethod ccl:stream-write-vector ((stream ,specializer) seq start end)
-     (cond
-       ((not (typep seq 'simple-octet-vector))
-        (call-next-method))
+     (typecase seq
+       (,type
+        ,@body)
        (t
-        ,@body)))
+        (call-next-method))))
   #+lispworks
   `(defmethod stream:stream-write-sequence ((stream ,specializer) seq start end)
-     (cond
-       ((not (typep seq 'simple-octet-vector))
-        (call-next-method))
+     (typecase seq
+       (,type
+        ,@body)
        (t
-        ,@body))))
+        (call-next-method)))))
 
 ;;; input streams
 
@@ -226,7 +226,7 @@
        (setf (index stream) (1+ index))
        (aref buffer index)))))
 
-(define-stream-read-sequence octet-input-stream
+(define-stream-read-sequence octet-input-stream simple-octet-vector
   (let ((buffer (buffer stream))
         (index (index stream))
         (buffer-end (end stream)))
@@ -271,7 +271,7 @@
           (index stream) (1+ index))
     integer))
 
-(define-stream-write-sequence octet-output-stream
+(define-stream-write-sequence octet-output-stream simple-octet-vector
   (let* ((buffer (buffer stream))
          (length (length buffer))
          (index (index stream)))
@@ -328,7 +328,7 @@ of a string output-stream."
       (setf position 0))
     byte))
 
-(define-stream-write-sequence digesting-stream
+(define-stream-write-sequence digesting-stream simple-octet-vector
   (unless (zerop (stream-buffer-position stream))
     (update-digest (stream-digest stream)
                    (stream-buffer stream)
