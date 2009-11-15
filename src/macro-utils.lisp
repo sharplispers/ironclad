@@ -8,3 +8,12 @@
 
 (defun unquote (thing)
   (if (quotationp thing) (second thing) thing))
+
+(defun massage-symbol (symbol)
+  (let ((package (symbol-package symbol))
+        (ironclad (load-time-value (find-package :ironclad))))
+    (cond
+      ((eq package ironclad) symbol)
+      ((eq package (load-time-value (find-package :keyword)))
+       (find-symbol (symbol-name symbol) ironclad))
+      (t nil))))

@@ -50,7 +50,7 @@
                          (:file "padding" :depends-on ("common"))
                          (:file "pkcs5" :depends-on ("common"))
                          (:module "ciphers"
-                                  :depends-on ("package" "common" "macro-utils")
+                                  :depends-on ("common" "macro-utils")
                                   :components
                                   (
                                    ;; block ciphers of various kinds
@@ -74,7 +74,7 @@
                                    ;; stream ciphers
                                    (:file "arcfour" :depends-on ("cipher"))))
                          (:module "digests"
-                                  :depends-on ("package" "common")
+                                  :depends-on ("common" "macro-utils")
                                   :components
                                   ((:file "digest")
                                    (:file "crc24" :depends-on ("digest"))
@@ -91,7 +91,7 @@
                                    (:file "tiger" :depends-on ("digest"))
                                    (:file "whirlpool" :depends-on ("digest"))))
                          (:module "macs"
-                                  :depends-on ("package" "common" "digests")
+                                  :depends-on ("common" "digests")
                                   :components
                                   ((:file "hmac")
                                    (:file "cmac")))
