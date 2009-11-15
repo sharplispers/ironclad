@@ -7,6 +7,8 @@
 Fixed errors on 32-bit big-endian CMUCL and SBCL.  (Thanks to Raymond
 Toy.)
 
+Fixed an error with INTEGER-TO-OCTETS :BIG-ENDIAN NIL.  (Thanks to Daniel Janus.)
+
 * Version 0.27, released 2009-03-28
 
 ** bug fixes

@@ -52,15 +52,15 @@ of the message.  Returns a fresh octet vector."))
 
 (defun integer-to-octets (bignum &key (n-bits (integer-length bignum))
                                 (big-endian t))
-  (let ((octet-vec (make-array (ceiling n-bits 8)
-                               :element-type '(unsigned-byte 8))))
+  (let* ((n-bytes (ceiling n-bits 8))
+         (octet-vec (make-array n-bytes :element-type '(unsigned-byte 8))))
     (declare (type (simple-array (unsigned-byte 8) (*)) octet-vec))
     (if big-endian
-        (loop for i from (1- (ceiling n-bits 8)) downto 0
+        (loop for i from (1- n-bytes) downto 0
               for index from 0
               do (setf (aref octet-vec index) (ldb (byte 8 (* i 8)) bignum))
               finally (return octet-vec))
-        (loop for i from 0 upto (floor n-bits 8)
+        (loop for i from 0 below n-bytes
               for byte from 0 by 8
               do (setf (aref octet-vec i) (ldb (byte 8 byte) bignum))
               finally (return octet-vec)))))
