@@ -685,7 +685,7 @@ Note that this computation may involve MODE's state."))
                       (incf ciphertext-start amount)
                       (incf n-bytes-decrypted amount)
                       (loop while (> ciphertext-length ,block-length-expr)
-                         do (encrypt-with-mode cipher sub-mode
+                         do (decrypt-with-mode cipher sub-mode
                                                ciphertext plaintext
                                                :ciphertext-start ciphertext-start
                                                :ciphertext-end (+ ciphertext-start
