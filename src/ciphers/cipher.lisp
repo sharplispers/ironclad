@@ -4,7 +4,8 @@
 
 (defgeneric encrypt (cipher plaintext ciphertext
                             &key plaintext-start plaintext-end
-                            ciphertext-start)
+                            ciphertext-start
+                            handle-final-block)
   (:documentation "Encrypt the data in PLAINTEXT between PLAINTEXT-START
 and PLAINTEXT-END according to CIPHER.  Places the encrypted data in
 CIPHERTEXT, beginning at CIPHERTEXT-START.  Less data than
@@ -14,7 +15,8 @@ CIPHERTEXT."))
 
 (defgeneric decrypt (cipher ciphertext plaintext
                             &key ciphertext-start ciphertext-end
-                            plaintext-start)
+                            plaintext-start
+                            handle-final-block)
   (:documentation "Decrypt the data in CIPHERTEXT between CIPHERTEXT-START
 and CIPHERTEXT-END according to CIPHER.  Places the decrypted data in
 PLAINTEXT, beginning at PLAINTEXT-START.  Less data than

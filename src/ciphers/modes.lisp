@@ -80,19 +80,23 @@ Note that this computation may involve MODE's state."))
 
 (defmethod encrypt (cipher plaintext ciphertext
                     &key (plaintext-start 0) plaintext-end
-                    (ciphertext-start 0))
+                    (ciphertext-start 0)
+                    handle-final-block)
   (encrypt-with-mode cipher (mode cipher) plaintext ciphertext
                      :plaintext-start plaintext-start
                      :plaintext-end plaintext-end
-                     :ciphertext-start ciphertext-start))
+                     :ciphertext-start ciphertext-start
+                     :handle-final-block handle-final-block))
 
 (defmethod decrypt (cipher ciphertext plaintext
                     &key (ciphertext-start 0) ciphertext-end
-                    (plaintext-start 0))
+                    (plaintext-start 0)
+                    handle-final-block)
   (decrypt-with-mode cipher (mode cipher) ciphertext plaintext
                      :ciphertext-start ciphertext-start
                      :ciphertext-end ciphertext-end
-                     :plaintext-start plaintext-start))
+                     :plaintext-start plaintext-start
+                     :handle-final-block handle-final-block))
 
 (defmethod encrypt-message (cipher msg &key (start 0) (end (length msg)))
   (let* ((length (- end start))
