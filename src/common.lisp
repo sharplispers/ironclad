@@ -358,6 +358,21 @@ behavior."
         for j of-type (integer 0 #.array-dimension-limit)
         from offset to (+ offset 127) by 8
         do (setf (aref block i) (ub64ref/be buffer j))))
+
+(declaim (inline xor-block))
+(defun xor-block (block-length input-block1 input-block2 input-block2-start
+                               output-block output-block-start)
+  (declare (type (simple-array (unsigned-byte 8) (*)) input-block1 input-block2 output-block))
+  (declare (type index block-length input-block2-start output-block-start))
+  ;; this could be made more efficient by doing things in a word-wise fashion.
+  ;; of course, then we'd have to deal with fun things like boundary
+  ;; conditions and such like.  maybe we could just win by unrolling the
+  ;; loop a bit.  BLOCK-LENGTH should be a constant in all calls to this
+  ;; function; maybe a compiler macro would work well.
+  (dotimes (i block-length)
+    (setf (aref output-block (+ output-block-start i))
+          (logxor (aref input-block1 i)
+                  (aref input-block2 (+ input-block2-start i))))))
 
 ;;; a few functions that are useful during compilation
 
