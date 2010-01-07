@@ -111,7 +111,7 @@
 
 ;;; efficient 32-bit arithmetic, which a lot of algorithms require
 
-(declaim (inline mod32+)
+(declaim #+ironclad-fast-mod32-arithmetic (inline mod32+)
 	 (ftype (function ((unsigned-byte 32) (unsigned-byte 32)) (unsigned-byte 32)) mod32+))
 (defun mod32+ (a b)
   (declare (type (unsigned-byte 32) a b))
@@ -126,7 +126,7 @@
   `(ldb (byte 32 0) (+ ,a ,b)))
 
 ;;; mostly needed for CAST*
-(declaim (inline mod32-)
+(declaim #+ironclad-fast-mod32-arithmetic (inline mod32-)
          (ftype (function ((unsigned-byte 32) (unsigned-byte 32)) (unsigned-byte 32)) mod32-))
 
 (defun mod32- (a b)
@@ -142,7 +142,7 @@
   `(ldb (byte 32 0) (- ,a ,b)))
 
 ;;; mostly needed for RC6
-(declaim (inline mod32*)
+(declaim #+ironclad-fast-mod32-arithmetic (inline mod32*)
          (ftype (function ((unsigned-byte 32) (unsigned-byte 32)) (unsigned-byte 32)) mod32*))
 
 (defun mod32* (a b)
@@ -157,7 +157,7 @@
 (define-compiler-macro mod32* (a b)
   `(ldb (byte 32 0) (* ,a ,b)))
 
-(declaim (inline mod32ash)
+(declaim #+ironclad-fast-mod32-arithmetic (inline mod32ash)
          (ftype (function ((unsigned-byte 32) (integer -31 31)) (unsigned-byte 32)) mod32ash))
 
 (defun mod32ash (num count)
@@ -171,7 +171,7 @@
   ;;  http://www.caddr.com/macho/archives/sbcl-devel/2004-8/3877.html
   `(logand #xffffffff (ash ,num ,count)))
 
-(declaim (inline mod32lognot)
+(declaim #+ironclad-fast-mod32-arithmetic (inline mod32lognot)
          (ftype (function ((unsigned-byte 32)) (unsigned-byte 32)) mod32lognot))
 
 (defun mod32lognot (num)
@@ -181,7 +181,7 @@
 (define-compiler-macro mod32lognot (num)
   `(ldb (byte 32 0) (lognot ,num)))
 
-(declaim (inline rol32 ror32)
+(declaim #+ironclad-fast-mod32-arithmetic (inline rol32 ror32)
 	 (ftype (function ((unsigned-byte 32) (unsigned-byte 5)) (unsigned-byte 32)) rol32 ror32))
 
 (defun rol32 (a s)
@@ -202,7 +202,7 @@
   #-sbcl
   (rol32 a (- 32 s)))
 
-(declaim (inline mod64+)
+(declaim #+ironclad-fast-mod64-arithmetic (inline mod64+)
 	 (ftype (function ((unsigned-byte 64) (unsigned-byte 64)) (unsigned-byte 64)) mod64+))
 (defun mod64+ (a b)
   (declare (type (unsigned-byte 64) a b))
@@ -212,7 +212,7 @@
 (define-compiler-macro mod64+ (a b)
   `(ldb (byte 64 0) (+ ,a ,b)))
 
-(declaim (inline rol64 ror64)
+(declaim #+ironclad-fast-mod64-arithmetic (inline rol64 ror64)
 	 (ftype (function ((unsigned-byte 64) (unsigned-byte 6)) (unsigned-byte 64)) rol64 ror64))
 
 (defun rol64 (a s)
@@ -226,7 +226,8 @@
 
 ;;; 64-bit utilities
 
-(declaim (inline %add-with-carry %subtract-with-borrow))
+(declaim #+ironclad-fast-mod32-arithmetic
+         (inline %add-with-carry %subtract-with-borrow))
 
 ;;; The names are taken from sbcl and cmucl's bignum routines.
 ;;; Naturally, they work the same way (which means %SUBTRACT-WITH-BORROW

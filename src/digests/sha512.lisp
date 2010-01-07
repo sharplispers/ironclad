@@ -58,6 +58,9 @@
         (g (sha512-regs-g regs)) (h (sha512-regs-h regs)))
     (flet ((rho (x r1 r2 r3)
              (logxor (ror64 x r1) (ror64 x r2) (ror64 x r3))))
+      ;; FIXME: Implement inline 64-bit rotates for x86-64 SBCL.
+      ;; #+ironclad-fast-mod64-arithmetic
+      ;; (declare (inline rho))
       (macrolet ((sha512-round (i a b c d e f g h)
                    `(let ((x (mod64+ (rho ,e 14 18 41)
                                      (mod64+ (logxor (logand ,e ,f)

@@ -29,6 +29,7 @@
            (h (x y z)
              (declare (type (unsigned-byte 32) x y z))
              (logxor x y z)))
+      #+ironclad-fast-mod32-arithmetic
       (declare (inline f g h))
       (macrolet ((with-md4-round ((op block constant) &rest clauses)
                    (loop for (a b c d k s) in clauses

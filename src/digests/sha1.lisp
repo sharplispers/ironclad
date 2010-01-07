@@ -87,6 +87,7 @@
              #-cmu
              (ldb (byte 32 0)
                   (logior (logand x y) (logand x z) (logand y z)))))
+      #+ironclad-fast-mod32-arithmetic
       (declare (inline f1 f2 f3))
       ;; core of the algorithm
       (sha1-rounds block f1 +k1+ 0 19 a b c d e)

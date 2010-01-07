@@ -103,6 +103,7 @@ accordingly."
              (kernel:32bit-logical-xor y (kernel:32bit-logical-orc2 x z))
              #-cmu
              (ldb (byte 32 0) (logxor y (logorc2 x z)))))
+      #+ironclad-fast-mod32-arithmetic
       (declare (inline f g h i))
       ;; Round 1
       (with-md5-round (f block)

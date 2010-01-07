@@ -110,16 +110,20 @@
 
 (defun ironclad-implementation-features ()
   #+sbcl
-  (list sb-c:*backend-byte-order*
-        (if (= sb-vm:n-word-bits 32)
-            :32-bit
-            :64-bit)
-        :ironclad-gray-streams)
+  (list* sb-c:*backend-byte-order*
+         (if (= sb-vm:n-word-bits 32)
+             :32-bit
+             :64-bit)
+         :ironclad-fast-mod32-arithmetic
+         :ironclad-gray-streams
+         (when (member :x86-64 *features*)
+           '(:ironclad-fast-mod64-arithmetic)))
   #+cmu
   (list (c:backend-byte-order c:*target-backend*)
         (if (= vm:word-bits 32)
             :32-bit
             :64-bit)
+        :ironclad-fast-mod32-arithmetic
         :ironclad-gray-streams)
   #+allegro
   (list :ironclad-gray-streams)

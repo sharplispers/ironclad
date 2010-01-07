@@ -36,6 +36,7 @@
            (j (x y z)
              (declare (type (unsigned-byte 32) x y z))
              (ldb (byte 32 0) (logxor x (logior y (lognot z))))))
+      #+ironclad-fast-mod32-arithmetic
       (declare (inline f g h i j))
       (macrolet ((subround (func a b c d e x s k)
                    `(progn
