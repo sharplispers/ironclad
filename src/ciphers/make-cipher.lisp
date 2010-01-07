@@ -148,6 +148,7 @@ INITIALIZATION-VECTOR argument is ignored."
                                            name
                                            &rest keys
                                            &key key mode initialization-vector padding &allow-other-keys)
+  (declare (ignore env keys))
   (cond
    ((or (keywordp name)
         (and (quotationp name) (symbolp name)))
