@@ -206,6 +206,8 @@ An error will be signaled if there is insufficient room in DIGEST.
 If BUFFER is provided, the portion of BUFFER between START and END will
 be used to hold data read from the stream."))
 
+(defmethod digest-file ((digest-name cons) pathname &rest kwargs)
+  (apply #'digest-file (apply #'make-digest digest-name) pathname kwargs))
 (defmethod digest-file ((digest-name symbol) pathname &rest kwargs)
   (apply #'digest-file (make-digest digest-name) pathname kwargs))
 
@@ -231,6 +233,8 @@ An error will be signaled if there is insufficient room in DIGEST.
 If BUFFER is provided, the portion of BUFFER between START and END will
 be used to hold data read from the stream."))
 
+(defmethod digest-stream ((digest-name cons) stream &rest kwargs)
+  (apply #'digest-stream (apply #'make-digest digest-name) stream kwargs))
 (defmethod digest-stream ((digest-name symbol) stream &rest kwargs)
   (apply #'digest-stream (make-digest digest-name) stream kwargs))
 
@@ -285,13 +289,13 @@ An error will be signaled if there is insufficient room in DIGEST."))
 ;;; some state object for a particular digest, you update it with some
 ;;; data, and then you get the actual digest.  Flexibility is the name
 ;;; of the game with these functions.
-(defun make-digest (digest-name)
+(defun make-digest (digest-name &rest keys &key &allow-other-keys)
   "Return a digest object which uses the algorithm DIGEST-NAME."
   (typecase digest-name
     (symbol
      (let ((name (massage-symbol digest-name)))
        (if (digestp name)
-           (funcall (the function (get name '%make-digest)))
+           (apply (the function (get name '%make-digest)) keys)
            (error 'unsupported-digest :name digest-name))))
     (t
      (error 'type-error :datum digest-name :expected-type 'symbol))))
@@ -373,14 +377,14 @@ An error will be signaled if there is insufficient room in DIGEST."))
 ;;; If we pass a constant argument to MAKE-DIGEST, convert the
 ;;; MAKE-DIGEST call to a direct call to the state creation function.
 (define-compiler-macro make-digest (&whole form &environment env
-                                           name)
+                                           name &rest keys &key &allow-other-keys)
   (declare (ignore env))
   (cond
     ((or (keywordp name)
          (and (quotationp name) (symbolp name)))
      (let ((name (massage-symbol (unquote name))))
        (if (digestp name)
-           `(,(optimized-maker-name name))
+           `(,(optimized-maker-name name) ,@keys)
            form)))
     (t form)))
 

@@ -89,7 +89,8 @@
                                    (:file "ripemd-128" :depends-on ("digest"))
                                    (:file "ripemd-160" :depends-on ("digest"))
                                    (:file "tiger" :depends-on ("digest"))
-                                   (:file "whirlpool" :depends-on ("digest"))))
+                                   (:file "whirlpool" :depends-on ("digest"))
+                                   (:file "tree-hash" :depends-on ("digest"))))
                          (:module "macs"
                                   :depends-on ("common" "digests")
                                   :components
