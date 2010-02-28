@@ -1,0 +1,18 @@
+;;; standard tests
+
+(:digest-test #a"" #32b"3I42H3S6NNFQ2MSVX7XZKYAYSCX5QBYJ")
+(:digest-bit-test 0 0 0 #32b"VK54ZIEEVTWNAUI5D5RDFIL37LX2IQNSTAXFKSA")
+(:digest-test #.(make-array '(1024) :element-type '(unsigned-byte 8) :initial-element 65)
+              #32b"L66Q4YVNAFWVS23X2HJIRA5ZJ7WXR3F26RSASFA")
+(:digest-test #.(make-array '(1025) :element-type '(unsigned-byte 8) :initial-element 65)
+              #32b"PZMRYHGY6LTBEH63ZWAHDORHSYTLO4LEFUIKHWY")
+
+
+(:digest-test #a"abc" #32b"ASD4UJSEH5M47PDYB46KBTSQTSGDKLBHYXOMUIA")
+(:digest-test #a"message digest" #32b"YM432MSOX5QILIH2L4TNO62E3O35WYGWSBSJOBA")
+(:digest-test #a"abcdefghijklmnopqrstuvwxyz" #32b"LMHNA2VYO465P2RDOGTR2CL6XKHZNI2X4CCUY5Y")
+(:digest-test #a"abcdbcdecdefdefgefghfghighijhijkijkljklmklmnlmnomnopnopq" #32b"VHRH2RUE3HSJ2SNATJ4AHWQVWJMOLXPASI4HB2I")
+(:digest-test #a"ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789" #32b"TF74ENF7MF2WPDE35M23NRSVKJIRKYRMTLWAHWQ")
+(:digest-test #a"12345678901234567890123456789012345678901234567890123456789012345678901234567890" #32b"NBKCANQ2ODNTSV4C7YJFF3JRAV7LKTFIPHQNBJY")
+
+
