@@ -1,6 +1,6 @@
 ;;; standard tests
 
-(:digest-test #a"" #32b"3I42H3S6NNFQ2MSVX7XZKYAYSCX5QBYJ")
+(:digest-test #a"" #32b"LWPNACQDBZRYXW3VHJVCJ64QBZNGHOHHHZWCLNQ")
 (:digest-bit-test 0 0 0 #32b"VK54ZIEEVTWNAUI5D5RDFIL37LX2IQNSTAXFKSA")
 (:digest-test #.(make-array '(1024) :element-type '(unsigned-byte 8) :initial-element 65)
               #32b"L66Q4YVNAFWVS23X2HJIRA5ZJ7WXR3F26RSASFA")

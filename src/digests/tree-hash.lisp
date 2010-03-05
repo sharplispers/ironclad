@@ -14,7 +14,7 @@
 
 (defstruct (tree-hash
              (:constructor %make-tree-hash)
-             (:constructor %make-tree-hash-state (block-length state))
+             (:constructor %make-tree-hash-state (block-length state block-index branch))
              (:copier nil))
   (block-length 1024 :type (integer 1 #.most-positive-fixnum))
   (state (make-tree-hash-leaf-digest :tiger))
@@ -22,7 +22,7 @@
   (branch () :type list))
 
 (defun %make-tree-hash-digest (&key (digest :tiger) (block-length 1024))
-  (%make-tree-hash-state block-length (make-tree-hash-leaf-digest digest)))
+  (%make-tree-hash-state block-length (make-tree-hash-leaf-digest digest) 0 '()))
 (defun %make-tth-digest ()
   (%make-tree-hash-digest))
 
@@ -35,8 +35,10 @@
 (defmethod reinitialize-instance ((state tree-hash) &rest initargs)
   (declare (ignore initargs))
   (reinitialize-instance (tree-hash-state state))
+  (update-digest (tree-hash-state state) *leaf-byte*)
   (setf (tree-hash-block-index state) 0)
-  (setf (tree-hash-branch state) '()))
+  (setf (tree-hash-branch state) '())
+  state)
 
 (defmethod copy-digest ((state tree-hash) &optional copy)
   (declare (type (or cl:null tree-hash) copy))
@@ -45,7 +47,8 @@
      (copy-digest (tree-hash-state state) (tree-hash-state copy))
      (setf (tree-hash-block-length copy) (tree-hash-block-length state))
      (setf (tree-hash-block-index copy) (tree-hash-block-index state))
-     (setf (tree-hash-branch copy) (tree-hash-branch state)))
+     (setf (tree-hash-branch copy) (tree-hash-branch state))
+     copy)
     (t
      (%make-tree-hash-state
       (tree-hash-block-length state)
@@ -57,25 +60,26 @@
   "Update the given tree-hash state from sequence,
 which is a simple-array with element-type (unsigned-byte 8),
 bounded by start and end, which must be numeric bounding-indices."
-  (assert (< start end))
-  (loop :with block-length = (tree-hash-block-length state)
-    :with digest = (tree-hash-state state)
-    :for length fixnum = (- end start)
-    :for block-index fixnum = (tree-hash-block-index state) :then 0
-    :for block-remaining-length fixnum = (- block-length block-index)
-    :for current-length fixnum = (min block-length length)
-    :for new-index fixnum = (+ block-index current-length)
-    :for new-start fixnum = (+ start current-length) :do
-    (update-digest digest sequence :start start :end new-start)
-    (when (= new-index block-length)
-      (update-tree-hash-branch state)
-      (reinitialize-instance digest)
-      (update-digest digest *leaf-byte*)
-      (setf new-index 0))
-    (setf start new-start)
-    (when (= start end)
-      (setf (tree-hash-block-index state) new-index)
-      (return))))
+  (assert (<= start end))
+  (when (< start end)
+    (loop :with block-length = (tree-hash-block-length state)
+      :with digest = (tree-hash-state state)
+      :for length fixnum = (- end start)
+      :for block-index fixnum = (tree-hash-block-index state) :then 0
+      :for block-remaining-length fixnum = (- block-length block-index)
+      :for current-length fixnum = (min block-length length)
+      :for new-index fixnum = (+ block-index current-length)
+      :for new-start fixnum = (+ start current-length) :do
+      (update-digest digest sequence :start start :end new-start)
+      (when (= new-index block-length)
+        (update-tree-hash-branch state)
+        (reinitialize-instance digest)
+        (update-digest digest *leaf-byte*)
+        (setf new-index 0))
+      (setf start new-start)
+      (when (= start end)
+        (setf (tree-hash-block-index state) new-index)
+        (return)))))
 
 (defun update-tree-hash-branch (state)
   (let ((digest (tree-hash-state state)))
