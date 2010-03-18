@@ -32,15 +32,6 @@
   (declare (ignore sub-char numarg))
   (crypto:ascii-string-to-byte-array (read stream t nil t)))
 
-(defun sharp-b (stream sub-char numarg)
-  (declare (ignore sub-char))
-  (binascii:decode (read stream t nil t)
-                   (ecase numarg
-                     (16 :base16)
-                     (32 :base32)
-                     (64 :base64)
-                     (85 :base85))))
-
 (defun sharp-h (stream sub-char numarg)
   (declare (ignore sub-char numarg))
   (hex-string-to-byte-array (read stream t nil t)))
@@ -49,7 +40,6 @@
   (let ((filename (test-vector-filename name))
         (*readtable* (copy-readtable)))
     (set-dispatch-macro-character #\# #\a #'sharp-a *readtable*)
-    (set-dispatch-macro-character #\# #\b #'sharp-b *readtable*)
     (set-dispatch-macro-character #\# #\h #'sharp-h *readtable*)
     (with-open-file (stream filename :direction :input
                             :element-type 'character

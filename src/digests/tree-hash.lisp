@@ -23,7 +23,8 @@
 
 (defun %make-tree-hash-digest (&key (digest :tiger) (block-length 1024))
   (%make-tree-hash-state block-length (make-tree-hash-leaf-digest digest) 0 '()))
-(defun %make-tth-digest ()
+
+(defun make-tiger-tree-hash ()
   (%make-tree-hash-digest))
 
 (defmethod block-length ((x tree-hash))
@@ -124,11 +125,6 @@ bounded by start and end, which must be numeric bounding-indices."
         result)))
 
 (eval-when (:compile-toplevel :load-toplevel :execute)
-  (export 'tth :ironclad))
-(setf (get 'tth '%digest-length) 24)
-(setf (get 'tth '%make-digest) (symbol-function '%make-tree-hash-digest))
-
-(eval-when (:compile-toplevel :load-toplevel :execute)
   (export 'tree-hash :ironclad))
 (setf (get 'tree-hash '%digest-length) 24)
-(setf (get 'tree-hash '%make-digest) (symbol-function '%make-tth-digest))
+(setf (get 'tree-hash '%make-digest) (symbol-function '%make-tree-hash-digest))

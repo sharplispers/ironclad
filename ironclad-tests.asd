@@ -23,7 +23,7 @@
   nil)
 
 (asdf:defsystem ironclad-tests
-  :depends-on (ironclad binascii)
+  :depends-on (ironclad)
   :version "0.5"
   :in-order-to ((test-op (load-op :ironclad-tests)))
   :components ((:module "testing"
