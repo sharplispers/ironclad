@@ -345,6 +345,36 @@ supported.  This means one can write a fairly efficient clone of the "
        (format t \"~A ~A~%\" (file-namestring file)
                (ironclad:byte-array-to-hex-string digest))))")
 
+(:h3 "Tree hashes")
+
+(:p "Ironclad supports tree hashes, as described in " (:url
+"http://web.archive.org/web/20080316033726/http://www.open-content.net/specs/draft-jchapweske-thex-02.html"
+"Tree Hash EXchange format") ".  You create tree hashes as if you were
+creating a digest:")
+
+(:pre "(ironclad:make-digest :tree-hash)")
+
+(:p "By default, this creates a tree hash that uses the Tiger digest
+algorithm internally and a segment size of 1024.  Since using the Tiger
+digest algorithm is so common, a convenience function that makes your
+intent obvious:")
+
+(:pre "(ironclad:make-tiger-tree-hash)")
+
+(:p "has also been provided.")
+
+(:p "You may indicate that you wish to use a different algorithm than
+Tiger:")
+
+(:pre "(ironclad:make-digest '(:treehash :digest :sha256))")
+
+(:p "Or you might wish to use a different segment size:")
+
+(:pre "(ironclad:make-digest '(:tree-hash :block-length 16384))")
+
+(:p "There is currently no interface for obtaining the intermediate
+hashes computed while computing the final tree hash.")
+
 ((:h2 id "macs") "Message authentication codes")
 
 (:p "A message authentication code is a cryptographic function of some
