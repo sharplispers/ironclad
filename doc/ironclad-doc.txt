@@ -4,6 +4,7 @@
  :cl-package "IRONCLAD"
  :version #.(asdf:component-version (asdf:find-system :ironclad))
  :homepage "http://www.method-combination.net/lisp/ironclad/"
+ :source-code "http://github.com/froydnj/ironclad"
  :download "http://www.method-combination.net/lisp/files/ironclad.tar.gz")
 
 (:h1 ${package})
@@ -20,8 +21,10 @@ convenient stream wrappers.")
 
 (:h2 "Installation")
 
-(:p ${package} " can be downloaded at " (:url ${download} ${download}) ".
-The latest version is " ${version} ".")
+(:p ${package} " can be downloaded at " (:url ${download} ${download})
+".  The latest released version is " ${version} ".  If you are feeling
+adventurous, you can download a bleeding-edge version at " (:url
+${source-code} ${source-code}) ".")
 
 (:p "It comes with an ASDF system definition, so " `(ASDF:OOS
 'ASDF:LOAD-OP :IRONCLAD)` " should be all that you need to get started.
