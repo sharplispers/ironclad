@@ -34,18 +34,15 @@ The testsuite can be run by substituting " `ASDF:TEST-OP` " for "
 (:p ${package} " has been tested in the following implementations:")
 
 (:ul
-(:li "SBCL x86/linux x86-64/linux (primary development platforms)")
-(:li "SBCL x86-64/solaris x86/darwin")
+(:li "SBCL x86/linux, x86-64/linux (primary development platforms)")
+(:li "SBCL x86-64/solaris, x86/darwin")
 (:li "CMUCL x86/linux")
 (:li "ABCL with Sun's 1.5.0 JVM")
 (:li "Lispworks 5.0.1 x86/linux")
 (:li "Lispworks 5.1.2 x86-64/darwin x86/windows")
 (:li "Allegro 8.0 x86/linux")
-(:li "Allegro 8.1 x86/linux")
-(:li "Allegro 8.1 x86-64/linux")
-(:li "Allegro 8.1 sparc/solaris")
-(:li "CLISP 2.41 x86/linux")
-(:li "CLISP 2.44 x86/cygwin")
+(:li "Allegro 8.1 x86/linux, x86-64/linux, sparc/solaris")
+(:li "CLISP 2.41 x86/linux, x86/cygwin")
 (:li "Clozure Common Lisp 1.2 x86-64/Linux"))
 
 (:p "All included tests should pass successfully.  If you use a platform
