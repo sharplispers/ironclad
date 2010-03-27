@@ -125,6 +125,7 @@ bounded by start and end, which must be numeric bounding-indices."
         result)))
 
 (eval-when (:compile-toplevel :load-toplevel :execute)
-  (export 'tree-hash :ironclad))
+  (export 'tree-hash :ironclad)
+  (export 'make-tiger-tree-hash :ironclad))
 (setf (get 'tree-hash '%digest-length) 24)
 (setf (get 'tree-hash '%make-digest) (symbol-function '%make-tree-hash-digest))
