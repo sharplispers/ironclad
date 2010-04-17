@@ -202,7 +202,7 @@
   #-sbcl
   (rol32 a (- 32 s)))
 
-(declaim #+ironclad-fast-mod64-arithmetic (inline mod64+)
+(declaim #+ironclad-fast-mod64-arithmetic (inline mod64+ mod64- mod64*)
 	 (ftype (function ((unsigned-byte 64) (unsigned-byte 64)) (unsigned-byte 64)) mod64+))
 (defun mod64+ (a b)
   (declare (type (unsigned-byte 64) a b))
@@ -212,8 +212,48 @@
 (define-compiler-macro mod64+ (a b)
   `(ldb (byte 64 0) (+ ,a ,b)))
 
+(defun mod64- (a b)
+  (declare (type (unsigned-byte 64) a b))
+  (ldb (byte 64 0) (- a b)))
+
+#+sbcl
+(define-compiler-macro mod64- (a b)
+  `(ldb (byte 64 0) (- ,a ,b)))
+
+(defun mod64* (a b)
+  (declare (type (unsigned-byte 64) a b))
+  (ldb (byte 64 0) (* a b)))
+
+#+sbcl
+(define-compiler-macro mod64* (a b)
+  `(ldb (byte 64 0) (* ,a ,b)))
+
 (declaim #+ironclad-fast-mod64-arithmetic (inline rol64 ror64)
 	 (ftype (function ((unsigned-byte 64) (unsigned-byte 6)) (unsigned-byte 64)) rol64 ror64))
+
+(declaim #+ironclad-fast-mod64-arithmetic (inline mod64ash)
+         (ftype (function ((unsigned-byte 64) (integer -63 63)) (unsigned-byte 64)) mod64ash))
+
+(defun mod64ash (num count)
+  (declare (type (unsigned-byte 64) num))
+  (declare (type (integer -63 63) count))
+  (ldb (byte 64 0) (ash num count)))
+
+#+sbcl
+(define-compiler-macro mod64ash (num count)
+  ;; work around SBCL optimizing bug as described by APD:
+  ;;  http://www.caddr.com/macho/archives/sbcl-devel/2004-8/3877.html
+  `(logand #xffffffffffffffff (ash ,num ,count)))
+
+(declaim #+ironclad-fast-mod64-arithmetic (inline mod64lognot)
+         (ftype (function ((unsigned-byte 64)) (unsigned-byte 64)) mod64lognot))
+
+(defun mod64lognot (num)
+  (ldb (byte 64 0) (lognot num)))
+
+#+sbcl
+(define-compiler-macro mod64lognot (num)
+  `(ldb (byte 64 0) (lognot ,num)))
 
 (defun rol64 (a s)
   (declare (type (unsigned-byte 64) a) (type (integer 0 64) s))
@@ -334,6 +374,30 @@ without subsequently calling EXPAND-BLOCK results in undefined behavior."
         for j of-type (integer 0 #.array-dimension-limit)
         from offset to (+ offset 63) by 4
         do (setf (aref block i) (ub32ref/be buffer j))))
+
+(defun fill-block-ub8-le/64 (block buffer offset)
+  "Convert a complete 128 (unsigned-byte 8) input vector segment
+starting from offset into the given 16 qword SHA1 block.  Calling this
+function without subsequently calling EXPAND-BLOCK results in undefined
+behavior."
+  (declare (type (integer 0 #.(- array-dimension-limit 64)) offset)
+	   (type (simple-array (unsigned-byte 64) (*)) block)
+	   (type simple-octet-vector buffer)
+           #.(burn-baby-burn))
+  ;; convert to 64-bit words
+  #+(and :cmu :little-endian :64-bit)
+  (kernel:bit-bash-copy
+   buffer (+ (* vm:vector-data-offset vm:word-bits)
+             (* offset vm:byte-bits))
+   block (* vm:vector-data-offset vm:word-bits)
+   (* 64 vm:byte-bits))
+  #+(and :sbcl :little-endian :64-bit)
+  (sb-kernel:ub8-bash-copy buffer offset block 0 64)
+  #-(or (and :sbcl :little-endian :64-bit) (and :cmu :little-endian :64-bit))
+  (loop for i of-type (integer 0 8) from 0
+        for j of-type (integer 0 #.array-dimension-limit)
+        from offset to (+ offset 63) by 8
+        do (setf (aref block i) (ub64ref/le buffer j))))
 
 (defun fill-block-ub8-be/64 (block buffer offset)
   "Convert a complete 128 (unsigned-byte 8) input vector segment
