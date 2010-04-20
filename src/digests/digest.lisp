@@ -324,12 +324,6 @@ An error will be signaled if there is insufficient room in DIGEST."))
 
 ;;; the digest-defining macro
 
-(defclass digest ()
-  ((amount :accessor amount-processed :type (unsigned-byte 64)
-           :initform 0)
-   (buffer-index :accessor buffer-index :initform 0)
-   (finalized-p :accessor finalized-p :initform nil)))
-
 (defun digestp (sym)
   (get sym '%digest-length))
 
