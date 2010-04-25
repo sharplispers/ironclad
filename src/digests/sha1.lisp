@@ -103,6 +103,8 @@
       regs)))
 ) ; MACROLET
 
+;; ugh.
+#+(and ironclad-fast-mod32-arithmetic (not (and sbcl (or x86 x86-64))))
 (declaim (inline expand-block))
 (defun expand-block (block)
   "Expand the first 16 words in BLOCK to fill the entire 80 word space

@@ -63,4 +63,31 @@
               simple-array-unsigned-byte-8
               positive-fixnum)
   (:variant t 128 t))
+
+(define-vop (expand-block)
+  (:translate ironclad::expand-block)
+  (:policy :fast-safe)
+  (:args (block :scs (descriptor-reg)))
+  (:arg-types simple-array-unsigned-byte-32)
+  (:temporary (:sc unsigned-reg) temp count)
+  (:generator 100
+    (flet ((block-word (elem-offset)
+             (make-ea :dword :base block
+                      :index count
+                      :scale 4
+                      :disp (+ (- (* n-word-bytes vector-data-offset)
+                                  other-pointer-lowtag)
+                               (* n-word-bytes (+ 80 elem-offset))))))
+      (let ((loop (gen-label))
+            #+x86-64 (temp (reg-in-size temp :dword)))
+        (inst mov count -64)
+        (emit-label loop)
+        (inst mov temp (block-word -3))
+        (inst xor temp (block-word -8))
+        (inst xor temp (block-word -14))
+        (inst xor temp (block-word -16))
+        (inst rol temp 1)
+        (inst mov (block-word 0) temp)
+        (inst add count 1)
+        (inst jmp :nz loop)))))
 ) ; PROGN

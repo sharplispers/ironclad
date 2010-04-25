@@ -16,3 +16,7 @@
   ((simple-array (unsigned-byte 64) (*))
    (simple-array (unsigned-byte 8) (*))
    (integer 0 #.(- array-dimension-limit 128))) (values))
+
+(defknown ironclad::expand-block
+  ((simple-array (unsigned-byte 32) (*)))
+  (values))
