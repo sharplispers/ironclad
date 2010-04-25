@@ -59,6 +59,10 @@
                                   ((:file "fndb"
                                           :in-order-to ((compile-op
                                                          (feature :sbcl))))
+                                   ;; It would be nice if we could say
+                                   ;; (OR (FEATURE :X86) (FEATURE :X86-64))
+                                   ;; but ASDF is not that flexible.
+                                   (:file "x86oid-vm" :depends-on ("fndb")))
                                   :if-component-dep-fails :ignore)
                          (:module "ciphers"
                                   :depends-on ("common" "macro-utils")
