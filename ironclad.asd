@@ -49,6 +49,17 @@
                          (:file "octet-stream" :depends-on ("common"))
                          (:file "padding" :depends-on ("common"))
                          (:file "pkcs5" :depends-on ("common"))
+                         (:module "sbcl-opt"
+                                  :depends-on ("package" "common")
+                                  :components
+                                  ;; ASDF doesn't DTRT, so we can't make
+                                  ;; the whole module :IN-ORDER-TO.
+                                  ;; We'll settle for this one file and
+                                  ;; key off of that.
+                                  ((:file "fndb"
+                                          :in-order-to ((compile-op
+                                                         (feature :sbcl))))
+                                  :if-component-dep-fails :ignore)
                          (:module "ciphers"
                                   :depends-on ("common" "macro-utils")
                                   :components
@@ -74,7 +85,7 @@
                                    ;; stream ciphers
                                    (:file "arcfour" :depends-on ("cipher"))))
                          (:module "digests"
-                                  :depends-on ("common" "macro-utils")
+                                  :depends-on ("common" "macro-utils" "sbcl-opt")
                                   :components
                                   ((:file "digest")
                                    (:file "crc24" :depends-on ("digest"))
