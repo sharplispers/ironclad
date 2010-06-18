@@ -53,7 +53,6 @@
          (setf s2 (mod s2 adler32-modulo))
          (unless (zerop length)
            (go loop))
-       end
          (setf (adler32-s1 state) s1
                (adler32-s2 state) s2)))
     state))
