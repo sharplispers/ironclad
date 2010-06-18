@@ -195,7 +195,7 @@ Note that this computation may involve MODE's state."))
                 (declare (ignore handle-final-block))
                 (let ,block-length-binding
                   ;; Just count the number of full blocks.
-                  (truncate length ,block-length-expr)))))
+                  (* (truncate length ,block-length-expr) ,block-length-expr)))))
   (define-mode-function))
 
 
@@ -273,8 +273,7 @@ Note that this computation may involve MODE's state."))
                                                    &optional handle-final-block)
                 (declare (ignore handle-final-block))
                 (let ,block-length-binding
-                  ;; Just count the number of full blocks.
-                  (truncate length ,block-length-expr)))))
+                  (* (truncate length ,block-length-expr) ,block-length-expr)))))
   (define-mode-function))
 
 
