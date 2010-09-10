@@ -6,7 +6,7 @@
   (:policy :fast-safe)
   (:args (block :scs (descriptor-reg))
          (buffer :scs (descriptor-reg))
-         (offset :scs (unsigned-reg)))
+         (offset :scs (unsigned-reg immediate) :target buffer-index))
   (:variant-vars big-endian-p bytes-to-copy 64-bit-p)
   (:temporary (:sc unsigned-reg) temp buffer-index block-index)
   (:generator 50
@@ -14,25 +14,45 @@
                              other-pointer-lowtag))
            (block-disp (+ data-offset bytes-to-copy))
            (ea-size #+x86 :dword #+x86-64 :qword)
+           (immediate-offset (sc-is offset immediate))
+           (unroll (if immediate-offset 2 1))
            (loop (gen-label)))
-      (move buffer-index offset)
-      (inst mov block-index (- (truncate bytes-to-copy n-word-bytes)))
-      (emit-label loop)
-      (inst mov temp (make-ea ea-size :base buffer
-                              :index buffer-index
-                              :disp data-offset))
-      (when big-endian-p
-        (inst bswap temp)
-        #+x86-64
-        (unless 64-bit-p
-          (inst rol temp 32)))
-      (inst mov (make-ea ea-size :base block
-                         :index block-index
-                         :scale n-word-bytes
-                         :disp block-disp) temp)
-      (inst add buffer-index n-word-bytes)
-      (inst add block-index 1)
-      (inst jmp :nz loop))))
+      (flet ((ea-for-buffer (&optional (offset 0))
+               (if immediate-offset
+                   (make-ea ea-size :base buffer
+                            :index block-index
+                            :scale n-word-bytes
+                            :disp (+ block-disp offset))
+                   (make-ea ea-size :base buffer
+                            :index buffer-index :disp data-offset)))
+             (ea-for-block (&optional (offset 0))
+               (make-ea ea-size :base block
+                        :index block-index
+                        :scale n-word-bytes
+                        :disp (+ block-disp offset)))
+             (handle-endianness (x)
+               (when big-endian-p
+                 (inst bswap x)
+                 #+x86-64
+                 (unless 64-bit-p
+                   (inst rol x 32)))))
+        (unless immediate-offset
+          (move buffer-index offset))
+        (inst mov block-index (- (truncate bytes-to-copy n-word-bytes)))
+        (emit-label loop)
+        (inst mov temp (ea-for-buffer 0))
+        (when immediate-offset
+          (inst mov buffer-index (ea-for-buffer n-word-bytes)))
+        (handle-endianness temp)
+        (when immediate-offset
+          (handle-endianness buffer-index))
+        (inst mov (ea-for-block) temp)
+        (when immediate-offset
+          (inst mov (ea-for-block n-word-bytes) buffer-index))
+        (unless immediate-offset
+          (inst add buffer-index n-word-bytes))
+        (inst add block-index unroll)
+        (inst jmp :nz loop)))))
 
 (define-vop (fill-block-ub8-le fill-block-ub8)
   (:translate ironclad::fill-block-ub8-le)
