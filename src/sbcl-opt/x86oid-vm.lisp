@@ -74,6 +74,7 @@
   (:arg-types simple-array-unsigned-byte-64
               simple-array-unsigned-byte-8
               positive-fixnum)
+  ;; Yes.  Really.  Inconsistent naming FTW.
   (:variant nil 64 t))
 
 #+x86-64
@@ -97,7 +98,7 @@
                       :scale 4
                       :disp (+ (- (* n-word-bytes vector-data-offset)
                                   other-pointer-lowtag)
-                               (* n-word-bytes (+ 80 elem-offset))))))
+                               (* 4 (+ 80 elem-offset))))))
       (let ((loop (gen-label))
             #+x86-64 (temp (reg-in-size temp :dword)))
         (inst mov count -64)
