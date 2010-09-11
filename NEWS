@@ -1,5 +1,18 @@
 -*- mode: outline -*-
 
+* Version 0.29, released
+
+** bug fixes
+
+Fixed ENCRYPTED-MESSAGE-LENGTH (not a supported interface) for ECB and
+CBC modes.  (Thanks to Ron Garrett.)
+
+** improvements
+
+Assembler versions of 8->32 and 8->64 copy loops and SHA1's core expand
+function have been added for x86 and x86-64 SBCL.  You need a recent
+SBCL to compile Ironclad now.
+
 * Version 0.28, released 2010-03-26
 
 ** bug fixes
