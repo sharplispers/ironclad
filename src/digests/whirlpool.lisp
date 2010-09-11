@@ -228,7 +228,7 @@ word block of input, and updates the working state in the regs."
 ;;; Mid-Level Drivers
 
 (defstruct (whirlpool
-             (:constructor %make-whirlpool-digest)
+             (:constructor %make-whirlpool-digest nil)
              (:constructor %make-whirlpool-state
                            (regs amount block buffer buffer-index))
              (:copier nil))

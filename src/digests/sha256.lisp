@@ -109,7 +109,7 @@
 ;;; mid-level
 
 (defstruct (sha256
-             (:constructor %make-sha256-digest)
+             (:constructor %make-sha256-digest nil)
              (:constructor %make-sha256-state (regs amount block buffer buffer-index))
              (:copier nil))
   (regs (initial-sha256-regs) :type sha256-regs :read-only t)

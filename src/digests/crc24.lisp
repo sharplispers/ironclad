@@ -49,7 +49,7 @@
 #x00D11CCE #x00575035 #x005BC9C3 #x00DD8538))
 
 (defstruct (crc24
-             (:constructor %make-crc24-digest)
+             (:constructor %make-crc24-digest nil)
              (:constructor %make-crc24-state (crc))
              (:copier nil))
   (crc #xb704ce :type (unsigned-byte 32)))

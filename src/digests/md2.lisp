@@ -68,7 +68,7 @@
                                     :initial-element 0) 0)))))
 
 (defstruct (md2
-             (:constructor %make-md2-digest)
+             (:constructor %make-md2-digest nil)
              (:constructor %make-md2-state
                            (regs checksum buffer buffer-index))
              (:copier nil))

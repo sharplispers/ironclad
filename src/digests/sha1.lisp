@@ -129,7 +129,7 @@ available."
 ;;; mid-level
 
 (defstruct (sha1
-             (:constructor %make-sha1-digest)
+             (:constructor %make-sha1-digest nil)
              (:constructor %make-sha1-state (regs amount block buffer buffer-index))
              (:copier nil))
   (regs (initial-sha1-regs) :type sha1-regs :read-only t)

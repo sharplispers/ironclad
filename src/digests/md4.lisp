@@ -61,7 +61,7 @@
         regs))))
 
 (defstruct (md4
-             (:constructor %make-md4-digest)
+             (:constructor %make-md4-digest nil)
              (:constructor %make-md4-state (regs amount block buffer buffer-index))
              (:copier nil))
   (regs (initial-md4-regs) :type md4-regs :read-only t)

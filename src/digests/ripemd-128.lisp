@@ -126,7 +126,7 @@
         regs))))
 
 (defstruct (ripemd-128
-             (:constructor %make-ripemd-128-digest)
+             (:constructor %make-ripemd-128-digest nil)
              (:constructor %make-ripemd-128-state (regs amount block buffer buffer-index))
              (:copier nil))
   (regs (initial-ripemd-128-regs) :type ripemd-128-regs :read-only t)

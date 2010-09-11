@@ -813,7 +813,7 @@
       regs)))
 
 (defstruct (tiger
-             (:constructor %make-tiger-digest)
+             (:constructor %make-tiger-digest nil)
              (:constructor %make-tiger-state (regs amount block buffer buffer-index))
              (:copier nil))
   (regs (initial-tiger-regs) :type tiger-regs :read-only t)

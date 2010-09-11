@@ -140,7 +140,7 @@ accordingly."
 ;;; Mid-Level Drivers
 
 (defstruct (md5
-             (:constructor %make-md5-digest)
+             (:constructor %make-md5-digest nil)
              (:constructor %make-md5-state (regs amount block buffer buffer-index))
              (:copier nil))
   (regs (initial-md5-regs) :type md5-regs :read-only t)

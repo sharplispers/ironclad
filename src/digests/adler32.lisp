@@ -6,7 +6,7 @@
 (defconstant adler32-modulo 65521)
 
 (defstruct (adler32
-             (:constructor %make-adler32-digest)
+             (:constructor %make-adler32-digest nil)
              (:constructor %make-adler32-state (s1 s2))
              (:copier nil))
   (s1 1 :type fixnum)

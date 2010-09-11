@@ -13,7 +13,7 @@
     digest))
 
 (defstruct (tree-hash
-             (:constructor %make-tree-hash)
+             (:constructor %make-tree-hash nil)
              (:constructor %make-tree-hash-state (block-length state block-index branch))
              (:copier nil))
   (block-length 1024 :type (integer 1 #.most-positive-fixnum))

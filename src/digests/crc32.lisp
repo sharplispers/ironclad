@@ -49,7 +49,7 @@
 #xB40BBE37 #xC30C8EA1 #x5A05DF1B #x2D02EF8D))
 
 (defstruct (crc32
-             (:constructor %make-crc32-digest)
+             (:constructor %make-crc32-digest nil)
              (:constructor %make-crc32-state (crc))
              (:copier nil))
   (crc 4294967295 :type (unsigned-byte 32)))
