@@ -20,3 +20,7 @@
 (defknown ironclad::expand-block
   ((simple-array (unsigned-byte 32) (*)))
   (values))
+
+(defknown ironclad::sha256-expand-block
+  ((simple-array (unsigned-byte 32) (*)))
+  (values))
