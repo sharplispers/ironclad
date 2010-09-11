@@ -56,15 +56,6 @@
 
 ;;; Section 3.4:  Operation on 16-Word Blocks
 
-(macrolet ((with-md5-round ((op block) &rest clauses)
-             (loop for (a b c d k s i) in clauses
-                   collect
-                   `(setq ,a (mod32+ ,b (rol32 (mod32+ (mod32+ ,a (,op ,b ,c ,d))
-                                                       (mod32+ (aref ,block ,k)
-                                                               ,(aref *t* (1- i))))
-                                         ,s)))
-                   into result
-                   finally (return `(progn ,@result)))))
 (defun update-md5-block (regs block)
   "This is the core part of the MD5 algorithm.  It takes a complete 16
 word block of input, and updates the working state in A, B, C, and D
@@ -105,37 +96,46 @@ accordingly."
              (ldb (byte 32 0) (logxor y (logorc2 x z)))))
       #+ironclad-fast-mod32-arithmetic
       (declare (inline f g h i))
-      ;; Round 1
-      (with-md5-round (f block)
-        (A B C D  0  7  1)(D A B C  1 12  2)(C D A B  2 17  3)(B C D A  3 22  4)
-        (A B C D  4  7  5)(D A B C  5 12  6)(C D A B  6 17  7)(B C D A  7 22  8)
-        (A B C D  8  7  9)(D A B C  9 12 10)(C D A B 10 17 11)(B C D A 11 22 12)
-        (A B C D 12  7 13)(D A B C 13 12 14)(C D A B 14 17 15)(B C D A 15 22 16))
-      ;; Round 2
-      (with-md5-round (g block)
-        (A B C D  1  5 17)(D A B C  6  9 18)(C D A B 11 14 19)(B C D A  0 20 20)
-        (A B C D  5  5 21)(D A B C 10  9 22)(C D A B 15 14 23)(B C D A  4 20 24)
-        (A B C D  9  5 25)(D A B C 14  9 26)(C D A B  3 14 27)(B C D A  8 20 28)
-        (A B C D 13  5 29)(D A B C  2  9 30)(C D A B  7 14 31)(B C D A 12 20 32))
-      ;; Round 3
-      (with-md5-round (h block)
-        (A B C D  5  4 33)(D A B C  8 11 34)(C D A B 11 16 35)(B C D A 14 23 36)
-        (A B C D  1  4 37)(D A B C  4 11 38)(C D A B  7 16 39)(B C D A 10 23 40)
-        (A B C D 13  4 41)(D A B C  0 11 42)(C D A B  3 16 43)(B C D A  6 23 44)
-        (A B C D  9  4 45)(D A B C 12 11 46)(C D A B 15 16 47)(B C D A  2 23 48))
-      ;; Round 4
-      (with-md5-round (i block)
-        (A B C D  0  6 49)(D A B C  7 10 50)(C D A B 14 15 51)(B C D A  5 21 52)
-        (A B C D 12  6 53)(D A B C  3 10 54)(C D A B 10 15 55)(B C D A  1 21 56)
-        (A B C D  8  6 57)(D A B C 15 10 58)(C D A B  6 15 59)(B C D A 13 21 60)
-        (A B C D  4  6 61)(D A B C 11 10 62)(C D A B  2 15 63)(B C D A  9 21 64))
-      ;; Update and return
-      (setf (md5-regs-a regs) (mod32+ (md5-regs-a regs) a)
-            (md5-regs-b regs) (mod32+ (md5-regs-b regs) b)
-            (md5-regs-c regs) (mod32+ (md5-regs-c regs) c)
-            (md5-regs-d regs) (mod32+ (md5-regs-d regs) d))
-      regs)))
-) ; MACROLET
+      (macrolet ((with-md5-round ((op block) &rest clauses)
+                   (loop for (a b c d k s i) in clauses
+                         collect
+                         `(setq ,a (mod32+ ,b
+                                            (rol32 (mod32+ (mod32+ ,a (,op ,b ,c ,d))
+                                                           (mod32+ (aref ,block ,k)
+                                                                   ,(aref *t* (1- i))))
+                                                   ,s)))
+                           into result
+                         finally (return `(progn ,@result)))))
+        ;; Round 1
+        (with-md5-round (f block)
+          (A B C D  0  7  1)(D A B C  1 12  2)(C D A B  2 17  3)(B C D A  3 22  4)
+          (A B C D  4  7  5)(D A B C  5 12  6)(C D A B  6 17  7)(B C D A  7 22  8)
+          (A B C D  8  7  9)(D A B C  9 12 10)(C D A B 10 17 11)(B C D A 11 22 12)
+          (A B C D 12  7 13)(D A B C 13 12 14)(C D A B 14 17 15)(B C D A 15 22 16))
+        ;; Round 2
+        (with-md5-round (g block)
+          (A B C D  1  5 17)(D A B C  6  9 18)(C D A B 11 14 19)(B C D A  0 20 20)
+          (A B C D  5  5 21)(D A B C 10  9 22)(C D A B 15 14 23)(B C D A  4 20 24)
+          (A B C D  9  5 25)(D A B C 14  9 26)(C D A B  3 14 27)(B C D A  8 20 28)
+          (A B C D 13  5 29)(D A B C  2  9 30)(C D A B  7 14 31)(B C D A 12 20 32))
+        ;; Round 3
+        (with-md5-round (h block)
+          (A B C D  5  4 33)(D A B C  8 11 34)(C D A B 11 16 35)(B C D A 14 23 36)
+          (A B C D  1  4 37)(D A B C  4 11 38)(C D A B  7 16 39)(B C D A 10 23 40)
+          (A B C D 13  4 41)(D A B C  0 11 42)(C D A B  3 16 43)(B C D A  6 23 44)
+          (A B C D  9  4 45)(D A B C 12 11 46)(C D A B 15 16 47)(B C D A  2 23 48))
+        ;; Round 4
+        (with-md5-round (i block)
+          (A B C D  0  6 49)(D A B C  7 10 50)(C D A B 14 15 51)(B C D A  5 21 52)
+          (A B C D 12  6 53)(D A B C  3 10 54)(C D A B 10 15 55)(B C D A  1 21 56)
+          (A B C D  8  6 57)(D A B C 15 10 58)(C D A B  6 15 59)(B C D A 13 21 60)
+          (A B C D  4  6 61)(D A B C 11 10 62)(C D A B  2 15 63)(B C D A  9 21 64))
+        ;; Update and return
+        (setf (md5-regs-a regs) (mod32+ (md5-regs-a regs) a)
+              (md5-regs-b regs) (mod32+ (md5-regs-b regs) b)
+              (md5-regs-c regs) (mod32+ (md5-regs-c regs) c)
+              (md5-regs-d regs) (mod32+ (md5-regs-d regs) d))
+        regs))))
 
 ;;; Mid-Level Drivers
 

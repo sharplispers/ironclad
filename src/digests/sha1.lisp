@@ -40,22 +40,6 @@
 
 (defconst +pristine-sha1-registers+ (initial-sha1-regs))
 
-(macrolet ((sha1-rounds (block func constant low high &rest initial-order)
-             ;; Yay for "implementation-dependent" behavior (6.1.1.4).
-             (let ((xvars (apply #'make-circular-list initial-order)))
-               (loop for i from low upto high
-                     for vars on xvars by #'cddddr
-                     collect (let ((a-var (first vars))
-                                   (b-var (second vars))
-                                   (c-var (third vars))
-                                   (d-var (fourth vars))
-                                   (e-var (fifth vars)))
-                               `(setf ,e-var 
-                                      (mod32+ (rol32 ,a-var 5)
-                                              (mod32+ (mod32+ (,func ,b-var ,c-var ,d-var) ,e-var)
-                                                      (mod32+ (aref ,block ,i) ,constant)))
-                                      ,b-var (rol32 ,b-var 30))) into forms
-                     finally (return `(progn ,@forms))))))
 (defun update-sha1-block (regs block)
   (declare (type sha1-regs regs)
            (type (simple-array (unsigned-byte 32) (80)) block)
@@ -63,45 +47,60 @@
   (let ((a (sha1-regs-a regs)) (b (sha1-regs-b regs))
 	(c (sha1-regs-c regs)) (d (sha1-regs-d regs))
         (e (sha1-regs-e regs)))
-    (flet ((f1 (x y z)
-             (declare (type (unsigned-byte 32) x y z))
-             #+cmu
-             (kernel:32bit-logical-xor z
-                                       (kernel:32bit-logical-and x
-                                                                 (kernel:32bit-logical-xor y z)))
-             #-cmu
-             (logxor z (logand x (logxor y z))))
-           (f2 (x y z)
-             (declare (type (unsigned-byte 32) x y z))
-             #+cmu
-             (kernel:32bit-logical-xor x (kernel:32bit-logical-xor y z))
-             #-cmu
-             (ldb (byte 32 0) (logxor x y z)))
-           (f3 (x y z)
-             (declare (type (unsigned-byte 32) x y z))
-             #+cmu
-             (kernel:32bit-logical-or (kernel:32bit-logical-or
-                                       (kernel:32bit-logical-and x y)
-                                       (kernel:32bit-logical-and x z))
-                                      (kernel:32bit-logical-and y z))
-             #-cmu
-             (ldb (byte 32 0)
-                  (logior (logand x y) (logand x z) (logand y z)))))
-      #+ironclad-fast-mod32-arithmetic
-      (declare (inline f1 f2 f3))
-      ;; core of the algorithm
-      (sha1-rounds block f1 +k1+ 0 19 a b c d e)
-      (sha1-rounds block f2 +k2+ 20 39 a b c d e)
-      (sha1-rounds block f3 +k3+ 40 59 a b c d e)
-      (sha1-rounds block f2 +k4+ 60 79 a b c d e)
-      ;; update and return
-      (setf (sha1-regs-a regs) (mod32+ (sha1-regs-a regs) a)
-            (sha1-regs-b regs) (mod32+ (sha1-regs-b regs) b)
-            (sha1-regs-c regs) (mod32+ (sha1-regs-c regs) c)
-            (sha1-regs-d regs) (mod32+ (sha1-regs-d regs) d)
-            (sha1-regs-e regs) (mod32+ (sha1-regs-e regs) e))
-      regs)))
-) ; MACROLET
+    (macrolet ((sha1-rounds (block func constant low high &rest initial-order)
+                 ;; Yay for "implementation-dependent" behavior (6.1.1.4).
+                 (let ((xvars (apply #'make-circular-list initial-order)))
+                   (loop for i from low upto high
+                         for vars on xvars by #'cddddr
+                         collect (let ((a-var (first vars))
+                                       (b-var (second vars))
+                                       (c-var (third vars))
+                                       (d-var (fourth vars))
+                                       (e-var (fifth vars)))
+                                   `(setf ,e-var 
+                                          (mod32+ (rol32 ,a-var 5)
+                                                  (mod32+ (mod32+ (,func ,b-var ,c-var ,d-var) ,e-var)
+                                                          (mod32+ (aref ,block ,i) ,constant)))
+                                          ,b-var (rol32 ,b-var 30))) into forms
+                         finally (return `(progn ,@forms))))))
+      (flet ((f1 (x y z)
+               (declare (type (unsigned-byte 32) x y z))
+               #+cmu
+               (kernel:32bit-logical-xor z
+                                         (kernel:32bit-logical-and x
+                                                                   (kernel:32bit-logical-xor y z)))
+               #-cmu
+               (logxor z (logand x (logxor y z))))
+             (f2 (x y z)
+               (declare (type (unsigned-byte 32) x y z))
+               #+cmu
+               (kernel:32bit-logical-xor x (kernel:32bit-logical-xor y z))
+               #-cmu
+               (ldb (byte 32 0) (logxor x y z)))
+             (f3 (x y z)
+               (declare (type (unsigned-byte 32) x y z))
+               #+cmu
+               (kernel:32bit-logical-or (kernel:32bit-logical-or
+                                         (kernel:32bit-logical-and x y)
+                                         (kernel:32bit-logical-and x z))
+                                        (kernel:32bit-logical-and y z))
+               #-cmu
+               (ldb (byte 32 0)
+                    (logior (logand x y) (logand x z) (logand y z)))))
+        #+ironclad-fast-mod32-arithmetic
+        (declare (inline f1 f2 f3))
+        ;; core of the algorithm
+        (sha1-rounds block f1 +k1+ 0 19 a b c d e)
+        (sha1-rounds block f2 +k2+ 20 39 a b c d e)
+        (sha1-rounds block f3 +k3+ 40 59 a b c d e)
+        (sha1-rounds block f2 +k4+ 60 79 a b c d e)
+        ;; update and return
+        (setf (sha1-regs-a regs) (mod32+ (sha1-regs-a regs) a)
+              (sha1-regs-b regs) (mod32+ (sha1-regs-b regs) b)
+              (sha1-regs-c regs) (mod32+ (sha1-regs-c regs) c)
+              (sha1-regs-d regs) (mod32+ (sha1-regs-d regs) d)
+              (sha1-regs-e regs) (mod32+ (sha1-regs-e regs) e))
+        regs))))
 
 ;; ugh.
 #+(and ironclad-fast-mod32-arithmetic (not (and sbcl (or x86 x86-64))))
