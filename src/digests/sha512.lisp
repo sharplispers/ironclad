@@ -114,15 +114,11 @@
 
 (defstruct (sha384
              (:include sha512)
-             (:constructor %%make-sha384-digest (regs))
+             (:constructor %make-sha384-digest (&aux (regs (initial-sha384-regs))))
              (:constructor %make-sha384-state (regs amount block buffer buffer-index))
              (:copier nil))
   ;; No slots.
   )
-
-;; Constructor that later bits expect to see.
-(defun %make-sha384-digest ()
-  (%%make-sha384-digest (initial-sha384-regs)))
 
 (defmethod reinitialize-instance ((state sha512) &rest initargs)
   (declare (ignore initargs))
