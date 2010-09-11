@@ -101,20 +101,20 @@
 ;;; mid-level
 
 (defstruct (sha512
-             (:constructor %make-sha512-digest ())
+             (:constructor %make-sha512-digest
+              (&aux (buffer (make-array 128 :element-type '(unsigned-byte 8)))))
              (:constructor %make-sha512-state (regs amount block buffer buffer-index))
-             (:copier nil))
+             (:copier nil)
+             (:include mdx))
   (regs (initial-sha512-regs) :type sha512-regs :read-only t)
-  (amount 0 :type (unsigned-byte 64))
   (block (make-array 80 :element-type '(unsigned-byte 64)) :read-only t
-         :type (simple-array (unsigned-byte 64) (80)))
-  (buffer (make-array 128 :element-type '(unsigned-byte 8)) :read-only t
-          :type (simple-array (unsigned-byte 8) (128)))
-  (buffer-index 0 :type (mod 128)))
+         :type (simple-array (unsigned-byte 64) (80))))
 
 (defstruct (sha384
              (:include sha512)
-             (:constructor %make-sha384-digest (&aux (regs (initial-sha384-regs))))
+             (:constructor %make-sha384-digest
+              (&aux (regs (initial-sha384-regs))
+                    (buffer (make-array 128 :element-type '(unsigned-byte 8)))))
              (:constructor %make-sha384-state (regs amount block buffer buffer-index))
              (:copier nil))
   ;; No slots.
@@ -161,43 +161,14 @@
   (copy-sha512 state copy #'%make-sha384-state))
 
 (define-digest-updater sha512
-  (let ((regs (sha512-regs state))
-        (block (sha512-block state))
-        (buffer (sha512-buffer state))
-        (buffer-index (sha512-buffer-index state))
-        (length (- end start)))
-    (declare (type sha512-regs regs) (type fixnum length)
-	     (type (integer 0 127) buffer-index)
-	     (type (simple-array (unsigned-byte 64) (80)) block)
-	     (type (simple-array (unsigned-byte 8) (128)) buffer))
-    ;; Handle old rest
-    (unless (zerop buffer-index)
-      (let ((amount (min (- 128 buffer-index) length)))
-	(declare (type (integer 0 127) amount))
-	(copy-to-buffer sequence start amount buffer buffer-index)
-	(setq start (the fixnum (+ start amount)))
-        (let ((new-index (mod (+ buffer-index amount) 128)))
-          (when (zerop new-index)
-            (fill-block-ub8-be/64 block buffer 0)
-            (sha512-expand-block block)
-            (update-sha512-block regs block))
-          (when (>= start end)
-            (setf (sha512-buffer-index state) new-index)
-            (incf (sha512-amount state) length)
-            (return-from update-digest state)))))
-    (loop for offset of-type index from start below end by 128
-          until (< (- end offset) 128)
-          do
-          (fill-block-ub8-be/64 block sequence offset)
-          (sha512-expand-block block)
-          (update-sha512-block regs block)
-          finally
-          (let ((amount (- end offset)))
-            (unless (zerop amount)
-              (copy-to-buffer sequence offset amount buffer 0))
-            (setf (sha512-buffer-index state) amount)))
-    (incf (sha512-amount state) length)
-    state))
+  (flet ((compress (state sequence offset)
+           (let ((block (sha512-block state)))
+             (fill-block-ub8-be/64 block sequence offset)
+             (sha512-expand-block block)
+             (update-sha512-block (sha512-regs state) block))))
+    (declare (dynamic-extent #'compress))
+    (declare (notinline mdx-updater))
+    (mdx-updater state #'compress sequence start end)))
 
 (define-digest-finalizer ((sha512 64) (sha384 48))
   (let ((regs (sha512-regs state))

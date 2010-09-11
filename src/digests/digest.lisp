@@ -186,6 +186,59 @@
                         rest
                         body)))))))))
 
+;;; common superclass (superstructure?) for MD5-style digest functions
+
+(defstruct (mdx
+             (:constructor nil)
+             (:copier nil))
+  ;; This is technically an (UNSIGNED-BYTE 61).  But the type-checking
+  ;; penalties that imposes on a good 32-bit implementation are
+  ;; significant.  We've opted to omit the type declaration here.  If
+  ;; you really need to digest exabytes of data, I'm sure we can work
+  ;; something out.
+  (amount 0)
+  ;; Most "64-bit" digest functions (e.g. SHA512) will need to override
+  ;; this initial value in an &AUX.
+  (buffer (make-array 64 :element-type '(unsigned-byte 8)) :read-only t
+   :type simple-octet-vector)
+  ;; This fixed type should be big enough for "64-bit" digest functions.
+  (buffer-index 0 :type (integer 0 128)))
+
+(declaim (inline mdx-updater))
+(defun mdx-updater (state compressor seq start end)
+  (declare (type mdx state))
+  (declare (type function compressor))
+  (declare (type index start end))
+  (let* ((buffer (mdx-buffer state))
+         (buffer-index (mdx-buffer-index state))
+         (buffer-length (length buffer))
+         (length (- end start)))
+    (declare (type fixnum length))
+    (unless (zerop buffer-index)
+      (let ((amount (min (- buffer-length buffer-index)
+                         length)))
+        (copy-to-buffer seq start amount buffer buffer-index)
+        (setq start (+ start amount))
+        (let ((new-index (logand (+ buffer-index amount)
+                                 (1- buffer-length))))
+          (when (zerop new-index)
+            (funcall compressor state buffer 0))
+          (when (>= start end)
+            (setf (mdx-buffer-index state) new-index)
+            (incf (mdx-amount state) length)
+            (return-from mdx-updater state)))))
+    (loop until (< (- end start) buffer-length)
+          do (funcall compressor state seq start)
+             (setq start (the fixnum (+ start buffer-length)))
+          finally (return
+                    (let ((amount (- end start)))
+                      (unless (zerop amount)
+                        (copy-to-buffer seq start amount buffer 0)
+                        (setf (mdx-buffer-index state) amount))
+                      (incf (mdx-amount state) length)
+                      state)))))
+(declaim (notinline mdx-updater))
+
 ;;; high-level generic function drivers
 
 ;;; These three functions are intended to be one-shot ways to digest

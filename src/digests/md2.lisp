@@ -28,16 +28,18 @@
 (defmacro workref (regs i) `(aref ,regs (+ ,i 32)))
 ) ; EVAL-WHEN
 
-(defun update-md2-regs (regs buffer checksum)
+(defun update-md2-regs (regs buffer offset checksum)
   (declare (type (simple-array (unsigned-byte 8) (48)) regs)
-           (type (simple-array (unsigned-byte 8) (16)) buffer checksum)
+           (type (simple-array (unsigned-byte 8) (16)) checksum)
+           (type simple-octet-vector buffer)
            #.(burn-baby-burn))
   (let ((x 0))
     (declare (type (unsigned-byte 8) x))
     ;; save original input and prepare encryption block
     (dotimes (i 16)
-      (setf (workref regs i) (logxor (stateref regs i) (aref buffer i))
-            (blockref regs i) (aref buffer i)))
+      (setf (workref regs i)
+            (logxor (stateref regs i) (aref buffer (+ i offset)))
+            (blockref regs i) (aref buffer (+ i offset))))
     ;; encrypt block
     (dotimes (i 18)
       (dotimes (j 48)
@@ -48,7 +50,8 @@
     (setf x (aref checksum 15))
     (dotimes (i 16)
       (setf x (logxor (aref checksum i)
-                      (aref +md2-permutation+ (logxor (aref buffer i) x)))
+                      (aref +md2-permutation+
+                            (logxor (aref buffer (+ i offset)) x)))
             (aref checksum i) x))))
 
 (declaim (inline md2regs-digest))
@@ -68,17 +71,17 @@
                                     :initial-element 0) 0)))))
 
 (defstruct (md2
-             (:constructor %make-md2-digest nil)
+             (:constructor %make-md2-digest
+              (&aux (buffer (make-array 16 :element-type '(unsigned-byte 8)
+                                        :initial-element 0))))
              (:constructor %make-md2-state
                            (regs checksum buffer buffer-index))
-             (:copier nil))
+             (:copier nil)
+             (:include mdx))
   (regs (make-array 48 :element-type '(unsigned-byte 8) :initial-element 0)
    :type (simple-array (unsigned-byte 8) (48)) :read-only t)
   (checksum (make-array 16 :element-type '(unsigned-byte 8) :initial-element 0)
-   :type (simple-array (unsigned-byte 8) (16)) :read-only t)
-  (buffer (make-array 16 :element-type '(unsigned-byte 8) :initial-element 0)
-   :type (simple-array (unsigned-byte 8) (16)) :read-only t)
-  (buffer-index 0 :type (mod 16)))
+   :type (simple-array (unsigned-byte 8) (16)) :read-only t))
 
 (defmethod reinitialize-instance ((state md2) &rest initargs)
   (declare (ignore initargs))
@@ -103,36 +106,13 @@
                       (md2-buffer-index state)))))
 
 (define-digest-updater md2
-  (let* ((regs (md2-regs state))
-         (checksum (md2-checksum state))
-         (buffer (md2-buffer state))
-         (buffer-index (md2-buffer-index state))
-         (length (- end start)))
-    ;; handle the remaining buffered input
-    (unless (zerop buffer-index)
-      (let ((amount (min (- 16 buffer-index) length)))
-        (dotimes (i amount)
-          (setf (aref buffer (+ i buffer-index)) (aref sequence (+ start i))))
-        (incf start amount)
-        (let ((new-index (mod (+ buffer-index amount) 16)))
-          (when (zerop new-index)
-            (update-md2-regs regs buffer checksum))
-          (when (>= start end)
-            (setf (md2-buffer-index state) new-index)
-            (return-from update-digest state)))))
-    (loop for offset from start below end by 16
-          until (< (- end offset) 16)
-          do
-          (dotimes (i 16)
-            (setf (aref buffer i) (aref sequence (+ offset i))))
-          (update-md2-regs regs buffer checksum)
-          finally
-          (let ((amount (- end offset)))
-            (unless (zerop amount)
-              (dotimes (i amount)
-                (setf (aref buffer i) (aref sequence (+ offset i))))
-              (setf (md2-buffer-index state) amount))
-            state))))
+  (flet ((compress (state sequence offset)
+           (update-md2-regs (md2-regs state)
+                            sequence offset
+                            (md2-checksum state))))
+    (declare (dynamic-extent #'compress))
+    (declare (notinline mdx-updater))
+    (mdx-updater state #'compress sequence start end)))
 
 (define-digest-finalizer (md2 16)
   (let* ((regs (md2-regs state))
@@ -143,11 +123,11 @@
     ;; pad with appropriate padding
     (dotimes (i pad-amount)
       (setf (aref buffer (+ buffer-index i)) pad-amount))
-    (update-md2-regs regs buffer checksum)
+    (update-md2-regs regs buffer 0 checksum)
     ;; extend the message with the checksum
     (dotimes (i 16)
       (setf (aref buffer i) (aref checksum i)))
-    (update-md2-regs regs buffer checksum)
+    (update-md2-regs regs buffer 0 checksum)
     (finalize-registers state regs)))
 
 (defdigest md2 :digest-length 16 :block-length 16)

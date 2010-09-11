@@ -815,15 +815,12 @@
 (defstruct (tiger
              (:constructor %make-tiger-digest nil)
              (:constructor %make-tiger-state (regs amount block buffer buffer-index))
-             (:copier nil))
+             (:copier nil)
+             (:include mdx))
   (regs (initial-tiger-regs) :type tiger-regs :read-only t)
-  (amount 0 :type (unsigned-byte 64))
   (block (make-array #.+tiger-block-n-words+
                      :element-type '(unsigned-byte #.+tiger-wordsize+))
-    :type tiger-state-block :read-only t)
-  (buffer (make-array 64 :element-type '(unsigned-byte 8))
-          :type (simple-array (unsigned-byte 8) (64)) :read-only t)
-  (buffer-index 0 :type (integer 0 63)))
+    :type tiger-state-block :read-only t))
 
 (defmethod reinitialize-instance ((state tiger) &rest initargs)
   (declare (ignore initargs))
@@ -852,41 +849,13 @@
   "Update the given tiger-state from sequence, which is either a
 simple-string or a simple-array with element-type (unsigned-byte 8),
 bounded by start and end, which must be numeric bounding-indices."
-  (let ((regs (tiger-regs state))
-	(block (tiger-block state))
-	(buffer (tiger-buffer state))
-	(buffer-index (tiger-buffer-index state))
-	(length (- end start)))
-    (declare (type tiger-regs regs) (type fixnum length)
-	     (type (integer 0 63) buffer-index)
-	     (type tiger-state-block block)
-	     (type (simple-array (unsigned-byte 8) (64)) buffer))
-    ;; Handle old rest
-    (unless (zerop buffer-index)
-      (let ((amount (min (- 64 buffer-index) length)))
-	(declare (type (integer 0 63) amount))
-	(copy-to-buffer sequence start amount buffer buffer-index)
-	(setq start (the fixnum (+ start amount)))
-        (let ((new-index (mod (+ buffer-index amount) 64)))
-          (when (zerop new-index)
-            (#.+tiger-block-copy-fn+ block buffer 0)
-            (update-tiger-block regs block))
-          (when (>= start end)
-            (setf (tiger-buffer-index state) new-index)
-            (incf (tiger-amount state) length)
-            (return-from update-digest state)))))
-    (loop for offset of-type index from start below end by 64
-          until (< (- end offset) 64)
-          do
-          (#.+tiger-block-copy-fn+ block sequence offset)
-          (update-tiger-block regs block)
-          finally
-          (let ((amount (- end offset)))
-            (unless (zerop amount)
-              (copy-to-buffer sequence offset amount buffer 0))
-            (setf (tiger-buffer-index state) amount)))
-    (incf (tiger-amount state) length)
-    state))
+  (flet ((compress (state sequence offset)
+           (let ((block (tiger-block state)))
+             (#.+tiger-block-copy-fn+ block sequence offset)
+             (update-tiger-block (tiger-regs state) block))))
+    (declare (dynamic-extent #'compress))
+    (declare (notinline mdx-updater))
+    (mdx-updater state #'compress sequence start end)))
 
 (define-digest-finalizer (tiger 24)
   "If the given tiger-state has not already been finalized, finalize it,

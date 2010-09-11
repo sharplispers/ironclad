@@ -128,14 +128,11 @@
 (defstruct (ripemd-128
              (:constructor %make-ripemd-128-digest nil)
              (:constructor %make-ripemd-128-state (regs amount block buffer buffer-index))
-             (:copier nil))
+             (:copier nil)
+             (:include mdx))
   (regs (initial-ripemd-128-regs) :type ripemd-128-regs :read-only t)
-  (amount 0 :type (unsigned-byte 64))
   (block (make-array 16 :element-type '(unsigned-byte 32))
-    :type (simple-array (unsigned-byte 32) (16)) :read-only t)
-  (buffer (make-array 64 :element-type '(unsigned-byte 8))
-          :type (simple-array (unsigned-byte 8) (64)) :read-only t)
-  (buffer-index 0 :type (integer 0 63)))
+    :type (simple-array (unsigned-byte 32) (16)) :read-only t))
 
 (defmethod reinitialize-instance ((state ripemd-128) &rest initargs)
   (declare (ignore initargs))
@@ -164,41 +161,13 @@
   "Update the given ripemd-128-state from sequence, which is either a
 simple-string or a simple-array with element-type (unsigned-byte 8),
 bounded by start and end, which must be numeric bounding-indices."
-  (let ((regs (ripemd-128-regs state))
-        (block (ripemd-128-block state))
-        (buffer (ripemd-128-buffer state))
-        (buffer-index (ripemd-128-buffer-index state))
-        (length (- end start)))
-    (declare (type ripemd-128-regs regs) (type fixnum length)
-             (type (integer 0 63) buffer-index)
-             (type (simple-array (unsigned-byte 32) (16)) block)
-             (type (simple-array (unsigned-byte 8) (64)) buffer))
-    ;; Handle old rest
-    (unless (zerop buffer-index)
-      (let ((amount (min (- 64 buffer-index) length)))
-	(declare (type (integer 0 63) amount))
-	(copy-to-buffer sequence start amount buffer buffer-index)
-	(setq start (the fixnum (+ start amount)))
-        (let ((new-index (mod (+ buffer-index amount) 64)))
-          (when (zerop new-index)
-            (fill-block-ub8-le block buffer 0)
-            (update-ripemd-128-block regs block))
-          (when (>= start end)
-            (setf (ripemd-128-buffer-index state) new-index)
-            (incf (ripemd-128-amount state) length)
-            (return-from update-digest state)))))
-    (loop for offset of-type index from start below end by 64
-          until (< (- end offset) 64)
-          do
-          (fill-block-ub8-le block sequence offset)
-          (update-ripemd-128-block regs block)
-          finally
-          (let ((amount (- end offset)))
-            (unless (zerop amount)
-              (copy-to-buffer sequence offset amount buffer 0))
-            (setf (ripemd-128-buffer-index state) amount)))
-    (incf (ripemd-128-amount state) length)
-    state))
+  (flet ((compress (state sequence offset)
+           (let ((block (ripemd-128-block state)))
+             (fill-block-ub8-le block sequence offset)
+             (update-ripemd-128-block (ripemd-128-regs state) block))))
+    (declare (dynamic-extent #'compress))
+    (declare (notinline mdx-updater))
+    (mdx-updater state #'compress sequence start end)))
 
 (define-digest-finalizer (ripemd-128 16)
   "If the given ripemd-128-state has not already been finalized, finalize it,
