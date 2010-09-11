@@ -44,6 +44,11 @@
   (declare (type sha1-regs regs)
            (type (simple-array (unsigned-byte 32) (80)) block)
            #.(burn-baby-burn))
+  ;; FIXME: There must be a better way to do this
+  ;; per-implementation/architecture specialization.
+  #+(and sbcl x86-64)
+  (%update-sha1-block regs block)
+  #-(and sbcl x86-64)
   (let ((a (sha1-regs-a regs)) (b (sha1-regs-b regs))
 	(c (sha1-regs-c regs)) (d (sha1-regs-d regs))
         (e (sha1-regs-e regs)))
@@ -173,6 +178,7 @@ available."
 	     (type (integer 0 63) buffer-index)
 	     (type (simple-array (unsigned-byte 32) (80)) block)
 	     (type (simple-array (unsigned-byte 8) (64)) buffer))
+    (declare (notinline update-sha1-block))
     ;; Handle old rest
     (unless (zerop buffer-index)
       (let ((amount (min (- 64 buffer-index) length)))
@@ -212,6 +218,7 @@ available."
              (type (integer 0 63) buffer-index)
              (type (simple-array (unsigned-byte 32) (80)) block)
              (type (simple-array (unsigned-byte 8) (64)) buffer))
+    (declare (notinline update-sha1-block))
     (setf (aref buffer buffer-index) #x80)
     (when (> buffer-index 55)
       (loop for index of-type (integer 0 64)

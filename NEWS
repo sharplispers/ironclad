@@ -9,9 +9,14 @@ CBC modes.  (Thanks to Ron Garrett.)
 
 ** improvements
 
-Assembler versions of 8->32 and 8->64 copy loops and SHA1/SHA256's core
-expand functions have been added for x86 and x86-64 SBCL.  You need a
-recent SBCL to compile Ironclad now.
+Assembler versions of several core functions have been added for x86 and
+x86-64 SBCL.  The functions include:
+
+- octet copy loops;
+- SHA1's core functions;
+- SHA256's core expand function.
+
+You need a recent SBCL to compile Ironclad now.
 
 * Version 0.28, released 2010-03-26
 
