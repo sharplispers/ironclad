@@ -3,8 +3,7 @@
 (in-package :ironclad)
 
 (define-condition ironclad-error (simple-error)
-  ()
-  (:documentation "All errors signaled by IRONCLAD are of this type."))
+  ())
 
 (define-condition key-not-supplied (ironclad-error)
   ((cipher :initarg :cipher :reader cipher))
