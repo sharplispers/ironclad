@@ -23,7 +23,7 @@
           '(vector (unsigned-byte 8))))
 
 (rtest:deftest pbkdf1
-    (run-kdf-test (crypto:make-kdf 'crypto:pbkdf1 :digest :sha1)
+    (run-kdf-test (crypto:make-kdf 'crypto:pbkdf1 :digest 'ironclad:sha1)
                   *password* *salt* 1000 16 *pbkdf1-key*)
   t)
 
@@ -46,7 +46,12 @@
           '(vector (unsigned-byte 8))))
 
 (rtest:deftest pbkdf2
-    (run-kdf-test (crypto:make-kdf 'crypto:pbkdf2 :digest :sha1)
+    (run-kdf-test (crypto:make-kdf 'crypto:pbkdf2 :digest 'ironclad:sha1)
                   *password* *salt* 2048 24 *pbkdf2-key*)
   t)
 
+(rtest:deftest pbkdf2-convenience
+    (ironclad:pbkdf2-check-password
+     *password*
+     "PBKDF2$SHA256:1000$78578e5a5d63cb06$aa2ae650dc866dc4de4fc3c8f06eddac1abc3011a99402fbc46d7e131fac06d5")
+  t)

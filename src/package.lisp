@@ -31,6 +31,11 @@
    #:pbkdf1 #:pbkdf2
    #:make-kdf #:derive-key
 
+   ;; KDF convenience functions
+   #:make-random-salt #:pbkdf2-hash-password
+   #:pbkdf2-hash-password-to-combined-string
+   #:pbkdf2-check-password
+
    ;; public-key encryption operations
    #:make-public-key #:make-private-key
    #:sign-message #:verify-signature

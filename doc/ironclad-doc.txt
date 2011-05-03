@@ -425,6 +425,43 @@ passed to " @make-hmac " when " 'hmac' " was constructed.")
 @insufficient-buffer-space " error will be signaled if there is
 insufficient space in " 'buffer' ".")
 
+(:h3 "PBKDF")
+
+(:p "Ironclad comes with the basic PBKDF1 and PBKDF2 algorithms, as
+well as convenience functions for using them to store passwords.")
+
+(:describe :function (ironclad:derive-key kdf passphrase salt
+iteration-count key-length))
+
+(:p "Given a key derivation function object (produced by " `make-kdf`
+"), a password and salt (both must be of type " `(SIMPLE-ARRAY
+(UNSIGNED-BYTE 8) (*))` "), and number of digest iterations, returns
+the password digest as a byte array of length " 'key-length' ".")
+
+(:describe :function (ironclad:make-kdf kind))
+
+(:p "Returns a key derivation function instance (" 'kind' " must
+either be " 'pbkdf1' " or " 'pbkdf2' ") that uses the given "
+'digest' ".")
+
+(:describe :function (ironclad:pbkdf2-hash-password password))
+
+(:p "Convenience function for hashing passwords using the PBKDF2
+algorithm. Returns the derived hash of the password, and the original
+salt, as byte vectors.")
+
+(:describe :function (ironclad:pbkdf2-hash-password-to-combined-string password))
+
+(:p "Convenience function for hashing passwords using the PBKDF2
+algorithm. Returns the derived hash of the password as a single string
+that encodes the given salt and PBKDF2 algorithm parameters.")
+
+(:describe :function (ironclad:pbkdf2-check-password password combined-salt-and-digest))
+
+(:p "Given a " 'password' " byte vector and a combined salt and digest string
+produced by " `pbkdf2-hash-password-to-combined-string` ", checks whether
+the password is valid.")
+
 (:h3 "CMACs")
 
 (:p "Instances of CMACs are constructed by specifying a secret key and a
@@ -641,6 +678,11 @@ in the resulting number.")
 
 (:p "Raises " 'n' " to the " 'exponent' " power modulo " 'modulus' " in
 a more efficient fashion than " `(MOD (EXPT N EXPONENT) MODULUS)` ".")
+
+(:describe :function (ironclad:make-random-salt size))
+
+(:p "Generate a byte vector of " 'size' " (default 16) random bytes, suitable
+for use as a password salt.")
 
 (:h2 "Conditions")
 

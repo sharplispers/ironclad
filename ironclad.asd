@@ -49,6 +49,7 @@
                          (:file "octet-stream" :depends-on ("common"))
                          (:file "padding" :depends-on ("common"))
                          (:file "pkcs5" :depends-on ("common"))
+                         (:file "password-hash" :depends-on ("pkcs5"))
                          (:module "sbcl-opt"
                                   :depends-on ("package" "common")
                                   :components
@@ -210,6 +211,7 @@
                                    (:file "ciphers")
                                    (:file "digests")
                                    (:file "padding")
+                                   (:file "pkcs5")
                                    (:file "ironclad")
                                    ;; test vectors
                                    (:test-vector-file "crc24")

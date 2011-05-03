@@ -55,14 +55,14 @@
 (defclass pbkdf2 ()
   ((digest-name :initarg :digest :reader kdf-digest)))
 
-(defmethod derive-key ((kdf pbkdf2) passphrase salt iteration-count key-length)
+(defun pbkdf2-derive-key (digest passphrase salt iteration-count key-length)
   (unless (plusp iteration-count)
     (error 'invalid-argument))
   (unless (plusp (length passphrase))
     (error 'invalid-argument))
   (loop with count = 1
-     with hmac = (make-hmac passphrase (kdf-digest kdf))
-     with hmac-length = (digest-length (kdf-digest kdf))
+     with hmac = (make-hmac passphrase digest)
+     with hmac-length = (digest-length digest)
      with key = (make-array key-length :element-type '(unsigned-byte 8)
                             :initial-element 0)
      with key-position = 0
@@ -87,6 +87,9 @@
                (incf key-position size)
                (incf count)))
      finally (return key)))
+
+(defmethod derive-key ((kdf pbkdf2) passphrase salt iteration-count key-length)
+  (pbkdf2-derive-key (kdf-digest kdf) passphrase salt iteration-count key-length))
 
 (defun make-kdf (kind &key digest)
   ;; PBKDF1, at least, will do stricter checking; this is good enough for now.
