@@ -607,12 +607,17 @@ the internal state of the digest.")
 (:p "As the above, only the value is stored in big-endian order.")
 
 (:describe :function (ironclad:byte-array-to-hex-string string)
+                     (ironclad:hex-string-to-byte-array string)
                      (ironclad:ascii-string-to-byte-array vector))
 
 (:p `byte-array-to-hex-string` " converts the bytes of " 'vector' "
 between " 'start' " and " 'end' " into a hexadecimal string.  It is
 useful for converting digests to a more readable form.  " 'element-type'
 " indicates the element-type of the returned string.")
+
+(:p `hex-string-to-byte-array` " parses a substring of " 'string' "
+delimited " 'start' " and " 'end' " of hexadecimal digits into a byte
+array.")
 
 (:p `ascii-string-to-byte-array` " is provided as a quick and dirty way
 to convert a string to a byte array suitable for feeding to "

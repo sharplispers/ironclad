@@ -51,7 +51,8 @@
    #:key-not-supplied
 
    ;; utilities
-   #:ascii-string-to-byte-array #:byte-array-to-hex-string
+   #:byte-array-to-hex-string #:hex-string-to-byte-array
+   #:ascii-string-to-byte-array
    #:octets-to-integer #:integer-to-octets #:expt-mod
 
    ;; streams
