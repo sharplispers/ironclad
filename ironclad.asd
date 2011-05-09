@@ -231,6 +231,7 @@
                                    (:test-vector-file "whirlpool")
                                    (:test-vector-file "hmac")
                                    (:test-vector-file "cmac")
+                                   (:test-vector-file "tree-hash")
                                    ;; block ciphers of various kinds
                                    (:test-vector-file "null")
                                    (:test-vector-file "aes")
