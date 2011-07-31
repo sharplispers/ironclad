@@ -7,6 +7,9 @@
 Fixed ENCRYPTED-MESSAGE-LENGTH (not a supported interface) for ECB and
 CBC modes.  (Thanks to Ron Garrett.)
 
+The compiler macros for the high-level digest functions now cope with
+the user's setting of *PRINT-CASE*.  (Thanks to Robert Uhl.)
+
 ** improvements
 
 Assembler versions of several core functions have been added for x86 and

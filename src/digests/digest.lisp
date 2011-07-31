@@ -407,7 +407,9 @@ An error will be signaled if there is insufficient room in DIGEST."))
 
 (defun optimized-maker-name (name)
   (let ((*package* (find-package :ironclad)))
-    (intern (format nil "%MAKE-~A-DIGEST" name))))
+    ;; Ironclad gets compiled with *PRINT-CASE* set to :UPCASE; ensure
+    ;; that names we return match what got compiled.n
+    (intern (format nil "%MAKE-~:@(~A~)-DIGEST" name))))
 
 (defmacro defdigest (name &key digest-length block-length)
   (let ((optimized-maker-name (optimized-maker-name name)))
