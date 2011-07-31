@@ -110,7 +110,6 @@
 
 (defstruct (sha256
              (:constructor %make-sha256-digest nil)
-             (:constructor %make-sha256-state (regs amount block buffer buffer-index))
              (:copier nil)
              (:include mdx))
   (regs (initial-sha256-regs) :type sha256-regs :read-only t)
@@ -120,7 +119,6 @@
 (defstruct (sha224
              (:include sha256)
              (:constructor %make-sha224-digest (&aux (regs (initial-sha224-regs))))
-             (:constructor %make-sha224-state (regs amount block buffer buffer-index))
              (:copier nil))
   ;; No slots.
   )
@@ -139,31 +137,19 @@
         (sha224-buffer-index state) 0)
   state)
 
-(defun copy-sha256 (state copy constructor)
-  (declare (type function constructor))
-  (declare (type (or cl:null sha256) copy))
-  (cond
-    (copy
-     (replace (sha256-regs copy) (sha256-regs state))
-     (replace (sha256-buffer copy) (sha256-buffer state))
-     (setf (sha256-amount copy) (sha256-amount state)
-           (sha256-buffer-index copy) (sha256-buffer-index state))
-     copy)
-    (t
-     (funcall constructor
-              (copy-seq (sha256-regs state))
-              (sha256-amount state)
-              (copy-seq (sha256-block state))
-              (copy-seq (sha256-buffer state))
-              (sha256-buffer-index state)))))
-
 (defmethod copy-digest ((state sha256) &optional copy)
   (declare (type (or cl:null sha256) copy))
-  (copy-sha256 state copy #'%make-sha256-state))
-
-(defmethod copy-digest ((state sha224) &optional copy)
-  (declare (type (or cl:null sha224) copy))
-  (copy-sha256 state copy #'%make-sha224-state))
+  (let ((copy (if copy
+		  copy
+		  (etypecase state
+		    (sha256 (%make-sha256-digest))
+		    (sha224 (%make-sha224-digest))))))
+    (declare (type sha256 copy))
+    (replace (sha256-regs copy) (sha256-regs state))
+    (replace (sha256-buffer copy) (sha256-buffer state))
+    (setf (sha256-amount copy) (sha256-amount state)
+	  (sha256-buffer-index copy) (sha256-buffer-index state))
+    copy))
 
 (define-digest-updater sha256
   (flet ((compress (state sequence offset)

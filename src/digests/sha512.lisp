@@ -103,7 +103,6 @@
 (defstruct (sha512
              (:constructor %make-sha512-digest
               (&aux (buffer (make-array 128 :element-type '(unsigned-byte 8)))))
-             (:constructor %make-sha512-state (regs amount block buffer buffer-index))
              (:copier nil)
              (:include mdx))
   (regs (initial-sha512-regs) :type sha512-regs :read-only t)
@@ -115,7 +114,6 @@
              (:constructor %make-sha384-digest
               (&aux (regs (initial-sha384-regs))
                     (buffer (make-array 128 :element-type '(unsigned-byte 8)))))
-             (:constructor %make-sha384-state (regs amount block buffer buffer-index))
              (:copier nil))
   ;; No slots.
   )
@@ -134,31 +132,19 @@
         (sha384-buffer-index state) 0)
   state)
 
-(defun copy-sha512 (state copy constructor)
-  (declare (type function constructor))
-  (declare (type (or cl:null sha512) copy))
-  (cond
-    (copy
-     (replace (sha512-regs copy) (sha512-regs state))
-     (replace (sha512-buffer copy) (sha512-buffer state))
-     (setf (sha512-amount copy) (sha512-amount state)
-           (sha512-buffer-index copy) (sha512-buffer-index state))
-     copy)
-    (t
-     (funcall constructor
-              (copy-seq (sha512-regs state))
-              (sha512-amount state)
-              (copy-seq (sha512-block state))
-              (copy-seq (sha512-buffer state))
-              (sha512-buffer-index state)))))
-
 (defmethod copy-digest ((state sha512) &optional copy)
   (declare (type (or cl:null sha512) copy))
-  (copy-sha512 state copy #'%make-sha512-state))
-
-(defmethod copy-digest ((state sha384) &optional copy)
-  (declare (type (or cl:null sha384) copy))
-  (copy-sha512 state copy #'%make-sha384-state))
+  (let ((copy (if copy
+		  copy
+		  (etypecase state
+		    (sha512 (%make-sha512-digest))
+		    (sha384 (%make-sha384-digest))))))
+    (declare (type sha512 copy))
+    (replace (sha512-regs copy) (sha512-regs state))
+    (replace (sha512-buffer copy) (sha512-buffer state))
+    (setf (sha512-amount copy) (sha512-amount state)
+	  (sha512-buffer-index copy) (sha512-buffer-index state))
+    copy))
 
 (define-digest-updater sha512
   (flet ((compress (state sequence offset)
