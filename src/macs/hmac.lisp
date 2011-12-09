@@ -39,8 +39,10 @@
                                  :element-type '(unsigned-byte 8)
                                  :initial-element 0)))
     (declare (type simple-octet-vector
-                   inner-padding outer-padding padded-key))
+                   inner-padding outer-padding padded-key)
+             (fixnum block-length))
     ;; XXX: SBCL bogusly ignores this because we use :INITIAL-ELEMENT.
+    ;; see also https://bugs.launchpad.net/sbcl/+bug/902351
     (declare (dynamic-extent inner-padding outer-padding padded-key))
     (when (> (length key) block-length)
       (setf key (digest-sequence (type-of inner) key)))
