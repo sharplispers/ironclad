@@ -42,56 +42,56 @@
 (eval-when (:compile-toplevel)
   ;;; Code to generate lookup tables +C-EVEN+ and +C-ODD+.
 
-  (defconst +E+ #(#x1 #xB #x9 #xC #xD #x6 #xF #x3 #xE #x8 #x7 #x4 #xA #x2 #x5 #x0))
-  (defconst +R+ #(#x7 #xC #xB #xD #xE #x4 #x9 #xF #x6 #x3 #x8 #xA #x2 #x5 #x1 #x0))
+  (defconst +e+ #(#x1 #xB #x9 #xC #xD #x6 #xF #x3 #xE #x8 #x7 #x4 #xA #x2 #x5 #x0))
+  (defconst +r+ #(#x7 #xC #xB #xD #xE #x4 #x9 #xF #x6 #x3 #x8 #xA #x2 #x5 #x1 #x0))
 
-  (defun E (i) (aref +E+ i))
+  (defun e (i) (aref +e+ i))
 
-  (defun R (i) (aref +R+ i))
+  (defun r (i) (aref +r+ i))
 
-  (defun E-1 (i) (position i +E+))
+  (defun e-1 (i) (position i +e+))
 
   (defun byte-xor (i1 i2) (logxor i1 i2))
 
-  (defun S-internal (u v)
+  (defun s-internal (u v)
     "The S-box internals. Corresponds to equations on page 10 of (1)."
-    (let ((r (R (byte-xor (E u) (E-1 v)))))
-      (values (E (byte-xor (E u) r))
-              (E-1 (byte-xor (E-1 v) r)))))
+    (let ((r (r (byte-xor (e u) (E-1 v)))))
+      (values (e (byte-xor (e u) r))
+              (e-1 (byte-xor (e-1 v) r)))))
 
-  (defun S (i)
+  (defun s (i)
     "The S-box function."
     (let ((u (ldb (byte 4 4) i))
           (v (ldb (byte 4 0) i)))
-      (multiple-value-bind (u_ v_) (S-internal u v)
+      (multiple-value-bind (u_ v_) (s-internal u v)
         (let ((result 0))
           (setf (ldb (byte 4 4) result) u_
                 (ldb (byte 4 0) result) v_)
           result))))
 
-  (defconstant +P8+ #.(reduce #'+ (mapcar #'(lambda (x) (expt 2 x)) '(8 4 3 2 0)))
+  (defconstant +p8+ #.(reduce #'+ (mapcar #'(lambda (x) (expt 2 x)) '(8 4 3 2 0)))
                "The primitive polynomial of degree 8 for GF(2^8).")
 
   ;; Arithmetic in the Galois Field GF(2^8).
-  (defun GF-add (x y)
+  (defun gf-add (x y)
     (logxor x y))
 
-  (defun GF-shift (x n)
+  (defun gf-shift (x n)
     (ash x n))
    
-  (defun GF-reduce (x)
+  (defun gf-reduce (x)
     (let ((result x))
-      (loop until (< (integer-length result) (integer-length +P8+))
-        do (setf result (GF-add result (GF-shift +P8+ (- (integer-length result) (integer-length +P8+))))))
+      (loop until (< (integer-length result) (integer-length +p8+))
+        do (setf result (gf-add result (gf-shift +p8+ (- (integer-length result) (integer-length +p8+))))))
       result))
 
-  (defun GF-mult (x y)
+  (defun gf-mult (x y)
     (loop with result = 0
        for i downfrom (integer-length y) to 0
        do (progn
-            (setf result (GF-reduce (GF-shift result 1)))
+            (setf result (gf-reduce (gf-shift result 1)))
             (unless (zerop (ldb (byte 1 i) y))
-              (setf result (GF-add result x))))
+              (setf result (gf-add result x))))
        finally (return result)))
 
   (defun cir (vector)
@@ -103,14 +103,14 @@
              do (setf (aref result i j) (aref vector (mod (- j i) n))))
        finally (return result)))
   
-  (defparameter *C* (cir #(1 1 4 1 8 5 2 9)))
+  (defparameter *c* (cir #(1 1 4 1 8 5 2 9)))
 
   (defun calculate-table-word (i j offset)
-    (loop with Sx = (S j)
+    (loop with sx = (s j)
        with result = 0
        for k below 4
        do (setf (ldb (byte 8 (- 32 (* (1+ k) 8))) result) 
-                (GF-mult Sx (aref *C* i (+ k offset))))
+                (gf-mult sx (aref *c* i (+ k offset))))
        finally (return result)))
 
   (defun calculate-c-even ()
@@ -143,9 +143,9 @@
             (setf (aref result (+ (* 2 r) 1)) (ub32ref/be one-row-of-bytes 4)))
        finally (return result)))
 
-(declaim (type (simple-array (unsigned-byte 32) (8 256)) +C-EVEN+ +C-ODD+))
-(defconst +C-EVEN+ #.(calculate-c-even))
-(defconst +C-ODD+ #.(calculate-c-odd))
+(declaim (type (simple-array (unsigned-byte 32) (8 256)) +c-even+ +c-odd+))
+(defconst +c-even+ #.(calculate-c-even))
+(defconst +c-odd+ #.(calculate-c-odd))
 
 (eval-when (:compile-toplevel :load-toplevel :execute)
   ;;; Macro helper functions.
@@ -187,7 +187,7 @@
     ,@(loop for i below 8 collect (one-slice to from i))))
 
 (defun update-whirlpool-block (regs block)
-  "This is the core part of the Whirlpool algorithm. It takes a complete 16
+  "this is the core part of the whirlpool algorithm. it takes a complete 16
 word block of input, and updates the working state in the regs."
   (declare (type whirlpool-regs regs)
 	   (type (simple-array (unsigned-byte 32) (16)) block))

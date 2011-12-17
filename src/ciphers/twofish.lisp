@@ -104,8 +104,8 @@
 #x10 #x71 #xBB #xEE #xBF #x85 #xC8 #xA1))
 
 (declaim (type (simple-array (unsigned-byte 32) (256))
-               +twofish-MDS0+ +twofish-MDS1+ +twofish-MDS2+ +twofish-MDS3+))
-(defconst +twofish-MDS0+
+               +twofish-mds0+ +twofish-mds1+ +twofish-mds2+ +twofish-mds3+))
+(defconst +twofish-mds0+
 #32@(#xBCBC3275 #xECEC21F3 #x202043C6 #xB3B3C9F4 #xDADA03DB #x02028B7B
 #xE2E22BFB #x9E9EFAC8 #xC9C9EC4A #xD4D409D3 #x18186BE6 #x1E1E9F6B
 #x98980E45 #xB2B2387D #xA6A6D2E8 #x2626B74B #x3C3C57D6 #x93938A32
@@ -150,7 +150,7 @@
 #x04047FF6 #x272746C2 #xACACA716 #xD0D07625 #x50501386 #xDCDCF756
 #x84841A55 #xE1E15109 #x7A7A25BE #x1313EF91))
 
-(defconst +twofish-MDS1+
+(defconst +twofish-mds1+
 #32@(#xA9D93939 #x67901717 #xB3719C9C #xE8D2A6A6 #x04050707 #xFD985252
 #xA3658080 #x76DFE4E4 #x9A084545 #x92024B4B #x80A0E0E0 #x78665A5A
 #xE4DDAFAF #xDDB06A6A #xD1BF6363 #x38362A2A #x0D54E6E6 #xC6432020
@@ -195,7 +195,7 @@
 #x0FE25151 #x00000000 #x6F9A1919 #x9DE01A1A #x368F9494 #x42E6C7C7
 #x4AECC9C9 #x5EFDD2D2 #xC1AB7F7F #xE0D8A8A8))
 
-(defconst +twofish-MDS2+
+(defconst +twofish-mds2+
 #32@(#xBC75BC32 #xECF3EC21 #x20C62043 #xB3F4B3C9 #xDADBDA03 #x027B028B
 #xE2FBE22B #x9EC89EFA #xC94AC9EC #xD4D3D409 #x18E6186B #x1E6B1E9F
 #x9845980E #xB27DB238 #xA6E8A6D2 #x264B26B7 #x3CD63C57 #x9332938A
@@ -240,7 +240,7 @@
 #x04F6047F #x27C22746 #xAC16ACA7 #xD025D076 #x50865013 #xDC56DCF7
 #x8455841A #xE109E151 #x7ABE7A25 #x139113EF))
 
-(defconst +twofish-MDS3+
+(defconst +twofish-mds3+
 #32@(#xD939A9D9 #x90176790 #x719CB371 #xD2A6E8D2 #x05070405 #x9852FD98
 #x6580A365 #xDFE476DF #x08459A08 #x024B9202 #xA0E080A0 #x665A7866
 #xDDAFE4DD #xB06ADDB0 #xBF63D1BF #x362A3836 #x54E60D54 #x4320C643
@@ -304,7 +304,7 @@
       ;; MACROLET and no #., so we go ahead and build everything at
       ;; read-time.
       #.(flet ((mod-box-element (index)
-                 (let ((rs-sym (intern (format nil "RS~D" index))))
+                 (let ((rs-sym (intern (format nil "~A~D" '#:rs index))))
                    `(setf (aref box (+ box-offset ,index))
                           (logxor (aref box (+ box-offset ,index))
                                   (aref +twofish-exp-to-poly+
@@ -350,8 +350,8 @@
            (type twofish-s-boxes s-boxes)
            (type (simple-array (unsigned-byte 8) (16)) key box))
   (macrolet ((q-frob (i1 i2 d1 d2)
-               (let ((q0 (intern (format nil "+TWOFISH-Q~A+" (ldb (byte 1 1) i1))))
-                     (q1 (intern (format nil "+TWOFISH-Q~A+" (ldb (byte 1 0) i1)))))
+               (let ((q0 (intern (format nil "+~A~A+" '#:twofish-q (ldb (byte 1 1) i1))))
+                     (q1 (intern (format nil "+~A~A+" '#:twofish-q (ldb (byte 1 0) i1)))))
                  `(logxor (aref ,q0 (logxor (aref ,q1 ,i2) ,d1)) ,d2))))
     (dotimes (i 256)
       (setf (s-box-0 s-boxes i) (aref +twofish-mds0+
@@ -393,9 +393,9 @@
            (type (simple-array (unsigned-byte 8) (24)) key)
            (type (simple-array (unsigned-byte 8) (16)) box))
   (macrolet ((q-frob (i1 i2 d1 d2 d3)
-               (let ((q0 (intern (format nil "+TWOFISH-Q~A+" (ldb (byte 1 2) i1))))
-                     (q1 (intern (format nil "+TWOFISH-Q~A+" (ldb (byte 1 1) i1))))
-                     (q2 (intern (format nil "+TWOFISH-Q~A+" (ldb (byte 1 0) i1)))))
+               (let ((q0 (intern (format nil "+~A~A+" '#:twofish-q (ldb (byte 1 2) i1))))
+                     (q1 (intern (format nil "+~A~A+" '#:twofish-q (ldb (byte 1 1) i1))))
+                     (q2 (intern (format nil "+~A~A+" '#:twofish-q (ldb (byte 1 0) i1)))))
                  `(logxor (aref ,q0 (logxor (aref ,q1 (logxor (aref ,q2 ,i2)
                                                               ,d1))
                                      ,d2))
@@ -440,10 +440,10 @@
            (type (simple-array (unsigned-byte 8) (32)) key)
            (type (simple-array (unsigned-byte 8) (16)) box))
   (macrolet ((q-frob (i1 i2 d1 d2 d3 d4)
-               (let ((q0 (intern (format nil "+TWOFISH-Q~A+" (ldb (byte 1 3) i1))))
-                     (q1 (intern (format nil "+TWOFISH-Q~A+" (ldb (byte 1 2) i1))))
-                     (q2 (intern (format nil "+TWOFISH-Q~A+" (ldb (byte 1 1) i1))))
-                     (q3 (intern (format nil "+TWOFISH-Q~A+" (ldb (byte 1 0) i1)))))
+               (let ((q0 (intern (format nil "+~A~A+" '#:twofish-q (ldb (byte 1 3) i1))))
+                     (q1 (intern (format nil "+~A~A+" '#:twofish-q (ldb (byte 1 2) i1))))
+                     (q2 (intern (format nil "+~A~A+" '#:twofish-q (ldb (byte 1 1) i1))))
+                     (q3 (intern (format nil "+~A~A+" '#:twofish-q (ldb (byte 1 0) i1)))))
                  `(logxor (aref ,q0 (logxor (aref ,q1 (logxor (aref ,q2 (logxor (aref ,q3 ,i2) ,d1)) ,d2)) ,d3)) ,d4))))
     (dotimes (i 256)
       (setf (s-box-0 s-boxes i) (aref +twofish-mds0+

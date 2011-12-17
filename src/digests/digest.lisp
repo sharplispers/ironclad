@@ -78,10 +78,10 @@
 ;;; macros for "mid-level" functions
 
 (defmacro define-digest-registers ((digest-name &key (endian :big) (size 4) (digest-registers nil)) &rest registers)
-  (let* ((struct-name (intern (format nil "~A-REGS" digest-name)))
-         (constructor (intern (format nil "INITIAL-~A" struct-name)))
-         (copier (intern (format nil "%COPY-~A" struct-name)))
-         (digest-fun (intern (format nil "~AREGS-DIGEST" digest-name)))
+  (let* ((struct-name (intern (format nil "~A-~A" digest-name '#:regs)))
+         (constructor (intern (format nil "~A-~A" '#:initial struct-name)))
+         (copier (intern (format nil "%~A-~A" '#:copy struct-name)))
+         (digest-fun (intern (format nil "~A~A" digest-name '#:regs-digest)))
          (register-bit-size (* size 8))
          (digest-size (* size (or digest-registers
                                   (length registers))))
@@ -107,7 +107,7 @@
                  `(setf ,@(loop for (reg value) in registers
                              for index from 0 below digest-size by size
                              nconc `((,ref-fun buffer (+ start ,index))
-                                     (,(intern (format nil "~A-REGS-~A" digest-name reg)) regs))))))
+                                     (,(intern (format nil "~A-~A-~A" digest-name '#:regs reg)) regs))))))
                (cond
                  #+(and sbcl :little-endian)
                  ((eq endian :little)
@@ -143,10 +143,10 @@
 (defmacro define-digest-finalizer (specs &body body)
   (let* ((single-digest-p (not (consp (car specs))))
          (specs (if single-digest-p (list specs) specs))
-         (inner-fun-name (intern (format nil "%FINALIZE-~A-STATE" (caar specs)))))
+         (inner-fun-name (intern (format nil "%~A-~A-~A" '#:finalize (caar specs) '#:state))))
     (destructuring-bind (maybe-doc-string &rest rest) body
       (loop for (digest-name digest-size) in specs
-         for regs-digest-fun = (intern (format nil "~AREGS-DIGEST" digest-name))
+         for regs-digest-fun = (intern (format nil "~A~A" digest-name '#:regs-digest))
          collect `(defmethod finalize-digest ((state ,digest-name)
                                               &optional buffer buffer-start)
                     ,@(when (stringp maybe-doc-string)
@@ -180,7 +180,7 @@
                 (macrolet ((finalize-registers (state regs)
                              (declare (ignore state))
                              ,(if single-digest-p
-                                  ``(,',(intern (format nil "~AREGS-DIGEST" (caar specs))) ,regs %buffer buffer-start)
+                                  ``(,',(intern (format nil "~A~A" (caar specs) '#:regs-digest)) ,regs %buffer buffer-start)
                                   ``(funcall reg-digest-fun ,regs %buffer buffer-start))))
                   ,@(if (stringp maybe-doc-string)
                         rest
@@ -409,7 +409,7 @@ An error will be signaled if there is insufficient room in DIGEST."))
   (let ((*package* (find-package :ironclad)))
     ;; Ironclad gets compiled with *PRINT-CASE* set to :UPCASE; ensure
     ;; that names we return match what got compiled.n
-    (intern (format nil "%MAKE-~:@(~A~)-DIGEST" name))))
+    (intern (format nil "%~A-~A-~A" '#:make name '#:digest))))
 
 (defmacro defdigest (name &key digest-length block-length)
   (let ((optimized-maker-name (optimized-maker-name name)))
