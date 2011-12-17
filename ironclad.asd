@@ -27,7 +27,7 @@
 (defmethod source-file-type ((c css-file) (s module)) "css")
 
 (asdf:defsystem :ironclad
-  :version "0.28"
+  :version "0.29"
   :author "Nathan Froyd <froydnj@gmail.com>"
   :maintainer "Nathan Froyd <froydnj@gmail.com>"
   :description "A cryptographic toolkit written in pure Common Lisp"
