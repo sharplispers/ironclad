@@ -55,7 +55,7 @@
 
   (defun s-internal (u v)
     "The S-box internals. Corresponds to equations on page 10 of (1)."
-    (let ((r (r (byte-xor (e u) (E-1 v)))))
+    (let ((r (r (byte-xor (e u) (e-1 v)))))
       (values (e (byte-xor (e u) r))
               (e-1 (byte-xor (e-1 v) r)))))
 
