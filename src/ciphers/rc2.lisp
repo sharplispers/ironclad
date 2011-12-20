@@ -82,10 +82,10 @@
 
 (macrolet ((mix (index)
              (loop for i from 0 below 4
-                   collect (let ((x0 (intern (format nil "R~D" i)))
-                                 (x1 (intern (format nil "R~D" (mod (- i 1) 4))))
-                                 (x2 (intern (format nil "R~D" (mod (- i 2) 4))))
-                                 (x3 (intern (format nil "R~D" (mod (- i 3) 4)))))
+                   collect (let ((x0 (intern (format nil "~A~D" '#:r i)))
+                                 (x1 (intern (format nil "~A~D" '#:r (mod (- i 1) 4))))
+                                 (x2 (intern (format nil "~A~D" '#:r (mod (- i 2) 4))))
+                                 (x3 (intern (format nil "~A~D" '#:r (mod (- i 3) 4)))))
                              `(progn
                                (setf ,x0 (ldb (byte 16 0)
                                           (+ ,x0
@@ -100,17 +100,17 @@
                    finally (return `(progn ,@forms))))
            (mash ()
              (loop for i from 0 below 4
-                   collect (let ((x0 (intern (format nil "R~D" i)))
-                                 (x1 (intern (format nil "R~D" (mod (- i 1) 4)))))
+                   collect (let ((x0 (intern (format nil "~A~D" '#:r i)))
+                                 (x1 (intern (format nil "~A~D" '#:r (mod (- i 1) 4)))))
                              `(setf ,x0 (ldb (byte 16 0)
                                          (+ ,x0 (aref round-keys (ldb (byte 6 0) ,x1)))))) into forms
                    finally (return `(progn ,@forms))))
            (rmix (index)
              (loop for i from 0 below 4
-                   collect (let ((x0 (intern (format nil "R~D" i)))
-                                 (x1 (intern (format nil "R~D" (mod (- i 1) 4))))
-                                 (x2 (intern (format nil "R~D" (mod (- i 2) 4))))
-                                 (x3 (intern (format nil "R~D" (mod (- i 3) 4)))))
+                   collect (let ((x0 (intern (format nil "~A~D" '#:r i)))
+                                 (x1 (intern (format nil "~A~D" '#:r (mod (- i 1) 4))))
+                                 (x2 (intern (format nil "~A~D" '#:r (mod (- i 2) 4))))
+                                 (x3 (intern (format nil "~A~D" '#:r (mod (- i 3) 4)))))
                              `(progn
                                (setf ,x0 (rol16 ,x0 ,(case i
                                                            (0 15)
@@ -125,8 +125,8 @@
                    finally (return `(progn ,@(nreverse forms)))))
            (rmash ()
              (loop for i from 0 below 4
-                   collect (let ((x0 (intern (format nil "R~D" (mod i 4))))
-                                 (x1 (intern (format nil "R~D" (mod (- i 1) 4)))))
+                   collect (let ((x0 (intern (format nil "~A~D" '#:r (mod i 4))))
+                                 (x1 (intern (format nil "~A~D" '#:r (mod (- i 1) 4)))))
                              `(setf ,x0 (ldb (byte 16 0)
                                          (- ,x0 (aref round-keys (ldb (byte 6 0) ,x1)))))) into forms
                    finally (return `(progn ,@(nreverse forms))))))

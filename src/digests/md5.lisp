@@ -108,28 +108,28 @@ accordingly."
                          finally (return `(progn ,@result)))))
         ;; Round 1
         (with-md5-round (f block)
-          (A B C D  0  7  1)(D A B C  1 12  2)(C D A B  2 17  3)(B C D A  3 22  4)
-          (A B C D  4  7  5)(D A B C  5 12  6)(C D A B  6 17  7)(B C D A  7 22  8)
-          (A B C D  8  7  9)(D A B C  9 12 10)(C D A B 10 17 11)(B C D A 11 22 12)
-          (A B C D 12  7 13)(D A B C 13 12 14)(C D A B 14 17 15)(B C D A 15 22 16))
-        ;; Round 2
+          (a b c d  0  7  1)(d a b c  1 12  2)(c d a b  2 17  3)(b c d a  3 22  4)
+          (a b c d  4  7  5)(d a b c  5 12  6)(c d a b  6 17  7)(b c d a  7 22  8)
+          (a b c d  8  7  9)(d a b c  9 12 10)(c d a b 10 17 11)(b c d a 11 22 12)
+          (a b c d 12  7 13)(d a b c 13 12 14)(c d a b 14 17 15)(b c d a 15 22 16))
+        ;; round 2
         (with-md5-round (g block)
-          (A B C D  1  5 17)(D A B C  6  9 18)(C D A B 11 14 19)(B C D A  0 20 20)
-          (A B C D  5  5 21)(D A B C 10  9 22)(C D A B 15 14 23)(B C D A  4 20 24)
-          (A B C D  9  5 25)(D A B C 14  9 26)(C D A B  3 14 27)(B C D A  8 20 28)
-          (A B C D 13  5 29)(D A B C  2  9 30)(C D A B  7 14 31)(B C D A 12 20 32))
-        ;; Round 3
+          (a b c d  1  5 17)(d a b c  6  9 18)(c d a b 11 14 19)(b c d a  0 20 20)
+          (a b c d  5  5 21)(d a b c 10  9 22)(c d a b 15 14 23)(b c d a  4 20 24)
+          (a b c d  9  5 25)(d a b c 14  9 26)(c d a b  3 14 27)(b c d a  8 20 28)
+          (a b c d 13  5 29)(d a b c  2  9 30)(c d a b  7 14 31)(b c d a 12 20 32))
+        ;; round 3
         (with-md5-round (h block)
-          (A B C D  5  4 33)(D A B C  8 11 34)(C D A B 11 16 35)(B C D A 14 23 36)
-          (A B C D  1  4 37)(D A B C  4 11 38)(C D A B  7 16 39)(B C D A 10 23 40)
-          (A B C D 13  4 41)(D A B C  0 11 42)(C D A B  3 16 43)(B C D A  6 23 44)
-          (A B C D  9  4 45)(D A B C 12 11 46)(C D A B 15 16 47)(B C D A  2 23 48))
-        ;; Round 4
+          (a b c d  5  4 33)(d a b c  8 11 34)(c d a b 11 16 35)(b c d a 14 23 36)
+          (a b c d  1  4 37)(d a b c  4 11 38)(c d a b  7 16 39)(b c d a 10 23 40)
+          (a b c d 13  4 41)(d a b c  0 11 42)(c d a b  3 16 43)(b c d a  6 23 44)
+          (a b c d  9  4 45)(d a b c 12 11 46)(c d a b 15 16 47)(b c d a  2 23 48))
+        ;; round 4
         (with-md5-round (i block)
-          (A B C D  0  6 49)(D A B C  7 10 50)(C D A B 14 15 51)(B C D A  5 21 52)
-          (A B C D 12  6 53)(D A B C  3 10 54)(C D A B 10 15 55)(B C D A  1 21 56)
-          (A B C D  8  6 57)(D A B C 15 10 58)(C D A B  6 15 59)(B C D A 13 21 60)
-          (A B C D  4  6 61)(D A B C 11 10 62)(C D A B  2 15 63)(B C D A  9 21 64))
+          (a b c d  0  6 49)(d a b c  7 10 50)(c d a b 14 15 51)(b c d a  5 21 52)
+          (a b c d 12  6 53)(d a b c  3 10 54)(c d a b 10 15 55)(b c d a  1 21 56)
+          (a b c d  8  6 57)(d a b c 15 10 58)(c d a b  6 15 59)(b c d a 13 21 60)
+          (a b c d  4  6 61)(d a b c 11 10 62)(c d a b  2 15 63)(b c d a  9 21 64))
         ;; Update and return
         (setf (md5-regs-a regs) (mod32+ (md5-regs-a regs) a)
               (md5-regs-b regs) (mod32+ (md5-regs-b regs) b)
