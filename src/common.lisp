@@ -49,7 +49,7 @@
 ;;; These functions are named according to big-endian conventions.  The
 ;;; comment is here because I always forget and need to be reminded.
 #.(loop for i from 1 to 8
-        collect (let ((name (intern (format nil "~:R-~A" i '#:byte))))
+        collect (let ((name (read-from-string (format nil "~:R-~A" i '#:byte))))
                   `(progn
                     (declaim (inline ,name))
                     (declaim (ftype (function (unsigned-byte) (unsigned-byte 8)) ,name))
