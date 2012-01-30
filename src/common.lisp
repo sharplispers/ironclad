@@ -98,7 +98,7 @@
                                                      (- bytes i)
                                                      (1- i))))
                                      `(setf (aref buffer (+ index ,offset))
-                                       (,(intern (format nil "~:R-~A" i '#:byte)) value))))
+                                       (,(read-from-string (format nil "~:R-~A" i '#:byte)) value))))
                    (values)))))
            (define-fetchers-and-storers (bitsize)
              `(progn
