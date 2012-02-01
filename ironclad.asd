@@ -32,7 +32,7 @@
   :maintainer "Nathan Froyd <froydnj@gmail.com>"
   :description "A cryptographic toolkit written in pure Common Lisp"
   :default-component-class ironclad-source-file
-  #+sbcl :depends-on #+sbcl (sb-rotate-byte)
+  #+sbcl :depends-on #+sbcl (sb-rotate-byte sb-posix)
   :components ((:static-file "README")
                (:static-file "LICENSE")
                (:static-file "TODO")
@@ -117,7 +117,14 @@
                                   :components
                                   ((:file "public-key")
                                    (:file "dsa" :depends-on ("public-key"))
-                                   (:file "rsa" :depends-on ("public-key"))))))
+                                   (:file "rsa" :depends-on ("public-key"))))
+			 (:module "prng"
+				  :depends-on ("digests" "ciphers")
+				  :components
+				  ((:file "prng")
+				   (:file "fortuna" :depends-on ("prng"
+								 "generator"))
+				   (:file "generator")))))
                (:module "doc"
                         :components
                         ((:html-file "ironclad")
@@ -197,7 +204,7 @@
 
 (asdf:defsystem ironclad-tests
   :depends-on (ironclad)
-  :version "0.5"
+  :version "0.6"
   :in-order-to ((test-op (load-op :ironclad-tests)))
   :components ((:module "testing"
                         :components
@@ -213,6 +220,7 @@
                                    (:file "padding")
                                    (:file "pkcs5")
                                    (:file "ironclad")
+				   (:file "prng")
                                    ;; test vectors
                                    (:test-vector-file "crc24")
                                    (:test-vector-file "crc32")
