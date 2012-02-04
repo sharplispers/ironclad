@@ -2,6 +2,8 @@
 
 (in-package :crypto)
 
+(defvar fortuna :fortuna)
+
 
 (defparameter +min-pool-size+
   128

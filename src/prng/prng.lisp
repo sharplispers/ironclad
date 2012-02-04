@@ -16,7 +16,7 @@
   seeding it from SEED.  If SEED is a pathname or namestring, read data
   from the indicated file; if it is sequence of bytes, use those bytes
   directly; if it is :RANDOM then read from /dev/random; if it
-  is :URANDOM then read from /dev/urandom; if it is NIl then the
+  is :URANDOM then read from /dev/urandom; if it is NIL then the
   generator is not seeded."))
 
 (defmethod make-prng :around (name &key (seed :random))
