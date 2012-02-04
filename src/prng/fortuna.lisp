@@ -61,25 +61,6 @@
     (incf (slot-value pool 'length) (length event))))
 
 
-(defun strong-random (limit pseudo-random-number-generator)
-  "Return a strong random number from 0 to limit-1 inclusive"
-  (let* ((log-limit (log limit 2))
-	 (num-bytes (ceiling log-limit 8))
-	 (mask (1- (expt 2 (ceiling log-limit)))))
-    (loop for random = (logand (ironclad:octets-to-integer
-				(random-data pseudo-random-number-generator
-					     num-bytes))
-			       mask)
-       until (< random limit)
-       finally (return random))))
-
-
-(defun random-bits (pseudo-random-number-generator num-bits)
-  (logand (1- (expt 2 num-bits))
-	  (ironclad:octets-to-integer
-	   (random-data pseudo-random-number-generator (ceiling num-bits 8)))))
-
-
 (defmethod write-seed ((pseudo-random-number-generator fortuna-prng) path)
   (with-open-file (seed-file path
 			     :direction :output

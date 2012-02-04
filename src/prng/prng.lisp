@@ -38,6 +38,27 @@
   (:documentation "Generate NUM-BYTES bytes using
   PSEUDO-RANDOM-NUMBER-GENERATOR"))
 
+
+(defun random-bits (pseudo-random-number-generator num-bits)
+  (logand (1- (expt 2 num-bits))
+	  (octets-to-integer
+	   (random-data pseudo-random-number-generator (ceiling num-bits 8)))))
+
+
+(defun strong-random (pseudo-random-number-generator limit)
+  "Return a strong random number from 0 to limit-1 inclusive.  A drop-in
+replacement for COMMON-LISP:RANDOM."
+  (let* ((log-limit (log limit 2))
+	 (num-bytes (ceiling log-limit 8))
+	 (mask (1- (expt 2 (ceiling log-limit)))))
+    (loop for random = (logand (ironclad:octets-to-integer
+				(random-data pseudo-random-number-generator
+					     num-bytes))
+			       mask)
+       until (< random limit)
+       finally (return random))))
+
+
 (defun os-random-seed (source num-bytes)
   #+unix(let ((path (cond
 		      ((eq source :random) #P"/dev/random")

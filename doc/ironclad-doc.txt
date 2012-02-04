@@ -651,6 +651,18 @@ pseudo-random-number-generator source pool-id event))
 
 (:p 'event' " is an octet string.")
 
+(:describe :function (ironclad:random-bits
+pseudo-random-number-generator num-bits))
+
+(:p "Generate " 'num-bits' " random bits and return as an integer.")
+
+(:describe :function (ironclad:strong-random
+pseudo-random-number-generator limit))
+
+(:p "A drop-in replacement for " 'COMMON-LISP:RANDOM' ", "
+`STRONG-RANDOM` " generates an integer between 0 and limit-1 in an
+unbiased fashion.")
+
 ((:h2 id "gray-streams") "Gray Streams")
 
 (:p "Ironclad includes support for several convenient stream
