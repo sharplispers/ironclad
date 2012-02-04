@@ -93,7 +93,8 @@
 			    &optional (source :random))
   "Read a random seed from /dev/random or equivalent."
   (reseed (slot-value pseudo-random-number-generator 'generator)
-	  (os-random-seed source 64)))
+	  (os-random-seed source 64))
+  (incf (slot-value pseudo-random-number-generator 'reseed-count)))
 
 
 (defmethod internal-read-seed ((pseudo-random-number-generator fortuna-prng)
