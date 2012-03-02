@@ -41,9 +41,10 @@
 	   while (zerop (mod reseed-count (expt 2 i)))
 	   collect (with-slots (digest length) (nth i pools)
 		     (setf length 0
-			   (subseq seed (* i 32)) (produce-digest digest)
-			   digest (make-digest :sha-256)))
-	   finally (reseed generator seed)))
+			   (subseq seed (* i 32))
+			   (digest-sequence :sha256 (produce-digest digest))
+			   digest (make-digest :sha256)))
+	   finally (reseed generator (subseq seed 0 (* 32 i)))))
       (assert (plusp reseed-count))
       (pseudo-random-data generator num-bytes))))
 
