@@ -37,7 +37,8 @@
 		 (> (- (get-internal-run-time) last-reseed) 100))
 	(incf reseed-count)
 	(loop for i from 0 below (length pools)
-	   with seed = (make-array (* 32 32) :element-type '(unsigned-byte 8))
+	   with seed = (make-array (* 32 (integer-length (logand reseed-count (- reseed-count))))
+				   :element-type '(unsigned-byte 8))
 	   while (zerop (mod reseed-count (expt 2 i)))
 	   collect (with-slots (digest length) (nth i pools)
 		     (setf length 0
