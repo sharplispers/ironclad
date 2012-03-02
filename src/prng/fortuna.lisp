@@ -13,7 +13,7 @@
   byte.")
 
 (defclass pool ()
-  ((digest :initform (ironclad:make-digest :sha256))
+  ((digest :initform (make-digest :sha256))
    (length :initform 0))
   (:documentation "A Fortuna entropy pool.  DIGEST contains its current
   state; LENGTH the length in bytes of the entropy it contains."))
@@ -37,12 +37,13 @@
 		 (> (- (get-internal-run-time) last-reseed) 100))
 	(incf reseed-count)
 	(loop for i from 0 below (length pools)
+	   with seed = (make-array (* 32 32) :element-type '(unsigned-byte 8))
 	   while (zerop (mod reseed-count (expt 2 i)))
 	   collect (with-slots (digest length) (nth i pools)
-		     (setf length 0)
-		     (ironclad:produce-digest digest))  into seed
-	   finally (reseed generator (apply #'concatenate
-					    '(vector (unsigned-byte 8)) seed))))
+		     (setf length 0
+			   (subseq seed (* i 32)) (produce-digest digest)
+			   digest (make-digest :sha-256)))
+	   finally (reseed generator seed)))
       (assert (plusp reseed-count))
       (pseudo-random-data generator num-bytes))))
 
@@ -52,10 +53,10 @@
 	       (<= 0 source 255)
 	       (<= 0 pool-id 31)))
   (let ((pool (nth pool-id (slot-value pseudo-random-number-generator 'pools))))
-    (ironclad:update-digest (slot-value pool 'digest)
+    (update-digest (slot-value pool 'digest)
 			    (concatenate '(vector (unsigned-byte 8))
-					 (ironclad:integer-to-octets source)
-					 (ironclad:integer-to-octets
+					 (integer-to-octets source)
+					 (integer-to-octets
 					  (length event))
 					 event))
     (incf (slot-value pool 'length) (length event))))
