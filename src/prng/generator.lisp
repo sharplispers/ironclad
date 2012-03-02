@@ -10,11 +10,9 @@
 
 (defclass generator ()
   ((key
-    :initform (coerce #(0 0 0 0
-			0 0 0 0
-			0 0 0 0
-			0 0 0 0)
-		      '(vector (unsigned-byte 8))))
+    :initform (make-array 16
+			  :element-type '(unsigned-byte 8)
+			  :initial-element 0))
    (counter :initform 0)
    (cipher-name :initform :aes :initarg :cipher-name)
    (cipher :initform nil))
