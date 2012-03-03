@@ -78,7 +78,8 @@ replacement for COMMON-LISP:RANDOM."
   #-(or unix (and win32 sb-dynamic-core))(error "OS-RANDOM-SEED is not supported on your platform."))
 
 (defgeneric read-os-random-seed (prng &optional source)
-  (:documentation "(Re)seed PRNG from PATH."))
+  (:documentation "(Re)seed PRNG from SOURCE.  SOURCE may be :random
+  or :urandom"))
 
 (defun read-seed (pseudo-random-number-generator path)
   "Reseed PSEUDO-RANDOM-NUMBER-GENERATOR from PATH.  If PATH doesn't
