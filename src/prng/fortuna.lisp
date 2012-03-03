@@ -26,7 +26,7 @@
                        collect (make-instance 'pool)))
    (reseed-count :initform 0)
    (last-reseed :initform 0)
-   (generator :initform (make-instance 'generator)))
+   (generator))
   (:documentation "A Fortuna random number generator.  Contains 32
   entropy pools which are used to reseed GENERATOR."))
 
