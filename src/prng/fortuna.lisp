@@ -107,7 +107,8 @@
          (stream-error () t))))
 
 (defun make-fortuna (cipher)
-  (assert (= (block-size cipher) +fortuna-cipher-block-size+))
+  (assert (= (block-length cipher) +fortuna-cipher-block-size+))
+  (assert (find 32 (key-lengths cipher)))
   (let ((prng (make-instance 'fortuna-prng)))
     (setf (slot-value prng 'generator)
           (make-instance 'generator :cipher-name cipher))
