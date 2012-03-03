@@ -4,30 +4,38 @@
 
 
 
-;; FIXME: should this be moved into digests?
-(defun shad-256 (octets)
-  (digest-sequence :sha256 (digest-sequence :sha256 octets)))
+(defvar +fortuna-cipher-block-size+ 16
+  "Fortuna is only defined for 128-bit (16-byte) cyphers")
 
 (defclass generator ()
   ((key
-    :initform (make-array 16
+    :initform (make-array 32
                           :element-type '(unsigned-byte 8)
                           :initial-element 0))
    (counter :initform 0)
-   (cipher-name :initform :aes :initarg :cipher-name)
+   (digest :initform (make-digest :sha256))
    (cipher :initform nil))
   (:documentation "Fortuna generator.  KEY is the key used to initialise
   CIPHER as an instance of CIPHER-NAME (which must be a valid NAME
   recognised by MAKE-CIPHER)."))
 
+(defmethod initialize-instance :after ((generator generator) &key (cipher :aes))
+  (assert (= (block-length cipher) +fortuna-cipher-block-size+))
+  (assert (find 32 (key-lengths cipher)))
+  (with-slots (key (cipher-slot cipher)) generator
+    (setf cipher-slot
+          (make-cipher cipher :key key :mode :ecb))))
+
 (defun reseed (generator seed)
-  (with-slots (key counter cipher cipher-name) generator
-    (setf key
-          (shad-256
-           (concatenate '(vector (unsigned-byte 8)) key seed)))
+  (with-slots (key counter cipher digest) generator
+    (reinitialize-instance digest)
+    (update-digest digest key)
+    (update-digest digest seed)
+    (produce-digest digest :digest key)
+    (reinitialize-instance digest)
+    (digest-sequence digest key :digest key)
     (incf counter)
-    (setf cipher
-          (make-cipher cipher-name :key key :mode :ecb))))
+    (reinitialize-instance cipher :key key)))
 
 (defun generate-blocks (generator num-blocks)
   "Internal use only"

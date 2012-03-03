@@ -12,9 +12,6 @@
   entropy.  Defaults to a pessimistic estimate of 1 bit of entropy per
   byte.")
 
-(defvar +fortuna-cipher-block-size+ 16
-  "Fortuna is only defined for 128-bit (16-byte) cyphers")
-
 (defclass pool ()
   ((digest :initform (make-digest :sha256))
    (length :initform 0))
@@ -107,8 +104,6 @@
          (stream-error () t))))
 
 (defun make-fortuna (cipher)
-  (assert (= (block-length cipher) +fortuna-cipher-block-size+))
-  (assert (find 32 (key-lengths cipher)))
   (let ((prng (make-instance 'fortuna-prng)))
     (setf (slot-value prng 'generator)
           (make-instance 'generator :cipher-name cipher))

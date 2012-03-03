@@ -235,9 +235,9 @@
 
 (defun generator-test (name cipher seeds expected-sequences)
   (declare (ignore name))
-  (let ((generator (make-instance 'crypto::generator :cipher-name cipher)))
+  (let ((generator (make-instance 'crypto::generator :cipher cipher)))
     (loop for seed in seeds
-       do (crypto::reseed generator seed))
+       do (crypto::reseed generator (coerce seed '(vector (unsigned-byte 8)))))
     (every (lambda (sequence)
 	     (assert (zerop (mod (length sequence) 16)))
 	     (equalp sequence
