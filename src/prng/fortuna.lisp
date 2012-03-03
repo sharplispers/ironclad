@@ -13,7 +13,7 @@
   byte.")
 
 (defvar +fortuna-cipher-block-size+ 16
-  "Fortuna is only defined for 256-bit (16-byte) cyphers")
+  "Fortuna is only defined for 128-bit (16-byte) cyphers")
 
 (defclass pool ()
   ((digest :initform (make-digest :sha256))
