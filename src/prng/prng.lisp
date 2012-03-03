@@ -31,14 +31,6 @@
       (t (error "SEED must be an octet vector, pathname indicator, :random or :urandom")))
     prng))
 
-(defmethod make-prng ((name (eql :fortuna)) &key seed)
-  (make-instance 'fortuna-prng))
-
-;; FIXME: this is more than a little ugly; maybe there should be a
-;; prng-registry or something?
-(defmethod make-prng ((name (eql 'fortuna)) &key seed)
-  (make-instance 'fortuna-prng))
-
 (defgeneric random-data (pseudo-random-number-generator num-bytes)
   (:documentation "Generate NUM-BYTES bytes using
   PSEUDO-RANDOM-NUMBER-GENERATOR"))
@@ -52,15 +44,24 @@
 (defun strong-random (pseudo-random-number-generator limit)
   "Return a strong random number from 0 to limit-1 inclusive.  A drop-in
 replacement for COMMON-LISP:RANDOM."
-  (let* ((log-limit (log limit 2))
-         (num-bytes (ceiling log-limit 8))
-         (mask (1- (expt 2 (ceiling log-limit)))))
-    (loop for random = (logand (ironclad:octets-to-integer
-                                (random-data pseudo-random-number-generator
-                                             num-bytes))
-                               mask)
-       until (< random limit)
-       finally (return random))))
+  (assert (plusp limit))
+  (etypecase limit
+    (integer
+     (let* ((log-limit (log limit 2))
+            (num-bytes (ceiling log-limit 8))
+            (mask (1- (expt 2 (ceiling log-limit)))))
+       (loop for random = (logand (ironclad:octets-to-integer
+                                   (random-data pseudo-random-number-generator
+                                                num-bytes))
+                                  mask)
+          until (< random limit)
+          finally (return random))))
+    (float
+     (float (let ((floor (floor 1 long-float-epsilon)))
+              (* limit
+                 (/ (strong-random pseudo-random-number-generator floor)
+                    floor)))))))
+                                
 
 (defun os-random-seed (source num-bytes)
   #+unix(let ((path (cond
