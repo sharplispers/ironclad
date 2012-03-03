@@ -3,6 +3,11 @@
 (in-package :crypto)
 
 
+(defvar *prng* nil
+  "Default pseudo-random-number generator for use by all crypto
+  functions; the user must initialize it, e.g. with (setf
+  crypto:*prng* (crypto:make-prng :fortuna)).")
+
 (defclass pseudo-random-number-generator ()
   ()
   (:documentation "A pseudo random number generator.  Base class for
@@ -41,17 +46,18 @@
           (octets-to-integer
            (random-data pseudo-random-number-generator (ceiling num-bits 8)))))
 
-(defun strong-random (pseudo-random-number-generator limit)
+(defun strong-random (limit)
   "Return a strong random number from 0 to limit-1 inclusive.  A drop-in
 replacement for COMMON-LISP:RANDOM."
   (assert (plusp limit))
+  (assert *prng*)
   (etypecase limit
     (integer
      (let* ((log-limit (log limit 2))
             (num-bytes (ceiling log-limit 8))
             (mask (1- (expt 2 (ceiling log-limit)))))
        (loop for random = (logand (ironclad:octets-to-integer
-                                   (random-data pseudo-random-number-generator
+                                   (random-data *prng*
                                                 num-bytes))
                                   mask)
           until (< random limit)
@@ -59,7 +65,7 @@ replacement for COMMON-LISP:RANDOM."
     (float
      (float (let ((floor (floor 1 long-float-epsilon)))
               (* limit
-                 (/ (strong-random pseudo-random-number-generator floor)
+                 (/ (strong-random floor)
                     floor)))))))
                                 
 

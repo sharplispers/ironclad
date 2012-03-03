@@ -107,7 +107,7 @@
 (defun make-fortuna (cipher)
   (let ((prng (make-instance 'fortuna-prng)))
     (setf (slot-value prng 'generator)
-          (make-instance 'generator :cipher-name cipher))
+          (make-instance 'generator :cipher cipher))
     prng))
 
 (defmethod make-prng ((name (eql :fortuna)) &key seed (cipher :aes))
