@@ -51,7 +51,6 @@
       (assert (plusp reseed-count))
       (pseudo-random-data generator num-bytes))))
 
-
 (defun add-random-event (pseudo-random-number-generator source pool-id event)
   (assert (and (<= 1 (length event) 32)
 	       (<= 0 source 255)
@@ -65,7 +64,6 @@
 					 event))
     (incf (slot-value pool 'length) (length event))))
 
-
 (defmethod write-seed ((pseudo-random-number-generator fortuna-prng) path)
   (with-open-file (seed-file path
 			     :direction :output
@@ -74,14 +72,12 @@
 			     :element-type '(unsigned-byte 8))
     (write-sequence (random-data pseudo-random-number-generator 64) seed-file)))
 
-
 (defmethod read-os-random-seed ((pseudo-random-number-generator fortuna-prng)
 			    &optional (source :random))
   "Read a random seed from /dev/random or equivalent."
   (reseed (slot-value pseudo-random-number-generator 'generator)
 	  (os-random-seed source 64))
   (incf (slot-value pseudo-random-number-generator 'reseed-count)))
-
 
 (defmethod internal-read-seed ((pseudo-random-number-generator fortuna-prng)
 			       path)
@@ -93,7 +89,6 @@
       (reseed (slot-value pseudo-random-number-generator 'generator) seq)
       (incf (slot-value pseudo-random-number-generator 'reseed-count ))))
   (write-seed pseudo-random-number-generator path))
-
 
 (defun feed-fifo (pseudo-random-number-generator path)
   "Feed random data into a FIFO"

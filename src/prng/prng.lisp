@@ -49,7 +49,6 @@
 	  (octets-to-integer
 	   (random-data pseudo-random-number-generator (ceiling num-bits 8)))))
 
-
 (defun strong-random (pseudo-random-number-generator limit)
   "Return a strong random number from 0 to limit-1 inclusive.  A drop-in
 replacement for COMMON-LISP:RANDOM."
@@ -62,7 +61,6 @@ replacement for COMMON-LISP:RANDOM."
 			       mask)
        until (< random limit)
        finally (return random))))
-
 
 (defun os-random-seed (source num-bytes)
   #+unix(let ((path (cond

@@ -20,7 +20,6 @@
   CIPHER as an instance of CIPHER-NAME (which must be a valid NAME
   recognised by MAKE-CIPHER)."))
 
-
 (defun reseed (generator seed)
   (with-slots (key counter cipher cipher-name) generator
     (setf key
@@ -29,7 +28,6 @@
     (incf counter)
     (setf cipher
 	  (make-cipher cipher-name :key key :mode :ecb))))
-
 
 (defun generate-blocks (generator num-blocks)
   "Internal use only"
@@ -45,7 +43,6 @@
        into blocks
        do (incf counter)
        finally (return (apply #'concatenate 'simple-octet-vector blocks)))))
-
 
 (defun pseudo-random-data (generator num-bytes)
   (assert (< 0 num-bytes (expt 2 20)))
