@@ -6,7 +6,7 @@
 
 ;; FIXME: should this be moved into digests?
 (defun shad-256 (octets)
-  (ironclad:digest-sequence :sha256 (ironclad:digest-sequence :sha256 octets)))
+  (digest-sequence :sha256 (digest-sequence :sha256 octets)))
 
 (defclass generator ()
   ((key
@@ -18,7 +18,7 @@
    (cipher :initform nil))
   (:documentation "Fortuna generator.  KEY is the key used to initialise
   CIPHER as an instance of CIPHER-NAME (which must be a valid NAME
-  recognised by MAKE-CIPHER, along with +IV-CONSTANT."))
+  recognised by MAKE-CIPHER)."))
 
 
 (defun reseed (generator seed)

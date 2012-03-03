@@ -34,6 +34,11 @@
 (defmethod make-prng ((name (eql :fortuna)) &key seed)
   (make-instance 'fortuna-prng))
 
+;; FIXME: this is more than a little ugly; maybe there should be a
+;; prng-registry or something?
+(defmethod make-prng ((name (eql 'fortuna)) &key seed)
+  (make-instance 'fortuna-prng))
+
 (defgeneric random-data (pseudo-random-number-generator num-bytes)
   (:documentation "Generate NUM-BYTES bytes using
   PSEUDO-RANDOM-NUMBER-GENERATOR"))
