@@ -11,8 +11,8 @@
 (defclass generator ()
   ((key
     :initform (make-array 16
-			  :element-type '(unsigned-byte 8)
-			  :initial-element 0))
+                          :element-type '(unsigned-byte 8)
+                          :initial-element 0))
    (counter :initform 0)
    (cipher-name :initform :aes :initarg :cipher-name)
    (cipher :initform nil))
@@ -23,23 +23,23 @@
 (defun reseed (generator seed)
   (with-slots (key counter cipher cipher-name) generator
     (setf key
-	  (shad-256
-	   (concatenate '(vector (unsigned-byte 8)) key seed)))
+          (shad-256
+           (concatenate '(vector (unsigned-byte 8)) key seed)))
     (incf counter)
     (setf cipher
-	  (make-cipher cipher-name :key key :mode :ecb))))
+          (make-cipher cipher-name :key key :mode :ecb))))
 
 (defun generate-blocks (generator num-blocks)
   "Internal use only"
   (with-slots (cipher key counter) generator
     (assert (and cipher
-		 (plusp counter)))
+                 (plusp counter)))
     (loop for i from 1 to num-blocks
        collect (let ((block (integer-to-octets counter
-					       :n-bits 128
-					       :big-endian nil)))
-		      (encrypt-in-place cipher block)
-		      block)
+                                               :n-bits 128
+                                               :big-endian nil)))
+                      (encrypt-in-place cipher block)
+                      block)
        into blocks
        do (incf counter)
        finally (return (apply #'concatenate 'simple-octet-vector blocks)))))
@@ -47,8 +47,8 @@
 (defun pseudo-random-data (generator num-bytes)
   (assert (< 0 num-bytes (expt 2 20)))
   (let* ((output (subseq (generate-blocks generator (ceiling num-bytes 16))
-			 0
-			 num-bytes))
-	 (key (generate-blocks generator 2)))
+                         0
+                         num-bytes))
+         (key (generate-blocks generator 2)))
     (setf (slot-value generator 'key) key)
     output))

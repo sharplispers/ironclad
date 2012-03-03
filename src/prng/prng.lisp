@@ -46,31 +46,31 @@
 
 (defun random-bits (pseudo-random-number-generator num-bits)
   (logand (1- (expt 2 num-bits))
-	  (octets-to-integer
-	   (random-data pseudo-random-number-generator (ceiling num-bits 8)))))
+          (octets-to-integer
+           (random-data pseudo-random-number-generator (ceiling num-bits 8)))))
 
 (defun strong-random (pseudo-random-number-generator limit)
   "Return a strong random number from 0 to limit-1 inclusive.  A drop-in
 replacement for COMMON-LISP:RANDOM."
   (let* ((log-limit (log limit 2))
-	 (num-bytes (ceiling log-limit 8))
-	 (mask (1- (expt 2 (ceiling log-limit)))))
+         (num-bytes (ceiling log-limit 8))
+         (mask (1- (expt 2 (ceiling log-limit)))))
     (loop for random = (logand (ironclad:octets-to-integer
-				(random-data pseudo-random-number-generator
-					     num-bytes))
-			       mask)
+                                (random-data pseudo-random-number-generator
+                                             num-bytes))
+                               mask)
        until (< random limit)
        finally (return random))))
 
 (defun os-random-seed (source num-bytes)
   #+unix(let ((path (cond
-		      ((eq source :random) #P"/dev/random")
-		      ((eq source :urandom) #P"/dev/urandom")
-		      (t (error "Source must be either :random or :urandom"))))
-	      (seq (make-array num-bytes :element-type '(unsigned-byte 8))))
-	  (with-open-file (seed-file path :element-type '(unsigned-byte 8))
-	    (assert (>= (read-sequence seq seed-file) num-bytes))
-	    seq))
+                      ((eq source :random) #P"/dev/random")
+                      ((eq source :urandom) #P"/dev/urandom")
+                      (t (error "Source must be either :random or :urandom"))))
+              (seq (make-array num-bytes :element-type '(unsigned-byte 8))))
+          (with-open-file (seed-file path :element-type '(unsigned-byte 8))
+            (assert (>= (read-sequence seq seed-file) num-bytes))
+            seq))
   ;; FIXME: this is _untested_!
   #+(and win32 sb-dynamic-core)(sb!win32:crypt-gen-random num-bytes)
   #-(or unix (and win32 sb-dynamic-core))(error "OS-RANDOM-SEED is not supported on your platform."))
@@ -85,11 +85,11 @@ exist, reseed from /dev/random and then write that seed to PATH."
   (if (probe-file path)
       (internal-read-seed pseudo-random-number-generator path)
       (progn
-	(read-os-random-seed pseudo-random-number-generator)
-	(write-seed pseudo-random-number-generator path)
-	;; FIXME: this only works under SBCL.  It's important, though,
-	;; as it sets the proper permissions for reading a seedfile.
-	#+sbcl(sb-posix:chmod path (logior sb-posix:S-IRUSR sb-posix:S-IWUSR)))))
+        (read-os-random-seed pseudo-random-number-generator)
+        (write-seed pseudo-random-number-generator path)
+        ;; FIXME: this only works under SBCL.  It's important, though,
+        ;; as it sets the proper permissions for reading a seedfile.
+        #+sbcl(sb-posix:chmod path (logior sb-posix:S-IRUSR sb-posix:S-IWUSR)))))
 
 (defgeneric internal-read-seed (prng path)
   (:documentation "Reseed PRNG from PATH.."))

@@ -118,13 +118,13 @@
                                   ((:file "public-key")
                                    (:file "dsa" :depends-on ("public-key"))
                                    (:file "rsa" :depends-on ("public-key"))))
-			 (:module "prng"
-				  :depends-on ("digests" "ciphers")
-				  :components
-				  ((:file "prng")
-				   (:file "fortuna" :depends-on ("prng"
-								 "generator"))
-				   (:file "generator")))))
+                         (:module "prng"
+                                  :depends-on ("digests" "ciphers")
+                                  :components
+                                  ((:file "prng")
+                                   (:file "fortuna" :depends-on ("prng"
+                                                                 "generator"))
+                                   (:file "generator")))))
                (:module "doc"
                         :components
                         ((:html-file "ironclad")
@@ -220,7 +220,7 @@
                                    (:file "padding")
                                    (:file "pkcs5")
                                    (:file "ironclad")
-				   (:file "prng")
+                                   (:file "prng")
                                    ;; test vectors
                                    (:test-vector-file "crc24")
                                    (:test-vector-file "crc32")

@@ -20,7 +20,7 @@
 
 (defclass fortuna-prng (pseudo-random-number-generator)
   ((pools :initform (loop for i from 1 to 32
-		       collect (make-instance 'pool)))
+                       collect (make-instance 'pool)))
    (reseed-count :initform 0)
    (last-reseed :initform 0)
    (generator :initform (make-instance 'generator)))
@@ -28,62 +28,62 @@
   entropy pools which are used to reseed GENERATOR."))
 
 (defmethod random-data ((pseudo-random-number-generator
-			 fortuna-prng)
-			num-bytes)
+                         fortuna-prng)
+                        num-bytes)
   (when (plusp num-bytes)
     (with-slots (pools generator reseed-count last-reseed)
-	pseudo-random-number-generator
+        pseudo-random-number-generator
       (when (and (>= (slot-value (first pools) 'length) +min-pool-size+)
-		 (> (- (get-internal-run-time) last-reseed) 100))
-	(incf reseed-count)
-	(loop for i from 0 below (length pools)
-	   with seed = (make-array (* 32 (integer-length
-					  (logand reseed-count
-						  (- reseed-count))))
-				   :element-type '(unsigned-byte 8))
-	   while (zerop (mod reseed-count (expt 2 i)))
-	   collect (with-slots (digest length) (nth i pools)
-		     (setf length 0
-			   (subseq seed (* i 32))
-			   (digest-sequence :sha256 (produce-digest digest))
-			   digest (make-digest :sha256)))
-	   finally (reseed generator (subseq seed 0 (* 32 i)))))
+                 (> (- (get-internal-run-time) last-reseed) 100))
+        (incf reseed-count)
+        (loop for i from 0 below (length pools)
+           with seed = (make-array (* 32 (integer-length
+                                          (logand reseed-count
+                                                  (- reseed-count))))
+                                   :element-type '(unsigned-byte 8))
+           while (zerop (mod reseed-count (expt 2 i)))
+           collect (with-slots (digest length) (nth i pools)
+                     (setf length 0
+                           (subseq seed (* i 32))
+                           (digest-sequence :sha256 (produce-digest digest))
+                           digest (make-digest :sha256)))
+           finally (reseed generator (subseq seed 0 (* 32 i)))))
       (assert (plusp reseed-count))
       (pseudo-random-data generator num-bytes))))
 
 (defun add-random-event (pseudo-random-number-generator source pool-id event)
   (assert (and (<= 1 (length event) 32)
-	       (<= 0 source 255)
-	       (<= 0 pool-id 31)))
+               (<= 0 source 255)
+               (<= 0 pool-id 31)))
   (let ((pool (nth pool-id (slot-value pseudo-random-number-generator 'pools))))
     (update-digest (slot-value pool 'digest)
-			    (concatenate '(vector (unsigned-byte 8))
-					 (integer-to-octets source)
-					 (integer-to-octets
-					  (length event))
-					 event))
+                            (concatenate '(vector (unsigned-byte 8))
+                                         (integer-to-octets source)
+                                         (integer-to-octets
+                                          (length event))
+                                         event))
     (incf (slot-value pool 'length) (length event))))
 
 (defmethod write-seed ((pseudo-random-number-generator fortuna-prng) path)
   (with-open-file (seed-file path
-			     :direction :output
-			     :if-exists :supersede
-			     :if-does-not-exist :create
-			     :element-type '(unsigned-byte 8))
+                             :direction :output
+                             :if-exists :supersede
+                             :if-does-not-exist :create
+                             :element-type '(unsigned-byte 8))
     (write-sequence (random-data pseudo-random-number-generator 64) seed-file)))
 
 (defmethod read-os-random-seed ((pseudo-random-number-generator fortuna-prng)
-			    &optional (source :random))
+                            &optional (source :random))
   "Read a random seed from /dev/random or equivalent."
   (reseed (slot-value pseudo-random-number-generator 'generator)
-	  (os-random-seed source 64))
+          (os-random-seed source 64))
   (incf (slot-value pseudo-random-number-generator 'reseed-count)))
 
 (defmethod internal-read-seed ((pseudo-random-number-generator fortuna-prng)
-			       path)
+                               path)
   (with-open-file (seed-file path
-			     :direction :input
-			     :element-type '(unsigned-byte 8))
+                             :direction :input
+                             :element-type '(unsigned-byte 8))
     (let ((seq (make-array 64 :element-type '(unsigned-byte 8))))
       (assert (>= (read-sequence seq seed-file) 64))
       (reseed (slot-value pseudo-random-number-generator 'generator) seq)
@@ -94,14 +94,14 @@
   "Feed random data into a FIFO"
   (loop while
        (handler-case (with-open-file 
-			 (fortune-out path :direction :output
-				      :if-exists :overwrite
-				      :element-type '(unsigned-byte 8))
-		       (loop do (write-sequence
-				 (random-data pseudo-random-number-generator
-						      (1- (expt 2 20)))
-				 fortune-out)))
-	 (stream-error () t))))
+                         (fortune-out path :direction :output
+                                      :if-exists :overwrite
+                                      :element-type '(unsigned-byte 8))
+                       (loop do (write-sequence
+                                 (random-data pseudo-random-number-generator
+                                                      (1- (expt 2 20)))
+                                 fortune-out)))
+         (stream-error () t))))
 
 
 
