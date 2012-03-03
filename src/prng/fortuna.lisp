@@ -48,8 +48,8 @@
            collect (with-slots (digest length) (nth i pools)
                      (digest-sequence digest :digest seed :digest-start)
                      (digest-sequence :sha256 :digest seed :digest-start)
-                     (setf length 0
-                           digest (make-digest :sha256)))
+                     (setf length 0)
+                     (reinitialize-instance digest))
            finally (reseed generator (subseq seed 0 (* 32 i)))))
       (assert (plusp reseed-count))
       (pseudo-random-data generator num-bytes))))
