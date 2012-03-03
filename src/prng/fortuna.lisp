@@ -12,6 +12,9 @@
   entropy.  Defaults to a pessimistic estimate of 1 bit of entropy per
   byte.")
 
+(defvar +fortuna-cipher-block-size+ 16
+  "Fortuna is only defined for 256-bit (16-byte) cyphers")
+
 (defclass pool ()
   ((digest :initform (make-digest :sha256))
    (length :initform 0))
@@ -103,5 +106,19 @@
                                  fortune-out)))
          (stream-error () t))))
 
+(defun make-fortuna (cipher)
+  (assert (= (block-size cipher) +fortuna-cipher-block-size+))
+  (let ((prng (make-instance 'fortuna-prng)))
+    (setf (slot-value prng 'generator)
+          (make-instance 'generator :cipher-name cipher))
+    prng))
 
+(defmethod make-prng ((name (eql :fortuna)) &key seed (cipher :aes))
+  (declare (ignorable seed))
+  (make-fortuna cipher))
 
+;; FIXME: this is more than a little ugly; maybe there should be a
+;; prng-registry or something?
+(defmethod make-prng ((name (eql 'fortuna)) &key seed (cipher :aes))
+  (declare (ignorable seed))
+  (make-fortuna cipher))
