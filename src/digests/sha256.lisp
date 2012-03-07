@@ -142,8 +142,8 @@
   (let ((copy (if copy
 		  copy
 		  (etypecase state
-		    (sha256 (%make-sha256-digest))
-		    (sha224 (%make-sha224-digest))))))
+		    (sha224 (%make-sha224-digest))
+		    (sha256 (%make-sha256-digest))))))
     (declare (type sha256 copy))
     (replace (sha256-regs copy) (sha256-regs state))
     (replace (sha256-buffer copy) (sha256-buffer state))

@@ -137,8 +137,8 @@
   (let ((copy (if copy
 		  copy
 		  (etypecase state
-		    (sha512 (%make-sha512-digest))
-		    (sha384 (%make-sha384-digest))))))
+		    (sha384 (%make-sha384-digest))
+		    (sha512 (%make-sha512-digest))))))
     (declare (type sha512 copy))
     (replace (sha512-regs copy) (sha512-regs state))
     (replace (sha512-buffer copy) (sha512-buffer state))
