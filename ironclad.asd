@@ -99,6 +99,7 @@
                                    (:file "md2" :depends-on ("digest"))
                                    (:file "md4" :depends-on ("digest"))
                                    (:file "md5" :depends-on ("digest"))
+                                   (:file "md5-lispworks-int32" :depends-on ("digest"))
                                    (:file "sha1" :depends-on ("digest"))
                                    (:file "sha256" :depends-on ("digest"))
                                    (:file "sha512" :depends-on ("digest"))
