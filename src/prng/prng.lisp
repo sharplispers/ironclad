@@ -46,18 +46,18 @@
           (octets-to-integer
            (random-data pseudo-random-number-generator (ceiling num-bits 8)))))
 
-(defun strong-random (limit)
+(defun strong-random (limit &optional (prng *prng*))
   "Return a strong random number from 0 to limit-1 inclusive.  A drop-in
 replacement for COMMON-LISP:RANDOM."
   (assert (plusp limit))
-  (assert *prng*)
+  (assert prng)
   (etypecase limit
     (integer
      (let* ((log-limit (log limit 2))
             (num-bytes (ceiling log-limit 8))
             (mask (1- (expt 2 (ceiling log-limit)))))
        (loop for random = (logand (ironclad:octets-to-integer
-                                   (random-data *prng*
+                                   (random-data prng
                                                 num-bytes))
                                   mask)
           until (< random limit)
