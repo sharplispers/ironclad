@@ -255,12 +255,21 @@
 (define-compiler-macro mod64lognot (num)
   `(ldb (byte 64 0) (lognot ,num)))
 
+(declaim #+ironclad-fast-mod64-arithmetic (inline rol64 ror64)
+	 (ftype (function ((unsigned-byte 64) (unsigned-byte 6)) (unsigned-byte 64)) rol64 ror64))
+
 (defun rol64 (a s)
   (declare (type (unsigned-byte 64) a) (type (integer 0 64) s))
+  #+(and sbcl ironclad-fast-mod64-arithmetic)
+  (sb-rotate-byte:rotate-byte s (byte 64 0) a)
+  #-(and sbcl ironclad-fast-mod64-arithmetic)
   (logior (ldb (byte 64 0) (ash a s)) (ash a (- s 64))))
 
 (defun ror64 (a s)
   (declare (type (unsigned-byte 64) a) (type (integer 0 64) s))
+  #+(and sbcl ironclad-fast-mod64-arithmetic)
+  (sb-rotate-byte:rotate-byte (- s) (byte 64 0) a)
+  #-(and sbcl ironclad-fast-mod64-arithmetic)
   (rol64 a (- 64 s)))
 
 

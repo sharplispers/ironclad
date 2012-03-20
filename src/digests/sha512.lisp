@@ -89,6 +89,7 @@
            #.(burn-baby-burn))
   (flet ((sigma (x r1 r2 r3)
            (logxor (ror64 x r1) (ror64 x r2) (ash x (- r3)))))
+    #+ironclad-fast-mod64-arithmetic (declare (inline sigma))
     (loop for i from 16 below 80 do
          (setf (aref block i)
                (mod64+ (sigma (aref block (- i 2)) 19 61 6)
