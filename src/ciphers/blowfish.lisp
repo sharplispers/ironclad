@@ -232,14 +232,14 @@
     (do ((i 0 (+ i 2)))
         ((= i (+ +blowfish-n-rounds+ 2)))
       (blowfish-encrypt-block* p-array s-boxes data 0 data 0)
-      (setf (aref p-array i) (ub32ref/be data 0)
-            (aref p-array (1+ i)) (ub32ref/be data 4)))
+      (setf (aref p-array i) (nibbles:ub32ref/be data 0)
+            (aref p-array (1+ i)) (nibbles:ub32ref/be data 4)))
     (dotimes (i 4)
       (do ((j 0 (+ j 2)))
           ((= j 256))
         (blowfish-encrypt-block* p-array s-boxes data 0 data 0)
-        (setf (s-box s-boxes i j) (ub32ref/be data 0)
-              (s-box s-boxes i (1+ j)) (ub32ref/be data 4))))))
+        (setf (s-box s-boxes i j) (nibbles:ub32ref/be data 0)
+              (s-box s-boxes i (1+ j)) (nibbles:ub32ref/be data 4))))))
 
 (declaim (inline blowfish-encrypt-block*))
 (defun blowfish-encrypt-block* (p-array s-boxes plaintext plaintext-start
