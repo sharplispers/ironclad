@@ -66,48 +66,6 @@
   (nibbles::byte-ref-fun-name bitsize nil big-endian-p))
 ) ; EVAL-WHEN
 
-(macrolet ((define-fetcher (bitsize &optional big-endian)
-             (let ((name (ubref-fun-name bitsize big-endian))
-                   (bytes (truncate bitsize 8)))
-               `(progn
-                 (declaim (inline ,name))
-                 (defun ,name (buffer index)
-                   (declare (type simple-octet-vector buffer))
-                   (declare (type (integer 0 ,(- array-dimension-limit bytes)) index))
-                   (logand ,(1- (ash 1 bitsize))
-                           ,(loop for i from 0 below bytes
-                                  collect (let* ((offset (if big-endian
-                                                             i
-                                                             (- bytes i 1)))
-                                                 (shift (if big-endian
-                                                            (* (- bytes i 1) 8)
-                                                            (* offset 8))))
-                                            `(ash (aref buffer (+ index ,offset)) ,shift)) into forms
-                                  finally (return `(logior ,@forms))))))))
-           (define-storer (bitsize &optional big-endian)
-             (let ((name (ubref-fun-name bitsize big-endian))
-                   (bytes (truncate bitsize 8)))
-               `(progn
-                 (declaim (inline (setf ,name)))
-                 (defun (setf ,name) (value buffer index)
-                   (declare (type simple-octet-vector buffer))
-                   (declare (type (integer 0 ,(- array-dimension-limit bytes)) index))
-                   (declare (type (unsigned-byte ,bitsize) value))
-                   ,@(loop for i from 1 to bytes
-                           collect (let ((offset (if big-endian
-                                                     (- bytes i)
-                                                     (1- i))))
-                                     `(setf (aref buffer (+ index ,offset))
-                                       (,(read-from-string (format nil "~:R-~A" i '#:byte)) value))))
-                   (values)))))
-           (define-fetchers-and-storers (bitsize)
-             `(progn
-               (define-fetcher ,bitsize) (define-fetcher ,bitsize t)
-               (define-storer ,bitsize) (define-storer ,bitsize t))))
-  (define-fetchers-and-storers 16)
-  (define-fetchers-and-storers 32)
-  (define-fetchers-and-storers 64))
-
 
 ;;; efficient 32-bit arithmetic, which a lot of algorithms require
 
