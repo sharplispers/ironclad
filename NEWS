@@ -16,6 +16,16 @@ Ironclad.)
 Fixed bugs with *PRINT-CASE* and Allegro CL's modern mode.  (Thanks to
 Robert Uhl and Hans Huebner.)
 
+Ironclad now uses nibbles for its internal word-reffing and -setting
+functions.  This change should speed up most operations by a small
+amount on x86oid SBCL platforms.
+
+SHA-512/384 should be somewhat faster on x86-64 SBCL.
+
+The copy of rt.lisp included for testing has been updated to match the
+version commonly in use.  (Thanks to Anton Vodonosov for pointing this
+out.)
+
 * Version 0.29, released 2011-11-17
 
 ** bug fixes
