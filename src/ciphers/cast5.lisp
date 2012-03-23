@@ -294,11 +294,10 @@
 
 (declaim (inline cast5-f1 cast5-f2 cast5-f3))
 
-(eval-when (:compile-toplevel)
-(defmacro cast5-s-box (s-boxes s-box-index index)
-  (declare (ignore s-boxes))
-  `(aref ,(intern (format nil "+~A~A+" '#:cast5-sbox s-box-index)) ,index))
-) ; EVAL-WHEN
+(macrolet ((cast5-s-box (s-boxes s-box-index index)
+	     (declare (ignore s-boxes))
+	     `(aref ,(intern (format nil "+~A~A+" '#:cast5-sbox s-box-index))
+		    ,index)))
 
 (defun cast5-f1 (input mask rotate)
   (declare (type (unsigned-byte 32) input mask))
@@ -352,6 +351,7 @@
                                 (when (= n-rounds 16)
                                   ,@(subseq forms 12)))))
       (store-words ciphertext ciphertext-start r0 l0))))
+) ; MACROLET
 
 (define-block-decryptor cast5 8
   (let ((mask-vector (mask-vector context))
