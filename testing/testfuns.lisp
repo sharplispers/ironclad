@@ -65,8 +65,8 @@
   (cipher-test-guts cipher-name :stream hexkey hexinput hexoutput))
 
 (defparameter *cipher-tests*
-  (list (cons :ecb-mode-test #'ecb-mode-test)
-        (cons :stream-mode-test #'stream-mode-test)))
+  (list (cons :ecb-mode-test 'ecb-mode-test)
+        (cons :stream-mode-test 'stream-mode-test)))
 
 (defun cipher-test-guts (cipher-name mode key input output)
   (labels ((frob-hex-string (func input)
@@ -77,10 +77,10 @@
                scratch))
            (cipher-test (func input output)
              (not (mismatch (frob-hex-string func input) output))))
-    (unless (cipher-test #'crypto:encrypt input output)
+    (unless (cipher-test 'crypto:encrypt input output)
       (error "encryption failed for ~A on key ~A, input ~A, output ~A"
              cipher-name key input output))
-    (unless (cipher-test #'crypto:decrypt output input)
+    (unless (cipher-test 'crypto:decrypt output input)
       (error "decryption failed for ~A on key ~A, input ~A, output ~A"
              cipher-name key output input))))
 
@@ -97,17 +97,17 @@
              (not (mismatch (frob-hex-string cipher func input) output))))
     (let ((cipher (crypto:make-cipher cipher-name :key key :mode mode
                                       :initialization-vector iv)))
-      (unless (cipher-test cipher #'crypto:encrypt input output)
+      (unless (cipher-test cipher 'crypto:encrypt input output)
         (error "encryption failed for ~A on key ~A, input ~A, output ~A"
                cipher-name key input output))
       (reinitialize-instance cipher :key key :mode mode
                              :initialization-vector iv)
-      (unless (cipher-test cipher #'crypto:decrypt output input)
+      (unless (cipher-test cipher 'crypto:decrypt output input)
         (error "decryption failed for ~A on key ~A, input ~A, output ~A"
                cipher-name key output input)))))
 
 (defparameter *mode-tests*
-  (list (cons :mode-test #'mode-test)))
+  (list (cons :mode-test 'mode-test)))
 
 
 ;;; digest testing routines
@@ -165,30 +165,30 @@
              digest-name leading byte trailing))))
 
 (defparameter *digest-tests*
-  (list (cons :digest-test #'digest-test/base)
-        (cons :digest-bit-test #'digest-bit-test)))
+  (list (cons :digest-test 'digest-test/base)
+        (cons :digest-bit-test 'digest-bit-test)))
 
 (defun ignore-test (&rest args)
   (declare (ignore args))
   nil)
 
 (defparameter *digest-incremental-tests*
-  (list (cons :digest-test #'digest-test/incremental)
-        (cons :digest-bit-test #'ignore-test)))
+  (list (cons :digest-test 'digest-test/incremental)
+        (cons :digest-bit-test 'ignore-test)))
 
 #+(or sbcl cmucl)
 (defparameter *digest-fill-pointer-tests*
-  (list (cons :digest-test #'digest-test/fill-pointer)
-        (cons :digest-bit-test #'ignore-test)))
+  (list (cons :digest-test 'digest-test/fill-pointer)
+        (cons :digest-bit-test 'ignore-test)))
 
 #+(or lispworks sbcl cmucl openmcl allegro)
 (defparameter *digest-stream-tests*
-  (list (cons :digest-test #'digest-test/stream)
-        (cons :digest-bit-test #'ignore-test)))
+  (list (cons :digest-test 'digest-test/stream)
+        (cons :digest-bit-test 'ignore-test)))
 
 (defparameter *digest-reinitialize-instance-tests*
-  (list (cons :digest-test #'digest-test/reinitialize-instance)
-        (cons :digest-bit-test #'ignore-test)))
+  (list (cons :digest-test 'digest-test/reinitialize-instance)
+        (cons :digest-bit-test 'ignore-test)))
 
 
 ;;; mac testing routines
@@ -218,8 +218,8 @@
              cipher-name key data expected-digest))))
 
 (defparameter *mac-tests*
-  (list (cons :hmac-test #'hmac-test)
-        (cons :cmac-test #'cmac-test)))
+  (list (cons :hmac-test 'hmac-test)
+        (cons :cmac-test 'cmac-test)))
 
 
 ;;; PRNG testing routines
@@ -249,4 +249,3 @@
 (defparameter *prng-tests*
   `((:fortuna-test . ,#'fortuna-test)
     (:generator-test . ,#'generator-test)))
-    

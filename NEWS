@@ -1,5 +1,21 @@
 -*- mode: outline -*-
 
+* Version 0.30, released
+
+** bug fixes
+
+Fixed a bug in COPY-DIGEST for SHA224 and SHA384.  (Thanks to Robert Uhl
+for noticing.)
+
+** improvements
+
+Added a Lispworks-specific MD5 implementation.  (Thanks to Pierre R. Mai
+for the implementation and Klaus Harbo for integrating it into
+Ironclad.)
+
+Fixed bugs with *PRINT-CASE* and Allegro CL's modern mode.  (Thanks to
+Robert Uhl and Hans Huebner.)
+
 * Version 0.29, released 2011-11-17
 
 ** bug fixes

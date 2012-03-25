@@ -83,7 +83,7 @@
     ;; is somewhat slow and consy, but it's easily shown to be correct.
     (replace expanded-key key)
     (loop for i from 0 below 64 do
-          (setf (aref l i) (ub32ref/le expanded-key (* i 4))))
+          (setf (aref l i) (nibbles:ub32ref/le expanded-key (* i 4))))
     ;; initialize the round keys
     (loop initially (setf (aref round-keys 0) +rc5/32-p+)
       for i from 1 below n-round-keys do

@@ -127,17 +127,18 @@ Note that this computation may involve MODE's state."))
     (values)))
           
 ;;; This way is kind of ugly, but I don't know a better way.
-(macrolet ((define-mode-function (&environment env)
-             `(progn
-                ,(macroexpand '(mode-definition t ((block-length (block-length cipher)))
-                                block-length) env)
-                ,(macroexpand '(mode-definition 16-byte-block-mixin nil 16) env)
-                ,(macroexpand '(mode-definition 8-byte-block-mixin nil 8) env))))
+(macrolet ((define-mode-function (&rest mode-definition-funs &environment env)
+	     (loop for fun in mode-definition-funs
+		   collect (macroexpand `(,fun t ((block-length (block-length cipher)))
+					  block-length) env) into forms
+		   collect (macroexpand `(,fun 16-byte-block-mixin nil 16) env) into forms
+		   collect (macroexpand `(,fun 8-byte-block-mixin nil 8) env) into forms
+		   finally (return `(progn ,@forms)))))
 
 
 ;;; ECB mode
 
-(macrolet ((mode-definition (cipher-specializer block-length-binding
+(macrolet ((encrypt (cipher-specializer block-length-binding
                                                 block-length-expr)
              `(defmethod encrypt-with-mode ((cipher ,cipher-specializer)
                                             (mode ecb-mode) plaintext ciphertext
@@ -155,10 +156,8 @@ Note that this computation may involve MODE's state."))
                      (incf ciphertext-start ,block-length-expr)
                      finally (return-from encrypt-with-mode
                                (let ((n-bytes-encrypted (- offset plaintext-start)))
-                                 (values n-bytes-encrypted n-bytes-encrypted))))))))
-  (define-mode-function))
-
-(macrolet ((mode-definition (cipher-specializer block-length-binding
+                                 (values n-bytes-encrypted n-bytes-encrypted)))))))
+	   (decrypt (cipher-specializer block-length-binding
                                                 block-length-expr)
              `(defmethod decrypt-with-mode ((cipher ,cipher-specializer)
                                             (mode ecb-mode) ciphertext plaintext
@@ -176,10 +175,8 @@ Note that this computation may involve MODE's state."))
                      (incf plaintext-start ,block-length-expr)
                      finally (return-from decrypt-with-mode
                                (let ((n-bytes-decrypted (- offset ciphertext-start)))
-                                 (values n-bytes-decrypted n-bytes-decrypted))))))))
-  (define-mode-function))
-
-(macrolet ((mode-definition (cipher-specializer block-length-binding
+                                 (values n-bytes-decrypted n-bytes-decrypted)))))))
+	   (message-length (cipher-specializer block-length-binding
                                                 block-length-expr)
              `(defmethod encrypted-message-length ((cipher ,cipher-specializer)
                                                    (mode ecb-mode) length
@@ -188,12 +185,12 @@ Note that this computation may involve MODE's state."))
                 (let ,block-length-binding
                   ;; Just count the number of full blocks.
                   (* (truncate length ,block-length-expr) ,block-length-expr)))))
-  (define-mode-function))
+  (define-mode-function encrypt decrypt message-length))
 
 
 ;;; CBC mode
 
-(macrolet ((mode-definition (cipher-specializer block-length-binding
+(macrolet ((encrypt (cipher-specializer block-length-binding
                                                 block-length-expr)
              `(defmethod encrypt-with-mode ((cipher ,cipher-specializer)
                                             (mode cbc-mode) plaintext ciphertext
@@ -218,10 +215,8 @@ Note that this computation may involve MODE's state."))
                      (incf ciphertext-start ,block-length-expr)
                      finally (return-from encrypt-with-mode
                                (let ((n-bytes-encrypted (- offset plaintext-start)))
-                                 (values n-bytes-encrypted n-bytes-encrypted))))))))
-  (define-mode-function))
-
-(macrolet ((mode-definition (cipher-specializer block-length-binding
+                                 (values n-bytes-encrypted n-bytes-encrypted)))))))
+	   (decrypt (cipher-specializer block-length-binding
                                                 block-length-expr)
              `(defmethod decrypt-with-mode ((cipher ,cipher-specializer)
                                             (mode cbc-mode) ciphertext plaintext
@@ -253,23 +248,21 @@ Note that this computation may involve MODE's state."))
                        (incf plaintext-start ,block-length-expr)
                        finally (return-from decrypt-with-mode
                                  (let ((n-bytes-decrypted (- offset ciphertext-start)))
-                                   (values n-bytes-decrypted n-bytes-decrypted)))))))))
-  (define-mode-function))
-
-(macrolet ((mode-definition (cipher-specializer block-length-binding
-                                                block-length-expr)
+                                   (values n-bytes-decrypted n-bytes-decrypted))))))))
+	   (message-length (cipher-specializer block-length-binding
+					       block-length-expr)
              `(defmethod encrypted-message-length ((cipher ,cipher-specializer)
                                                    (mode cbc-mode) length
                                                    &optional handle-final-block)
                 (declare (ignore handle-final-block))
                 (let ,block-length-binding
                   (* (truncate length ,block-length-expr) ,block-length-expr)))))
-  (define-mode-function))
+  (define-mode-function encrypt decrypt message-length))
 
 
 ;;; CFB mode
 
-(macrolet ((mode-definition (cipher-specializer block-length-binding
+(macrolet ((encrypt (cipher-specializer block-length-binding
                                                 block-length-expr)
            `(defmethod encrypt-with-mode ((cipher ,cipher-specializer)
                                           (mode cfb-mode) plaintext ciphertext
@@ -296,10 +289,8 @@ Note that this computation may involve MODE's state."))
                    finally (return-from encrypt-with-mode
                              (let ((n-bytes-encrypted (- plaintext-end plaintext-start)))
                                (setf (iv-position mode) iv-position)
-                               (values n-bytes-encrypted n-bytes-encrypted))))))))
-  (define-mode-function))
-
-(macrolet ((mode-definition (cipher-specializer block-length-binding
+                               (values n-bytes-encrypted n-bytes-encrypted)))))))
+	   (decrypt (cipher-specializer block-length-binding
                                                 block-length-expr)
              `(defmethod decrypt-with-mode ((cipher ,cipher-specializer)
                                             (mode cfb-mode) ciphertext plaintext
@@ -326,11 +317,9 @@ Note that this computation may involve MODE's state."))
                      finally (return-from decrypt-with-mode
                                (let ((n-bytes-decrypted (- ciphertext-end ciphertext-start)))
                                  (setf (iv-position mode) iv-position)
-                                 (values n-bytes-decrypted n-bytes-decrypted))))))))
-  (define-mode-function))
-
-(macrolet ((mode-definition (cipher-specializer block-length-binding
-                                                block-length-expr)
+                                 (values n-bytes-decrypted n-bytes-decrypted)))))))
+	   (message-length (cipher-specializer block-length-binding
+					       block-length-expr)
              (declare (ignore block-length-binding block-length-expr))
              `(defmethod encrypted-message-length ((cipher ,cipher-specializer)
                                                    (mode cfb-mode) length
@@ -338,13 +327,13 @@ Note that this computation may involve MODE's state."))
                 (declare (ignore handle-final-block))
                 ;; We can encrypt the whole thing.
                 length)))
-  (define-mode-function))
+  (define-mode-function encrypt decrypt message-length))
 
 
 ;;; CFB8 mode
 
-(macrolet ((mode-definition (cipher-specializer block-length-binding
-                                                block-length-expr)
+(macrolet ((encrypt (cipher-specializer block-length-binding
+					block-length-expr)
            `(defmethod encrypt-with-mode ((cipher ,cipher-specializer)
                                           (mode cfb8-mode) plaintext ciphertext
                                           plaintext-start plaintext-end
@@ -370,10 +359,8 @@ Note that this computation may involve MODE's state."))
                      (setf (aref iv (1- ,block-length-expr)) b))
                    finally (return-from encrypt-with-mode
                              (let ((n-bytes-encrypted (- plaintext-end plaintext-start)))
-                               (values n-bytes-encrypted n-bytes-encrypted))))))))
-  (define-mode-function))
-
-(macrolet ((mode-definition (cipher-specializer block-length-binding
+                               (values n-bytes-encrypted n-bytes-encrypted)))))))
+	   (decrypt (cipher-specializer block-length-binding
                                                 block-length-expr)
              `(defmethod decrypt-with-mode ((cipher ,cipher-specializer)
                                             (mode cfb8-mode) ciphertext plaintext
@@ -400,11 +387,9 @@ Note that this computation may involve MODE's state."))
                          (setf (aref plaintext j) (logxor b (aref encrypted-iv 0))))
                      finally (return-from decrypt-with-mode
                                (let ((n-bytes-decrypted (- ciphertext-end ciphertext-start)))
-                                 (values n-bytes-decrypted n-bytes-decrypted))))))))
-  (define-mode-function))
-
-(macrolet ((mode-definition (cipher-specializer block-length-binding
-                                                block-length-expr)
+                                 (values n-bytes-decrypted n-bytes-decrypted)))))))
+	   (message-length (cipher-specializer block-length-binding
+					       block-length-expr)
              (declare (ignore block-length-binding block-length-expr))
              `(defmethod encrypted-message-length ((cipher ,cipher-specializer)
                                                    (mode cfb8-mode) length
@@ -412,13 +397,13 @@ Note that this computation may involve MODE's state."))
                 (declare (ignore handle-final-block))
                 ;; We can encrypt the whole thing.
                 length)))
-  (define-mode-function))
+  (define-mode-function encrypt decrypt message-length))
 
 
 ;;; OFB mode
 
-(macrolet ((mode-definition (cipher-specializer block-length-binding
-                                                block-length-expr)
+(macrolet ((encrypt (cipher-specializer block-length-binding
+					block-length-expr)
              `(defmethod encrypt-with-mode ((cipher ,cipher-specializer)
                                             (mode ofb-mode) plaintext ciphertext
                                             plaintext-start plaintext-end
@@ -443,11 +428,9 @@ Note that this computation may involve MODE's state."))
                      finally (return-from encrypt-with-mode
                                (let ((n-bytes-encrypted (- plaintext-end plaintext-start)))
                                  (setf (iv-position mode) iv-position)
-                                 (values n-bytes-encrypted n-bytes-encrypted))))))))
-  (define-mode-function))
-
-(macrolet ((mode-definition (cipher-specializer block-length-binding
-                                                block-length-expr)
+                                 (values n-bytes-encrypted n-bytes-encrypted)))))))
+	   (decrypt (cipher-specializer block-length-binding
+					block-length-expr)
              `(defmethod decrypt-with-mode ((cipher ,cipher-specializer)
                                             (mode ofb-mode) ciphertext plaintext
                                             ciphertext-start ciphertext-end
@@ -472,11 +455,9 @@ Note that this computation may involve MODE's state."))
                      finally (return-from decrypt-with-mode
                                (let ((n-bytes-decrypted (- ciphertext-end ciphertext-start)))
                                  (setf (iv-position mode) iv-position)
-                                 (values n-bytes-decrypted n-bytes-decrypted))))))))
-  (define-mode-function))
-
-(macrolet ((mode-definition (cipher-specializer block-length-binding
-                                                block-length-expr)
+                                 (values n-bytes-decrypted n-bytes-decrypted)))))))
+	   (message-length (cipher-specializer block-length-binding
+					       block-length-expr)
              (declare (ignore block-length-binding block-length-expr))
              `(defmethod encrypted-message-length ((cipher ,cipher-specializer)
                                                    (mode ofb-mode) length
@@ -484,13 +465,13 @@ Note that this computation may involve MODE's state."))
                 (declare (ignore handle-final-block))
                 ;; We can encrypt the whole thing.
                 length)))
-  (define-mode-function))
+  (define-mode-function encrypt decrypt message-length))
 
 
 ;;; CTR mode
 
-(macrolet ((mode-definition (cipher-specializer block-length-binding
-                                                block-length-expr)
+(macrolet ((encrypt (cipher-specializer block-length-binding
+					block-length-expr)
              `(defmethod encrypt-with-mode ((cipher ,cipher-specializer)
                                             (mode ctr-mode) plaintext ciphertext
                                             plaintext-start plaintext-end
@@ -519,11 +500,9 @@ Note that this computation may involve MODE's state."))
                      finally (return-from encrypt-with-mode
                                (let ((n-bytes-encrypted (- plaintext-end plaintext-start)))
                                  (setf (iv-position mode) iv-position)
-                                 (values n-bytes-encrypted n-bytes-encrypted))))))))
-  (define-mode-function))
-
-(macrolet ((mode-definition (cipher-specializer block-length-binding
-                                                block-length-expr)
+                                 (values n-bytes-encrypted n-bytes-encrypted)))))))
+	   (decrypt (cipher-specializer block-length-binding
+					block-length-expr)
              `(defmethod decrypt-with-mode ((cipher ,cipher-specializer)
                                             (mode ctr-mode) ciphertext plaintext
                                             ciphertext-start ciphertext-end
@@ -552,11 +531,9 @@ Note that this computation may involve MODE's state."))
                      finally (return-from decrypt-with-mode
                                (let ((n-bytes-decrypted (- ciphertext-end ciphertext-start)))
                                  (setf (iv-position mode) iv-position)
-                                 (values n-bytes-decrypted n-bytes-decrypted))))))))
-  (define-mode-function))
-
-(macrolet ((mode-definition (cipher-specializer block-length-binding
-                                                block-length-expr)
+                                 (values n-bytes-decrypted n-bytes-decrypted)))))))
+	   (message-length (cipher-specializer block-length-binding
+					       block-length-expr)
              (declare (ignore block-length-binding block-length-expr))
              `(defmethod encrypted-message-length ((cipher ,cipher-specializer)
                                                    (mode ctr-mode) length
@@ -564,13 +541,13 @@ Note that this computation may involve MODE's state."))
                 (declare (ignore handle-final-block))
                 ;; We can encrypt the whole thing.
                 length)))
-  (define-mode-function))
+  (define-mode-function encrypt decrypt message-length))
 
 
 ;;; Padded modes
 
-(macrolet ((mode-definition (cipher-specializer block-length-binding
-                                                block-length-expr)
+(macrolet ((encrypt (cipher-specializer block-length-binding
+					block-length-expr)
              `(defmethod encrypt-with-mode ((cipher ,cipher-specializer)
                                             (mode padded-cipher-mode)
                                             plaintext ciphertext
@@ -615,11 +592,9 @@ Note that this computation may involve MODE's state."))
                              :end2 plaintext-end)
                     (setf (buffer-index mode) plaintext-length)
                     (values (+ n-bytes-encrypted plaintext-length)
-                            n-bytes-encrypted))))))
-  (define-mode-function))
-
-(macrolet ((mode-definition (cipher-specializer block-length-binding
-                                                block-length-expr)
+                            n-bytes-encrypted)))))
+	   (decrypt (cipher-specializer block-length-binding
+					block-length-expr)
              `(defmethod decrypt-with-mode ((cipher ,cipher-specializer)
                                             (mode padded-cipher-mode)
                                             ciphertext plaintext
@@ -660,11 +635,9 @@ Note that this computation may involve MODE's state."))
                              :end2 ciphertext-end)
                     (setf (buffer-index mode) ciphertext-length)
                     (values (+ n-bytes-decrypted ciphertext-length)
-                            n-bytes-decrypted))))))
-  (define-mode-function))
-
-(macrolet ((mode-definition (cipher-specializer block-length-binding
-                                                block-length-expr)
+                            n-bytes-decrypted)))))
+	   (message-length (cipher-specializer block-length-binding
+					       block-length-expr)
              `(defmethod encrypted-message-length ((cipher ,cipher-specializer)
                                                    (mode padded-cipher-mode)
                                                    length
@@ -685,7 +658,7 @@ Note that this computation may involve MODE's state."))
                            (floor total-amount ,block-length-expr)
                          (declare (ignore leftover))
                          (* full-blocks ,block-length-expr)))))))))
-  (define-mode-function))
+  (define-mode-function encrypt decrypt message-length))
 
 ) ; DEFINE-MODE-FUNCTION MACROLET
 

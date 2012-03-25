@@ -89,6 +89,7 @@
            #.(burn-baby-burn))
   (flet ((sigma (x r1 r2 r3)
            (logxor (ror64 x r1) (ror64 x r2) (ash x (- r3)))))
+    #+ironclad-fast-mod64-arithmetic (declare (inline sigma))
     (loop for i from 16 below 80 do
          (setf (aref block i)
                (mod64+ (sigma (aref block (- i 2)) 19 61 6)
@@ -137,8 +138,8 @@
   (let ((copy (if copy
 		  copy
 		  (etypecase state
-		    (sha512 (%make-sha512-digest))
-		    (sha384 (%make-sha384-digest))))))
+		    (sha384 (%make-sha384-digest))
+		    (sha512 (%make-sha512-digest))))))
     (declare (type sha512 copy))
     (replace (sha512-regs copy) (sha512-regs state))
     (replace (sha512-buffer copy) (sha512-buffer state))

@@ -32,7 +32,7 @@
   :maintainer "Nathan Froyd <froydnj@gmail.com>"
   :description "A cryptographic toolkit written in pure Common Lisp"
   :default-component-class ironclad-source-file
-  #+sbcl :depends-on #+sbcl (sb-rotate-byte sb-posix)
+  :depends-on (#+sbcl sb-rotate-byte nibbles sb-posix)
   :components ((:static-file "README")
                (:static-file "LICENSE")
                (:static-file "TODO")
@@ -99,6 +99,7 @@
                                    (:file "md2" :depends-on ("digest"))
                                    (:file "md4" :depends-on ("digest"))
                                    (:file "md5" :depends-on ("digest"))
+                                   (:file "md5-lispworks-int32" :depends-on ("digest"))
                                    (:file "sha1" :depends-on ("digest"))
                                    (:file "sha256" :depends-on ("digest"))
                                    (:file "sha512" :depends-on ("digest"))

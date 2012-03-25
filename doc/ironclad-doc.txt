@@ -430,8 +430,7 @@ insufficient space in " 'buffer' ".")
 (:p "Ironclad comes with the basic PBKDF1 and PBKDF2 algorithms, as
 well as convenience functions for using them to store passwords.")
 
-(:describe :function (ironclad:derive-key kdf passphrase salt
-iteration-count key-length))
+(:describe :function (ironclad:derive-key digest))
 
 (:p "Given a key derivation function object (produced by " `make-kdf`
 "), a password and salt (both must be of type " `(SIMPLE-ARRAY
@@ -456,7 +455,7 @@ salt, as byte vectors.")
 algorithm. Returns the derived hash of the password as a single string
 that encodes the given salt and PBKDF2 algorithm parameters.")
 
-(:describe :function (ironclad:pbkdf2-check-password password combined-salt-and-digest))
+(:describe :function (ironclad:pbkdf2-check-password validp))
 
 (:p "Given a " 'password' " byte vector and a combined salt and digest string
 produced by " `pbkdf2-hash-password-to-combined-string` ", checks whether

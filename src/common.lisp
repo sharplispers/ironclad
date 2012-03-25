@@ -63,50 +63,8 @@
 
 (eval-when (:compile-toplevel :load-toplevel :execute)
 (defun ubref-fun-name (bitsize big-endian-p)
-  (intern (format nil "~A~D~A/~A" '#:ub bitsize '#:ref (if big-endian-p '#:be '#:le))))
+  (nibbles::byte-ref-fun-name bitsize nil big-endian-p))
 ) ; EVAL-WHEN
-
-(macrolet ((define-fetcher (bitsize &optional big-endian)
-             (let ((name (ubref-fun-name bitsize big-endian))
-                   (bytes (truncate bitsize 8)))
-               `(progn
-                 (declaim (inline ,name))
-                 (defun ,name (buffer index)
-                   (declare (type simple-octet-vector buffer))
-                   (declare (type (integer 0 ,(- array-dimension-limit bytes)) index))
-                   (logand ,(1- (ash 1 bitsize))
-                           ,(loop for i from 0 below bytes
-                                  collect (let* ((offset (if big-endian
-                                                             i
-                                                             (- bytes i 1)))
-                                                 (shift (if big-endian
-                                                            (* (- bytes i 1) 8)
-                                                            (* offset 8))))
-                                            `(ash (aref buffer (+ index ,offset)) ,shift)) into forms
-                                  finally (return `(logior ,@forms))))))))
-           (define-storer (bitsize &optional big-endian)
-             (let ((name (ubref-fun-name bitsize big-endian))
-                   (bytes (truncate bitsize 8)))
-               `(progn
-                 (declaim (inline (setf ,name)))
-                 (defun (setf ,name) (value buffer index)
-                   (declare (type simple-octet-vector buffer))
-                   (declare (type (integer 0 ,(- array-dimension-limit bytes)) index))
-                   (declare (type (unsigned-byte ,bitsize) value))
-                   ,@(loop for i from 1 to bytes
-                           collect (let ((offset (if big-endian
-                                                     (- bytes i)
-                                                     (1- i))))
-                                     `(setf (aref buffer (+ index ,offset))
-                                       (,(read-from-string (format nil "~:R-~A" i '#:byte)) value))))
-                   (values)))))
-           (define-fetchers-and-storers (bitsize)
-             `(progn
-               (define-fetcher ,bitsize) (define-fetcher ,bitsize t)
-               (define-storer ,bitsize) (define-storer ,bitsize t))))
-  (define-fetchers-and-storers 16)
-  (define-fetchers-and-storers 32)
-  (define-fetchers-and-storers 64))
 
 
 ;;; efficient 32-bit arithmetic, which a lot of algorithms require
@@ -255,12 +213,21 @@
 (define-compiler-macro mod64lognot (num)
   `(ldb (byte 64 0) (lognot ,num)))
 
+(declaim #+ironclad-fast-mod64-arithmetic (inline rol64 ror64)
+	 (ftype (function ((unsigned-byte 64) (unsigned-byte 6)) (unsigned-byte 64)) rol64 ror64))
+
 (defun rol64 (a s)
   (declare (type (unsigned-byte 64) a) (type (integer 0 64) s))
+  #+(and sbcl ironclad-fast-mod64-arithmetic)
+  (sb-rotate-byte:rotate-byte s (byte 64 0) a)
+  #-(and sbcl ironclad-fast-mod64-arithmetic)
   (logior (ldb (byte 64 0) (ash a s)) (ash a (- s 64))))
 
 (defun ror64 (a s)
   (declare (type (unsigned-byte 64) a) (type (integer 0 64) s))
+  #+(and sbcl ironclad-fast-mod64-arithmetic)
+  (sb-rotate-byte:rotate-byte (- s) (byte 64 0) a)
+  #-(and sbcl ironclad-fast-mod64-arithmetic)
   (rol64 a (- 64 s)))
 
 
@@ -351,7 +318,7 @@ OFFSET into the given (UNSIGNED-BYTE 32) BLOCK."
 	for j of-type (integer 0 #.array-dimension-limit)
 	from offset to (+ offset 63) by 4
 	do
-	(setf (aref block i) (ub32ref/le buffer j))))
+	(setf (aref block i) (nibbles:ub32ref/le buffer j))))
 
 (defun fill-block-ub8-be (block buffer offset)
   "Convert a complete 64 (unsigned-byte 8) input vector segment
@@ -373,7 +340,8 @@ without subsequently calling EXPAND-BLOCK results in undefined behavior."
   (loop for i of-type (integer 0 16) from 0
         for j of-type (integer 0 #.array-dimension-limit)
         from offset to (+ offset 63) by 4
-        do (setf (aref block i) (ub32ref/be buffer j))))
+        do (setf (aref block i) (nibbles:ub32ref/be buffer j)))
+  (values))
 
 (defun fill-block-ub8-le/64 (block buffer offset)
   "Convert a complete 128 (unsigned-byte 8) input vector segment
@@ -397,7 +365,7 @@ behavior."
   (loop for i of-type (integer 0 8) from 0
         for j of-type (integer 0 #.array-dimension-limit)
         from offset to (+ offset 63) by 8
-        do (setf (aref block i) (ub64ref/le buffer j))))
+        do (setf (aref block i) (nibbles:ub64ref/le buffer j))))
 
 (defun fill-block-ub8-be/64 (block buffer offset)
   "Convert a complete 128 (unsigned-byte 8) input vector segment
@@ -421,7 +389,7 @@ behavior."
   (loop for i of-type (integer 0 16) from 0
         for j of-type (integer 0 #.array-dimension-limit)
         from offset to (+ offset 127) by 8
-        do (setf (aref block i) (ub64ref/be buffer j))))
+        do (setf (aref block i) (nibbles:ub64ref/be buffer j))))
 
 (declaim (inline xor-block))
 (defun xor-block (block-length input-block1 input-block2 input-block2-start

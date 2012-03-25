@@ -84,7 +84,7 @@
   (flet ((stuff-state (crc digest start)
            (declare (type (simple-array (unsigned-byte 8) (*)) digest))
            (declare (type (integer 0 #.(- array-dimension-limit 4)) start))
-           (setf (ub32ref/be digest start) crc)
+           (setf (nibbles:ub32ref/be digest start) crc)
            digest))
     (declare (inline stuff-state))
     (let ((result (logxor #xffffffff (crc32-crc state))))
