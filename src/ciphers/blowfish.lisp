@@ -204,14 +204,12 @@
   ((p-array :accessor p-array :type blowfish-p-array)
    (s-boxes :accessor s-boxes :type blowfish-s-boxes)))
 
-(eval-when (:compile-toplevel)
-(defmacro s-box (s-boxes which index)
-  `(aref ,s-boxes (+ (* 256 ,which) ,index)))
-(defmacro s-box-0 (s-boxes index) `(s-box ,s-boxes 0 ,index))
-(defmacro s-box-1 (s-boxes index) `(s-box ,s-boxes 1 ,index))
-(defmacro s-box-2 (s-boxes index) `(s-box ,s-boxes 2 ,index))
-(defmacro s-box-3 (s-boxes index) `(s-box ,s-boxes 3 ,index))
-) ; EVAL-WHEN
+(macrolet ((s-box (s-boxes which index)
+	     `(aref ,s-boxes (+ (* 256 ,which) ,index)))
+	   (s-box-0 (s-boxes index) `(s-box ,s-boxes 0 ,index))
+	   (s-box-1 (s-boxes index) `(s-box ,s-boxes 1 ,index))
+	   (s-box-2 (s-boxes index) `(s-box ,s-boxes 2 ,index))
+	   (s-box-3 (s-boxes index) `(s-box ,s-boxes 3 ,index)))
 
 (declaim (inline blowfish-f))
 (defun blowfish-f (block s-boxes)
@@ -327,6 +325,7 @@
     (setf (p-array cipher) p-array
           (s-boxes cipher) s-boxes)
     cipher))
+) ; MACROLET
 
 (defcipher blowfish
   (:encrypt-function blowfish-encrypt-block)
