@@ -55,7 +55,7 @@
    ;; pseudo-random number generators
    #:pseudo-random-number-generator #:list-all-prngs #:make-prng #:random-data
    #:read-os-random-seed #:read-seed #:write-seed #:fortuna-prng
-   #:add-random-event #:fortuna #:strong-random #:random-bits
+   #:add-random-event #:fortuna #:strong-random #:random-bits #:*prng*
 
    ;; conditions
    #:ironclad-error #:initialization-vector-not-supplied
