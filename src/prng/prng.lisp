@@ -96,7 +96,8 @@ exist, reseed from /dev/random and then write that seed to PATH."
         (write-seed pseudo-random-number-generator path)
         ;; FIXME: this only works under SBCL.  It's important, though,
         ;; as it sets the proper permissions for reading a seedfile.
-        #+sbcl(sb-posix:chmod path (logior sb-posix:S-IRUSR sb-posix:S-IWUSR)))))
+        #+sbcl(sb-posix:chmod path (logior sb-posix:S-IRUSR sb-posix:S-IWUSR))))
+  t)
 
 (defgeneric internal-read-seed (prng path)
   (:documentation "Reseed PRNG from PATH.."))

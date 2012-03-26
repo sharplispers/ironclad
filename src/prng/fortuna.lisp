@@ -71,7 +71,8 @@
                              :if-exists :supersede
                              :if-does-not-exist :create
                              :element-type '(unsigned-byte 8))
-    (write-sequence (random-data pseudo-random-number-generator 64) seed-file)))
+    (write-sequence (random-data pseudo-random-number-generator 64) seed-file))
+  t)
 
 (defmethod read-os-random-seed ((pseudo-random-number-generator fortuna-prng)
                             &optional (source :random))

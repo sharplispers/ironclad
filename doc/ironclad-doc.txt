@@ -455,7 +455,7 @@ salt, as byte vectors.")
 algorithm. Returns the derived hash of the password as a single string
 that encodes the given salt and PBKDF2 algorithm parameters.")
 
-(:describe :function (ironclad:pbkdf2-check-password validp))
+(:describe :function (ironclad:pbkdf2-check-password boolean))
 
 (:p "Given a " 'password' " byte vector and a combined salt and digest string
 produced by " `pbkdf2-hash-password-to-combined-string` ", checks whether
@@ -576,9 +576,9 @@ values.  " 'r' " and " 's' " may be either integers or they may be
 
 ((:h2 id "prng") "Pseudo-random Number Generation")
 
-(:describe :function (ironclad:make-prng name))
+(:describe :function (ironclad:make-prng prng))
 
-(:p "Return a pseudo-random number generator.")
+(:p "Create a pseudo-random number generator.")
 
 (:p 'name' " denotes the style of PRNG to use.  " @list-all-prngs " will
 tell you the names of all supported PRNGs.  Currently only FORTUNA is
@@ -596,38 +596,46 @@ be read from the indicated file, then a new seed will be generated and
 written back to the file (over-writing the old seed).  Finally, if it is
 a byte vector, it will be used to seed the PRNG.")
 
-(:describe :function (ironclad:list-all-prngs))
+(:describe :function (ironclad:list-all-prngs list))
 
 (:p "List all known PRNG types.")
 
-(:describe :function (ironclad:random-data
-pseudo-random-number-generator num-bytes))
+(:describe :function (ironclad:random-data bytes))
 
 (:p "Generate " 'num-bytes' " bytes of random data from "
 'pseudo-random-number-generator' ".  Updates the state of the generator.")
 
-(:describe :function (ironclad:read-os-random-seed
-pseudo-random-number-generator))
+(:describe :function (ironclad:read-os-random-seed reseed-count))
 
-(:p "Read an OS-provided random seed (from /dev/urandom or /dev/random
+(:p "Reads an OS-provided random seed (from /dev/urandom or /dev/random
 on Unix; CryptGenRandom on Windows) and reseed " 'pseudo-random-number-generator' ".")
 
 (:p 'source' " may be " `:RANDOM` ", which indicates /dev/random or "
 `:URANDOM` ", which indicates /dev/urandom.  On Windows, CryptGenRandom
 is always used.")
 
-(:describe :function (ironclad:read-seed pseudo-random-number-generator path))
+(:describe :function (ironclad:read-seed t))
 
 (:p "Read enough bytes from " 'path' " to reseed "
 'pseudo-random-number-generator' ", then generate a pseudo-random seed
 and write it back to " 'path' ".  If " 'path' " doesn't exist, calls "
 @read-os-random-seed " to get a truly random seed from the OS.")
 
-(:describe :function (ironclad:write-seed pseudo-random-number-generator
-path))
+(:describe :function (ironclad:write-seed t))
 
 (:p "Generate enough random data to reseed "
 'pseudo-random-number-generator' ", then write it to " 'path' ".")
+
+(:describe :function (ironclad:random-bits integer))
+
+(:p "Generate and integer with " 'num-bits' " bits.")
+
+(:describe :function (ironclad:strong-random number))
+
+(:p "A drop-in replacement for " 'COMMON-LISP:RANDOM' ", "
+`STRONG-RANDOM` " generates a number (and integer if " 'limit' " is an
+integer and a float if it is a float) between 0 and " 'limit' "-1 in an
+unbiased fashion.")
 
 (:h3 "Fortuna")
 
@@ -638,29 +646,18 @@ frequency for each reseed (e.g. pool 0 is used in each reseed, pool 1 in
 every other reseed, pool 2 in every fourth reseed and so forth).  Pools
 are seeded with data from up to 256 sources.")
 
-(:describe :function (ironclad:add-random-event
-pseudo-random-number-generator source pool-id event))
+(:describe :function (ironclad:add-random-event pool-length))
 
-(:p "Add entropy to " 'pseudo-random-number-generator' ".)
+(:p "Add entropy to " 'pseudo-random-number-generator' ".")
 
 ;; FIXME: how to create an ndash in this formatting language?
-(:p 'source' " is an integer in the range 0-255.")
+(:p 'source' " is an integer in the range 0-255 specifiying the event's
+application-defined source.")
 
-(:p 'pool-id' " is an integer in the range 0-31.")
+(:p 'pool-id' " is an integer in the range 0-31 specifying the pool to top up.")
 
-(:p 'event' " is an octet string.")
-
-(:describe :function (ironclad:random-bits
-pseudo-random-number-generator num-bits))
-
-(:p "Generate " 'num-bits' " random bits and return as an integer.")
-
-(:describe :function (ironclad:strong-random
-pseudo-random-number-generator limit))
-
-(:p "A drop-in replacement for " 'COMMON-LISP:RANDOM' ", "
-`STRONG-RANDOM` " generates an integer between 0 and limit-1 in an
-unbiased fashion.")
+(:p 'event' " is up to 32 bytes of data (for longer events, hash them
+down or break them up into chunks).")
 
 ((:h2 id "gray-streams") "Gray Streams")
 
