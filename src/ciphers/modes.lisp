@@ -143,9 +143,10 @@ Note that this computation may involve MODE's state."))
                                             plaintext-start plaintext-end
                                             ciphertext-start handle-final-block)
                 (declare (type simple-octet-vector plaintext ciphertext))
+                (declare (type index plaintext-start plaintext-end ciphertext-start))
                 (declare (ignorable handle-final-block))
                 (let ,block-length-binding
-                  (loop with offset = plaintext-start
+                  (loop with offset of-type index = plaintext-start
                      with encrypt-function of-type function = (encrypt-function cipher)
                      while (<= offset (- plaintext-end ,block-length-expr))
                      do (funcall encrypt-function cipher plaintext offset
@@ -162,9 +163,10 @@ Note that this computation may involve MODE's state."))
                                             ciphertext-start ciphertext-end
                                             plaintext-start handle-final-block)
                 (declare (type simple-octet-vector plaintext ciphertext))
+                (declare (type index ciphertext-start ciphertext-end plaintext-start))
                 (declare (ignorable handle-final-block))
                 (let ,block-length-binding
-                  (loop with offset = ciphertext-start
+                  (loop with offset of-type index = ciphertext-start
                      with decrypt-function of-type function = (decrypt-function cipher)
                      while (<= offset (- ciphertext-end ,block-length-expr))
                      do (funcall decrypt-function cipher ciphertext offset
@@ -195,12 +197,13 @@ Note that this computation may involve MODE's state."))
                                             plaintext-start plaintext-end
                                             ciphertext-start handle-final-block)
                 (declare (type simple-octet-vector plaintext ciphertext))
+                (declare (type index plaintext-start plaintext-end ciphertext-start))
                 (declare (ignorable handle-final-block))
                 (let ,block-length-binding
                   (loop with iv of-type (simple-octet-vector ,(if (constantp `,block-length-expr)
                                                                   `,block-length-expr
                                                                   '*)) = (iv mode)
-                     with offset = plaintext-start
+                     with offset of-type index = plaintext-start
                      with encrypt-function of-type function = (encrypt-function cipher)
                      while (<= offset (- plaintext-end ,block-length-expr))
                      do (xor-block ,block-length-expr iv plaintext offset
@@ -221,6 +224,7 @@ Note that this computation may involve MODE's state."))
                                             ciphertext-start ciphertext-end
                                             plaintext-start handle-final-block)
                 (declare (type simple-octet-vector plaintext ciphertext))
+                (declare (type index ciphertext-start ciphertext-end plaintext-start))
                 (declare (ignorable handle-final-block))
                 (let ,block-length-binding
                   (let ((temp-block (make-array ,block-length-expr :element-type '(unsigned-byte 8))))
@@ -231,7 +235,7 @@ Note that this computation may involve MODE's state."))
                     (loop with iv of-type (simple-octet-vector ,(if (constantp `,block-length-expr)
                                                                   `,block-length-expr
                                                                   '*)) = (iv mode)
-                       with offset = ciphertext-start
+                       with offset of-type index = ciphertext-start
                        with decrypt-function of-type function = (decrypt-function cipher)
                        while (<= offset (- ciphertext-end ,block-length-expr))
                        do (replace temp-block ciphertext :start1 0
@@ -267,6 +271,7 @@ Note that this computation may involve MODE's state."))
                                           plaintext-start plaintext-end
                                           ciphertext-start handle-final-block)
               (declare (type simple-octet-vector plaintext ciphertext))
+              (declare (type index plaintext-start plaintext-end ciphertext-start))
               (declare (ignorable handle-final-block))
               (let ,block-length-binding
                 (loop with iv of-type (simple-octet-vector ,(if (constantp `,block-length-expr)
@@ -276,8 +281,8 @@ Note that this computation may involve MODE's state."))
                                                             `(,block-length-expr)
                                                             '*)) = (iv-position mode)
                    with encrypt-function of-type function = (encrypt-function cipher)
-                   for i from plaintext-start below plaintext-end
-                   for j from ciphertext-start
+                   for i of-type index from plaintext-start below plaintext-end
+                   for j of-type index from ciphertext-start
                    do (when (zerop iv-position)
                         (funcall encrypt-function cipher iv 0 iv 0))
                    (let ((b (logxor (aref plaintext i) (aref iv iv-position))))
@@ -295,6 +300,7 @@ Note that this computation may involve MODE's state."))
                                             ciphertext-start ciphertext-end
                                             plaintext-start handle-final-block)
                 (declare (type simple-octet-vector plaintext ciphertext))
+                (declare (type index ciphertext-start ciphertext-end plaintext-start))
                 (declare (ignorable handle-final-block))
                 (let ,block-length-binding
                   (loop with iv of-type (simple-octet-vector ,(if (constantp `,block-length-expr)
@@ -304,8 +310,8 @@ Note that this computation may involve MODE's state."))
                                                               `(,block-length-expr)
                                                               '*)) = (iv-position mode)
                      with encrypt-function of-type function = (encrypt-function cipher)
-                     for i from ciphertext-start below ciphertext-end
-                     for j from plaintext-start
+                     for i of-type index from ciphertext-start below ciphertext-end
+                     for j of-type index from plaintext-start
                      do (when (zerop iv-position)
                           (funcall encrypt-function cipher iv 0 iv 0))
                      (let ((b (logxor (aref ciphertext i) (aref iv iv-position))))
@@ -337,6 +343,7 @@ Note that this computation may involve MODE's state."))
                                           plaintext-start plaintext-end
                                           ciphertext-start handle-final-block)
               (declare (type simple-octet-vector plaintext ciphertext))
+              (declare (type index plaintext-start plaintext-end ciphertext-start))
               (declare (ignorable handle-final-block))
               (let ,block-length-binding
                 (loop with iv of-type (simple-octet-vector ,(if (constantp `,block-length-expr)
@@ -346,8 +353,8 @@ Note that this computation may involve MODE's state."))
                                                                        `,block-length-expr
                                                                        '*)) = (encrypted-iv mode)
                    with encrypt-function of-type function = (encrypt-function cipher)
-                   for i from plaintext-start below plaintext-end
-                   for j from ciphertext-start
+                   for i of-type index from plaintext-start below plaintext-end
+                   for j of-type index from ciphertext-start
                    do (replace encrypted-iv iv :end1 ,block-length-expr :end2 ,block-length-expr)
                      (funcall encrypt-function cipher encrypted-iv 0 encrypted-iv 0)
                    (let ((b (logxor (aref plaintext i) (aref encrypted-iv 0))))
@@ -365,6 +372,7 @@ Note that this computation may involve MODE's state."))
                                             ciphertext-start ciphertext-end
                                             plaintext-start handle-final-block)
                 (declare (type simple-octet-vector plaintext ciphertext))
+                (declare (type index ciphertext-start ciphertext-end plaintext-start))
                 (declare (ignorable handle-final-block))
                 (let ,block-length-binding
                   (loop with iv of-type (simple-octet-vector ,(if (constantp `,block-length-expr)
@@ -374,8 +382,8 @@ Note that this computation may involve MODE's state."))
                                                                          `,block-length-expr
                                                                          '*)) = (encrypted-iv mode)
                      with encrypt-function of-type function = (encrypt-function cipher)
-                     for i from ciphertext-start below ciphertext-end
-                     for j from plaintext-start
+                     for i of-type index from ciphertext-start below ciphertext-end
+                     for j of-type index from plaintext-start
                      do (replace encrypted-iv iv :end1 ,block-length-expr :end2 ,block-length-expr)
                        (funcall encrypt-function cipher encrypted-iv 0 encrypted-iv 0)
                        (replace iv iv :start1 0 :start2 1
@@ -407,6 +415,7 @@ Note that this computation may involve MODE's state."))
                                             plaintext-start plaintext-end
                                             ciphertext-start handle-final-block)
                 (declare (type simple-octet-vector plaintext ciphertext))
+                (declare (type index plaintext-start plaintext-end ciphertext-start))
                 (declare (ignorable handle-final-block))
                 (let ,block-length-binding
                   (loop with iv of-type (simple-octet-vector ,(if (constantp `,block-length-expr)
@@ -416,8 +425,8 @@ Note that this computation may involve MODE's state."))
                                                               `(,block-length-expr)
                                                               '*)) = (iv-position mode)
                      with encrypt-function of-type function = (encrypt-function cipher)
-                     for i from plaintext-start below plaintext-end
-                     for j from ciphertext-start
+                     for i of-type index from plaintext-start below plaintext-end
+                     for j of-type index from ciphertext-start
                      do (when (zerop iv-position)
                           (funcall encrypt-function cipher iv 0 iv 0))
                      (setf (aref ciphertext j) (logxor (aref plaintext i)
@@ -434,6 +443,7 @@ Note that this computation may involve MODE's state."))
                                             ciphertext-start ciphertext-end
                                             plaintext-start handle-final-block)
                 (declare (type simple-octet-vector plaintext ciphertext))
+                (declare (type index ciphertext-start ciphertext-end plaintext-start))
                 (declare (ignorable handle-final-block))
                 (let ,block-length-binding
                   (loop with iv of-type (simple-octet-vector ,(if (constantp `,block-length-expr)
@@ -443,8 +453,8 @@ Note that this computation may involve MODE's state."))
                                                               `(,block-length-expr)
                                                               '*)) = (iv-position mode)
                      with encrypt-function of-type function = (encrypt-function cipher)
-                     for i from ciphertext-start below ciphertext-end
-                     for j from plaintext-start
+                     for i of-type index from ciphertext-start below ciphertext-end
+                     for j of-type index from plaintext-start
                      do (when (zerop iv-position)
                           (funcall encrypt-function cipher iv 0 iv 0))
                      (setf (aref plaintext j) (logxor (aref ciphertext i)
@@ -475,6 +485,7 @@ Note that this computation may involve MODE's state."))
                                             plaintext-start plaintext-end
                                             ciphertext-start handle-final-block)
                 (declare (type simple-octet-vector plaintext ciphertext))
+                (declare (type index plaintext-start plaintext-end ciphertext-start))
                 (declare (ignorable handle-final-block))
                 (let ,block-length-binding
                   (loop with iv of-type (simple-octet-vector ,(if (constantp `,block-length-expr)
@@ -487,8 +498,8 @@ Note that this computation may involve MODE's state."))
                                                                          `,block-length-expr
                                                                          '*)) = (encrypted-iv mode)
                      with encrypt-function of-type function = (encrypt-function cipher)
-                     for i from plaintext-start below plaintext-end
-                     for j from ciphertext-start
+                     for i of-type index from plaintext-start below plaintext-end
+                     for j of-type index from ciphertext-start
                      do (when (zerop iv-position)
                           (funcall encrypt-function cipher iv 0 encrypted-iv 0)
                           (increment-counter-block iv))
@@ -506,6 +517,7 @@ Note that this computation may involve MODE's state."))
                                             ciphertext-start ciphertext-end
                                             plaintext-start handle-final-block)
                 (declare (type simple-octet-vector plaintext ciphertext))
+                (declare (type index ciphertext-start ciphertext-end plaintext-start))
                 (declare (ignorable handle-final-block))
                 (let ,block-length-binding
                   (loop with iv of-type (simple-octet-vector ,(if (constantp `,block-length-expr)
@@ -518,8 +530,8 @@ Note that this computation may involve MODE's state."))
                                                                          `,block-length-expr
                                                                          '*)) = (encrypted-iv mode)
                      with encrypt-function of-type function = (encrypt-function cipher)
-                     for i from ciphertext-start below ciphertext-end
-                     for j from plaintext-start
+                     for i of-type index from ciphertext-start below ciphertext-end
+                     for j of-type index from plaintext-start
                      do (when (zerop iv-position)
                           (funcall encrypt-function cipher iv 0 encrypted-iv 0)
                           (increment-counter-block iv))
@@ -552,6 +564,7 @@ Note that this computation may involve MODE's state."))
                                             plaintext-start plaintext-end
                                             ciphertext-start handle-final-block)
                 (declare (type simple-octet-vector plaintext ciphertext))
+                (declare (type index plaintext-start plaintext-end ciphertext-start))
                 (declare (ignorable handle-final-block))
                 (let ,block-length-binding
                   (let* ((buffer (buffer mode))
@@ -599,6 +612,7 @@ Note that this computation may involve MODE's state."))
                                             ciphertext-start ciphertext-end
                                             plaintext-start handle-final-block)
                 (declare (type simple-octet-vector plaintext ciphertext))
+                (declare (type index ciphertext-start ciphertext-end plaintext-start))
                 (declare (ignorable handle-final-block))
                 (let ,block-length-binding
                   (let* ((buffer (buffer mode))
@@ -664,7 +678,8 @@ Note that this computation may involve MODE's state."))
                               plaintext ciphertext
                               plaintext-start plaintext-end
                               ciphertext-start handle-final-block)
-  (declare (type (simple-array (unsigned-byte 8) (*)) plaintext ciphertext))
+  (declare (type simple-octet-vector plaintext ciphertext))
+  (declare (type index plaintext-start plaintext-end ciphertext-start))
   (declare (ignorable handle-final-block mode))
   (let ((length (- plaintext-end plaintext-start)))
     (when (plusp length)
@@ -676,7 +691,8 @@ Note that this computation may involve MODE's state."))
                               ciphertext plaintext
                               ciphertext-start ciphertext-end
                               plaintext-start handle-final-block)
-  (declare (type (simple-array (unsigned-byte 8) (*)) ciphertext plaintext))
+  (declare (type simple-octet-vector ciphertext plaintext))
+  (declare (type index ciphertext-start ciphertext-end plaintext-start))
   (declare (ignorable handle-final-block mode))
   (let ((length (- ciphertext-end ciphertext-start)))
     (when (plusp length)
