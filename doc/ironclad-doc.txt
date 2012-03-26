@@ -578,10 +578,10 @@ values.  " 'r' " and " 's' " may be either integers or they may be
 
 (:describe :function (ironclad:make-prng prng))
 
-(:p "Create a pseudo-random number generator.")
+(:p "Create an unseeded pseudo-random number generator.")
 
 (:p 'name' " denotes the style of PRNG to use.  " @list-all-prngs " will
-tell you the names of all supported PRNGs.  Currently only FORTUNA is
+tell you the names of all supported PRNGs.  Currently only Fortuna is
 supported.  " 'name' " can be a symbol in the " `KEYWORD` " package or
 the " `IRONCLAD` " package.")
 
