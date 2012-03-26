@@ -129,8 +129,6 @@ Note that this computation may involve MODE's state."))
 ;;; This way is kind of ugly, but I don't know a better way.
 (macrolet ((define-mode-function (&rest mode-definition-funs &environment env)
 	     (loop for fun in mode-definition-funs
-		   collect (macroexpand `(,fun t ((block-length (block-length cipher)))
-					  block-length) env) into forms
 		   collect (macroexpand `(,fun 16-byte-block-mixin nil 16) env) into forms
 		   collect (macroexpand `(,fun 8-byte-block-mixin nil 8) env) into forms
 		   finally (return `(progn ,@forms)))))
