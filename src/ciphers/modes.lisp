@@ -146,7 +146,7 @@ Note that this computation may involve MODE's state."))
                 (declare (ignorable handle-final-block))
                 (let ,block-length-binding
                   (loop with offset = plaintext-start
-                     with encrypt-function = (encrypt-function cipher)
+                     with encrypt-function of-type function = (encrypt-function cipher)
                      while (<= offset (- plaintext-end ,block-length-expr))
                      do (funcall encrypt-function cipher plaintext offset
                                  ciphertext ciphertext-start)
