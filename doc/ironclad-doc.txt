@@ -576,6 +576,28 @@ values.  " 'r' " and " 's' " may be either integers or they may be
 
 ((:h2 id "prng") "Pseudo-random Number Generation")
 
+(:h3 "Example")
+
+(:p (:pre "> (setf *prng* (make-prng :fortuna))
+-> #<fortuna-prng>
+> (random-data 16)
+-> #(61 145 133 130 220 200 90 86 0 101 62 169 0 40 101 78)
+> (setf *prng* (make-prng :fortuna :seed nil))
+-> #<fortuna-prng>
+> (crypto:read-os-random-seed :random)
+-> 1
+> (crypto:strong-random 16)
+-> 3
+> (write-seed #P\"/tmp/seed\")
+-> t
+> (crypto:read-seed #P\"/tmp/seed\")
+-> t
+> (crypto:random-bits 16)
+-> 41546
+> (add-random-event 0 0 (string-to-octets \"foobar\"))"))
+
+(:p "See details about " @add-random-event " below.")
+
 (:describe :function (ironclad:make-prng prng))
 
 (:p "Create an unseeded pseudo-random number generator.")
@@ -619,7 +641,10 @@ is always used.")
 (:p "Read enough bytes from " 'path' " to reseed "
 'pseudo-random-number-generator' ", then generate a pseudo-random seed
 and write it back to " 'path' ".  If " 'path' " doesn't exist, calls "
-@read-os-random-seed " to get a truly random seed from the OS.")
+@read-os-random-seed " to get a truly random seed from the OS.  Note
+that reseeding does " (:em "not") " reset the generator's state to the
+seed value; rather, it " (:em "combines" ) " the generator's state with
+the seed to form a new state.")
 
 (:describe :function (ironclad:write-seed t))
 
@@ -645,6 +670,28 @@ Ferguson, Schneier and Kohno in " (:cite "Cryptography Engineering")
 frequency for each reseed (e.g. pool 0 is used in each reseed, pool 1 in
 every other reseed, pool 2 in every fourth reseed and so forth).  Pools
 are seeded with data from up to 256 sources.")
+
+(:p "Each application should have one or more entropy sources (say, one
+for each OS random number source, one for the low bits of the current
+time, one for the output of a particular command or group of commands
+and so forth).  A source should be used to add randomness to each pool
+in order, so source 0 should top up pool 0, then pool 1, and so forth up
+to pool 31, then loop back to pool 1 again.  Be very careful to spread
+entropy across all 32 pools.")
+
+(:p "Fortuna automatically feeds entropy from the pools back into its
+random state when " @random-data " is called, using a method designed to
+make it resistant to various avenues of attack; even in case of
+generator compromise it will return to a safe state within a bounded
+time.")
+
+(:p "For purposes of reseeding, Fortuna will not reseed until the first
+pool contains 128 bits of entropy; " '+min-pool-size+' " sets the number
+of bytes this is; it defaults to a very conservative 128, meaning that
+by default each byte of event is assumed to contain a single bit of
+randomness.")
+
+(:p "It also will not reseed more than ten times per second.")
 
 (:describe :function (ironclad:add-random-event pool-length))
 

@@ -27,9 +27,9 @@
   (:documentation "A Fortuna random number generator.  Contains 32
   entropy pools which are used to reseed GENERATOR."))
 
-(defmethod random-data ((pseudo-random-number-generator
-                         fortuna-prng)
-                        num-bytes)
+(defmethod internal-random-data (num-bytes
+                                 (pseudo-random-number-generator
+                                  fortuna-prng))
   (when (plusp num-bytes)
     (with-slots (pools generator reseed-count last-reseed)
         pseudo-random-number-generator
@@ -52,7 +52,8 @@
       (assert (plusp reseed-count))
       (pseudo-random-data generator num-bytes))))
 
-(defun add-random-event (pseudo-random-number-generator source pool-id event)
+(defun add-random-event (source pool-id event
+                         &optional (pseudo-random-number-generator *prng*))
   (assert (and (<= 1 (length event) 32)
                (<= 0 source 255)
                (<= 0 pool-id 31)))
@@ -65,24 +66,26 @@
                                          event))
     (incf (slot-value pool 'length) (length event))))
 
-(defmethod write-seed ((pseudo-random-number-generator fortuna-prng) path)
+(defmethod internal-write-seed (path (pseudo-random-number-generator
+fortuna-prng))
   (with-open-file (seed-file path
                              :direction :output
                              :if-exists :supersede
                              :if-does-not-exist :create
                              :element-type '(unsigned-byte 8))
-    (write-sequence (random-data pseudo-random-number-generator 64) seed-file))
+    (write-sequence (random-data 64 pseudo-random-number-generator) seed-file))
   t)
 
-(defmethod read-os-random-seed ((pseudo-random-number-generator fortuna-prng)
-                            &optional (source :random))
+(defmethod internal-read-os-random-seed (source
+                                         (pseudo-random-number-generator
+                                          fortuna-prng))
   "Read a random seed from /dev/random or equivalent."
   (reseed (slot-value pseudo-random-number-generator 'generator)
           (os-random-seed source 64))
   (incf (slot-value pseudo-random-number-generator 'reseed-count)))
 
-(defmethod internal-read-seed ((pseudo-random-number-generator fortuna-prng)
-                               path)
+(defmethod internal-read-seed (path
+                               (pseudo-random-number-generator fortuna-prng))
   (with-open-file (seed-file path
                              :direction :input
                              :element-type '(unsigned-byte 8))
@@ -90,7 +93,7 @@
       (assert (>= (read-sequence seq seed-file) 64))
       (reseed (slot-value pseudo-random-number-generator 'generator) seq)
       (incf (slot-value pseudo-random-number-generator 'reseed-count ))))
-  (write-seed pseudo-random-number-generator path))
+  (write-seed path pseudo-random-number-generator))
 
 (defun feed-fifo (pseudo-random-number-generator path)
   "Feed random data into a FIFO"
@@ -100,8 +103,8 @@
                                       :if-exists :overwrite
                                       :element-type '(unsigned-byte 8))
                        (loop do (write-sequence
-                                 (random-data pseudo-random-number-generator
-                                                      (1- (expt 2 20)))
+                                 (random-data (1- (expt 2 20))
+                                              pseudo-random-number-generator)
                                  fortune-out)))
          (stream-error () t))))
 
