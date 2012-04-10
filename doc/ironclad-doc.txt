@@ -455,7 +455,7 @@ salt, as byte vectors.")
 algorithm. Returns the derived hash of the password as a single string
 that encodes the given salt and PBKDF2 algorithm parameters.")
 
-(:describe :function (ironclad:pbkdf2-check-password validp))
+(:describe :function (ironclad:pbkdf2-check-password boolean))
 
 (:p "Given a " 'password' " byte vector and a combined salt and digest string
 produced by " `pbkdf2-hash-password-to-combined-string` ", checks whether
@@ -573,6 +573,138 @@ values.  " 'r' " and " 's' " may be either integers or they may be
 (:describe :function (ironclad:encrypt-message encrypted-message))
 
 (:describe :function (ironclad:decrypt-message decrypted-message))
+
+((:h2 id "prng") "Pseudo-random Number Generation")
+
+(:h3 "Example")
+
+(:p (:pre "> (setf *prng* (make-prng :fortuna))
+-> #<fortuna-prng>
+> (random-data 16)
+-> #(61 145 133 130 220 200 90 86 0 101 62 169 0 40 101 78)
+> (setf *prng* (make-prng :fortuna :seed nil))
+-> #<fortuna-prng>
+> (crypto:read-os-random-seed :random)
+-> 1
+> (crypto:strong-random 16)
+-> 3
+> (write-seed #P\"/tmp/seed\")
+-> t
+> (crypto:read-seed #P\"/tmp/seed\")
+-> t
+> (crypto:random-bits 16)
+-> 41546
+> (add-random-event 0 0 (string-to-octets \"foobar\"))"))
+
+(:p "See details about " @add-random-event " below.")
+
+(:describe :function (ironclad:make-prng prng))
+
+(:p "Create an unseeded pseudo-random number generator.")
+
+(:p 'name' " denotes the style of PRNG to use.  " @list-all-prngs " will
+tell you the names of all supported PRNGs.  Currently only Fortuna is
+supported.  " 'name' " can be a symbol in the " `KEYWORD` " package or
+the " `IRONCLAD` " package.")
+
+(:p 'seed' " is a " (:em "seed descriptor") ".  If NIL, the PRNG will
+not be seeded (which may prevent it from generating output until it is
+seeded, depending on the generator).  If " `:RANDOM` " then the PRNG
+will be seeded with the OS's cryptographically-secure PRNG.  If "
+`:URANDOM` " then the PRNG will be seeded with the OS's
+fast-but-potentially-less-secure PRNG, if available (if not, will
+fallback to " `:RANDOM` ").  If it is a pathname indicator, a seed will
+be read from the indicated file, then a new seed will be generated and
+written back to the file (over-writing the old seed).  Finally, if it is
+a byte vector, it will be used to seed the PRNG.")
+
+(:describe :function (ironclad:list-all-prngs list))
+
+(:p "List all known PRNG types.")
+
+(:describe :function (ironclad:random-data bytes))
+
+(:p "Generate " 'num-bytes' " bytes of random data from "
+'pseudo-random-number-generator' ".  Updates the state of the generator.")
+
+(:describe :function (ironclad:read-os-random-seed reseed-count))
+
+(:p "Reads an OS-provided random seed (from /dev/urandom or /dev/random
+on Unix; CryptGenRandom on Windows) and reseed " 'pseudo-random-number-generator' ".")
+
+(:p 'source' " may be " `:RANDOM` ", which indicates /dev/random or "
+`:URANDOM` ", which indicates /dev/urandom.  On Windows, CryptGenRandom
+is always used.")
+
+(:describe :function (ironclad:read-seed t))
+
+(:p "Read enough bytes from " 'path' " to reseed "
+'pseudo-random-number-generator' ", then generate a pseudo-random seed
+and write it back to " 'path' ".  If " 'path' " doesn't exist, calls "
+@read-os-random-seed " to get a truly random seed from the OS.  Note
+that reseeding does " (:em "not") " reset the generator's state to the
+seed value; rather, it " (:em "combines" ) " the generator's state with
+the seed to form a new state.")
+
+(:describe :function (ironclad:write-seed t))
+
+(:p "Generate enough random data to reseed "
+'pseudo-random-number-generator' ", then write it to " 'path' ".")
+
+(:describe :function (ironclad:random-bits integer))
+
+(:p "Generate and integer with " 'num-bits' " bits.")
+
+(:describe :function (ironclad:strong-random number))
+
+(:p "A drop-in replacement for " 'COMMON-LISP:RANDOM' ", "
+`STRONG-RANDOM` " generates a number (and integer if " 'limit' " is an
+integer and a float if it is a float) between 0 and " 'limit' "-1 in an
+unbiased fashion.")
+
+(:h3 "Fortuna")
+
+(:p "Fortuna is a cryptographically-secure random number presented by
+Ferguson, Schneier and Kohno in " (:cite "Cryptography Engineering")
+".  It is built around 32 entropy pools, which are used with decreasing
+frequency for each reseed (e.g. pool 0 is used in each reseed, pool 1 in
+every other reseed, pool 2 in every fourth reseed and so forth).  Pools
+are seeded with data from up to 256 sources.")
+
+(:p "Each application should have one or more entropy sources (say, one
+for each OS random number source, one for the low bits of the current
+time, one for the output of a particular command or group of commands
+and so forth).  A source should be used to add randomness to each pool
+in order, so source 0 should top up pool 0, then pool 1, and so forth up
+to pool 31, then loop back to pool 1 again.  Be very careful to spread
+entropy across all 32 pools.")
+
+(:p "Fortuna automatically feeds entropy from the pools back into its
+random state when " @random-data " is called, using a method designed to
+make it resistant to various avenues of attack; even in case of
+generator compromise it will return to a safe state within a bounded
+time.")
+
+(:p "For purposes of reseeding, Fortuna will not reseed until the first
+pool contains 128 bits of entropy; " '+min-pool-size+' " sets the number
+of bytes this is; it defaults to a very conservative 128, meaning that
+by default each byte of event is assumed to contain a single bit of
+randomness.")
+
+(:p "It also will not reseed more than ten times per second.")
+
+(:describe :function (ironclad:add-random-event pool-length))
+
+(:p "Add entropy to " 'pseudo-random-number-generator' ".")
+
+;; FIXME: how to create an ndash in this formatting language?
+(:p 'source' " is an integer in the range 0-255 specifiying the event's
+application-defined source.")
+
+(:p 'pool-id' " is an integer in the range 0-31 specifying the pool to top up.")
+
+(:p 'event' " is up to 32 bytes of data (for longer events, hash them
+down or break them up into chunks).")
 
 ((:h2 id "gray-streams") "Gray Streams")
 
