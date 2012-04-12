@@ -145,46 +145,46 @@
          (specs (if single-digest-p (list specs) specs))
          (inner-fun-name (intern (format nil "%~A-~A-~A" '#:finalize (caar specs) '#:state))))
     (destructuring-bind (maybe-doc-string &rest rest) body
-      (loop for (digest-name digest-size) in specs
-         for regs-digest-fun = (intern (format nil "~A~A" digest-name '#:regs-digest))
-         collect `(defmethod finalize-digest ((state ,digest-name)
-                                              &optional buffer buffer-start)
-                    ,@(when (stringp maybe-doc-string)
-                            `(,maybe-doc-string))
-                    (declare (type (or (simple-array (unsigned-byte 8) (*)) cl:null) buffer))
-                    (cond
-                      (buffer
-                       ;; verify that the buffer is large enough
-                       (let ((buffer-start (or buffer-start 0)))
-                         (if (<= ,digest-size (- (length buffer) buffer-start))
-                             (,inner-fun-name state buffer buffer-start
-                                              ,@(unless single-digest-p
-                                                       `(#',regs-digest-fun)))
-                             (error 'insufficient-buffer-space
-                                    :buffer buffer :start buffer-start
-                                    :length ,digest-size))))
-                      (t
-                       (,inner-fun-name state
-                                        (make-array ,digest-size
-                                                    :element-type '(unsigned-byte 8))
-                                        0
-                                        ,@(unless single-digest-p
-                                                 `(#',regs-digest-fun)))))) into finalizers
-         finally
-         (return
-           `(progn
-              ,@finalizers
-              (defun ,inner-fun-name (state %buffer buffer-start ,@(unless single-digest-p
-                                                                           '(reg-digest-fun)))
-                ,(hold-me-back)
-                (macrolet ((finalize-registers (state regs)
-                             (declare (ignore state))
-                             ,(if single-digest-p
-                                  ``(,',(intern (format nil "~A~A" (caar specs) '#:regs-digest)) ,regs %buffer buffer-start)
-                                  ``(funcall reg-digest-fun ,regs %buffer buffer-start))))
-                  ,@(if (stringp maybe-doc-string)
-                        rest
-                        body)))))))))
+      (let ((primary-digest (caar specs)))
+	`(defmethod finalize-digest ((state ,primary-digest)
+				     &optional buffer buffer-start)
+	   ,@(when (stringp maybe-doc-string)
+	       `(,maybe-doc-string))
+	   (declare (type (or (simple-array (unsigned-byte 8) (*)) cl:null) buffer))
+	   (flet ((,inner-fun-name (state %buffer buffer-start)
+		    ,(hold-me-back)
+		    (macrolet ((finalize-registers (state regs)
+				 (let ((clauses
+					(loop for (digest-name digest-length) in ',specs
+					      collect `(,digest-name
+							 (,(intern (format nil "~A~A"
+									   digest-name '#:regs-digest))
+								   ,regs %buffer buffer-start)))))
+				   (if ,single-digest-p
+				       (second (first clauses))
+				       (list* 'etypecase state
+					      (reverse clauses))))))
+		      ,@(if (stringp maybe-doc-string)
+			    rest
+			    body))))
+	     (let ((digest-size ,(if single-digest-p
+				     (second (first specs))
+				     `(etypecase state
+					,@(reverse specs)))))
+	       (cond
+		 (buffer
+		  ;; verify that the buffer is large enough
+		  (let ((buffer-start (or buffer-start 0)))
+		    (if (<= digest-size (- (length buffer) buffer-start))
+			(,inner-fun-name state buffer buffer-start)
+			(error 'insufficient-buffer-space
+			       :buffer buffer :start buffer-start
+			       :length digest-size))))
+		 (t
+		  (,inner-fun-name state
+				   (make-array digest-size
+					       :element-type '(unsigned-byte 8))
+				   0))))))))))
 
 ;;; common superclass (superstructure?) for MD5-style digest functions
 
