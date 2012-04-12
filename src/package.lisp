@@ -52,6 +52,11 @@
    #:dsa-key-p #:dsa-key-q #:dsa-key-g #:dsa-key-y #:dsa-key-x
    #:dsa-signature-r #:dsa-signature-s
 
+   ;; pseudo-random number generators
+   #:pseudo-random-number-generator #:list-all-prngs #:make-prng #:random-data
+   #:read-os-random-seed #:read-seed #:write-seed #:fortuna-prng
+   #:add-random-event #:fortuna #:strong-random #:random-bits #:*prng*
+
    ;; conditions
    #:ironclad-error #:initialization-vector-not-supplied
    #:invalid-initialization-vector #:invalid-key-length

@@ -208,3 +208,7 @@ difference--at least not in the case where WITH-WORDS needs to check for
 alignment and safety.  It might be a win if there were several
 different *-ENCRYPT-BLOCK functions and the high-level ones knew which
 one to call, but...
+
+* add option to allow INTEGER-TO-OCTETS to output directly to a buffer
+
+This could be handy in certain internals, e.g. in GENERATE-BLOCKS.
