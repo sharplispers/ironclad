@@ -77,7 +77,6 @@ of the message.  Returns a fresh octet vector."))
   "Returns M such that N * M mod MODULUS = 1"
   (declare (type (integer 1 *) modulus))
   (declare (type (integer 0 *) n))
-  (declare (optimize (speed 3) (safety 0) (space 0) (debug 0)))
   (when (or (zerop n) (and (evenp n) (evenp modulus)))
     (return-from modular-inverse 0))
   (loop with remainder = (list n modulus)
