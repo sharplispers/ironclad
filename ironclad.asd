@@ -50,6 +50,7 @@
                          (:file "padding" :depends-on ("common"))
                          (:file "pkcs5" :depends-on ("common"))
                          (:file "password-hash" :depends-on ("pkcs5"))
+                         (:file "math" :depends-on ("prng" "public-key"))
                          (:module "sbcl-opt"
                                   :depends-on ("package" "common")
                                   :components

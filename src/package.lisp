@@ -57,6 +57,9 @@
    #:read-os-random-seed #:read-seed #:write-seed #:fortuna-prng
    #:add-random-event #:fortuna #:strong-random #:random-bits #:*prng*
 
+   ;; cryptographic math
+   #:generate-prime #:prime-p #:generate-prime-in-range #:egcd
+
    ;; conditions
    #:ironclad-error #:initialization-vector-not-supplied
    #:invalid-initialization-vector #:invalid-key-length

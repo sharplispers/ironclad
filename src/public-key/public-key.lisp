@@ -73,45 +73,28 @@ of the message.  Returns a fresh octet vector."))
 
 ;;; modular arithmetic utilities
 
-(defun shift-off-zeros (n)
-  (do ((zeros 0 (1+ zeros)))
-      ((logbitp zeros n) (values (ash n (- zeros)) zeros))))
-
-(defun frobnicate (z a b x y)
-  (multiple-value-bind (g bits) (shift-off-zeros z)
-    (dotimes (i bits (values g a b))
-      (when (or (oddp a) (oddp b))
-        (incf a y)
-        (decf b x))
-      (setf a (ash a -1) b (ash b -1)))))
-
-(defun modular-inverse (n modulus)
+(defun modular-inverse (N modulus)
+  "Returns M such that N * M mod MODULUS = 1"
   (declare (type (integer 1 *) modulus))
   (declare (type (integer 0 *) n))
   (when (or (zerop n) (and (evenp n) (evenp modulus)))
     (return-from modular-inverse 0))
-  (let ((x modulus)
-        (y n)
-        (u modulus)
-        (v n)
-        (a 1) (b 0) (c 0) (d 1))
-    (loop until (zerop u)
-      do (progn
-           (multiple-value-setq (u a b) (frobnicate u a b x y))
-           (multiple-value-setq (v c d) (frobnicate v c d x y))
-           (cond
-             ((>= u v)
-              (decf u v) (decf a c) (decf b d))
-             (t
-              (decf v u) (decf c a) (decf d b))))
-      finally (progn
-                (unless (= v 1)
-                  (return 0))
-                (loop while (minusp d)
-                  do (incf d modulus))
-                (loop while (>= d modulus)
-                  do (decf d modulus))
-                (return d)))))
+  (loop with remainder = (list n modulus)
+     and auxiliary = '(1 0)
+     for i from 2
+     while (> (first remainder) 1)
+     do (multiple-value-bind (quotient new-remainder)
+            (floor (second remainder) (first remainder))
+          (push new-remainder remainder)
+          (push (+ (* (- quotient) (first auxiliary)) (second auxiliary))
+                auxiliary))
+     finally (return (let ((inverse (first auxiliary)))
+                       (when (< inverse 0)
+                         (setf inverse (mod inverse modulus)))
+                       ;; check to see if the inverse is zero
+                       (if (zerop (mod (* n inverse) modulus))
+                           0
+                           inverse)))))
 
 ;;; direct from CLiki
 (defun expt-mod (n exponent modulus)
