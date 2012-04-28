@@ -127,12 +127,13 @@
     `(defmethod update-digest ((state ,digest-name) (sequence vector) &key (start 0) (end (length sequence)))
        ,@(when (stringp maybe-doc-string)
                `(,maybe-doc-string))
-       (declare (type (simple-array (unsigned-byte 8) (*)) sequence))
-       (declare (type index start end))
        ,(hold-me-back)
+       (check-type sequence (simple-array (unsigned-byte 8) (*)))
+       (check-type start index)
+       (check-type end index)
        ,@(if (stringp maybe-doc-string)
-             rest
-             body))))
+	     rest
+	     body))))
 
 ;;; SPECS is either (DIGEST-NAME DIGEST-BYTES) or a list of the same.
 ;;; The latter spelling is for digests that are related, but have
@@ -150,7 +151,6 @@
 				     &optional buffer buffer-start)
 	   ,@(when (stringp maybe-doc-string)
 	       `(,maybe-doc-string))
-	   (declare (type (or (simple-array (unsigned-byte 8) (*)) cl:null) buffer))
 	   (flet ((,inner-fun-name (state %buffer buffer-start)
 		    ,(hold-me-back)
 		    (macrolet ((finalize-registers (state regs)
@@ -171,8 +171,8 @@
 				     (second (first specs))
 				     `(etypecase state
 					,@(reverse specs)))))
-	       (cond
-		 (buffer
+	       (etypecase buffer
+		 ((simple-array (unsigned-byte 8) (*))
 		  ;; verify that the buffer is large enough
 		  (let ((buffer-start (or buffer-start 0)))
 		    (if (<= digest-size (- (length buffer) buffer-start))
@@ -180,7 +180,7 @@
 			(error 'insufficient-buffer-space
 			       :buffer buffer :start buffer-start
 			       :length digest-size))))
-		 (t
+		 (cl:null
 		  (,inner-fun-name state
 				   (make-array digest-size
 					       :element-type '(unsigned-byte 8))
@@ -314,25 +314,19 @@ An error will be signaled if there is insufficient room in DIGEST."))
 
 (defmethod digest-sequence (state sequence &key (start 0) end
                             digest (digest-start 0))
-  (declare (type (vector (unsigned-byte 8)) sequence) (type index start))
-  #+cmu
-  ;; respect the fill-pointer
-  (let ((end (or end (length sequence))))
-    (declare (type index end))
-    (lisp::with-array-data ((data sequence) (real-start start) (real-end end))
-      (declare (ignore real-end))
-      (update-digest state data
-                     :start real-start :end (+ real-start (- end start)))))
-  #+sbcl
-  ;; respect the fill-pointer
-  (let ((end (or end (length sequence))))
-    (sb-kernel:with-array-data ((data sequence) (real-start start) (real-end end))
-      (declare (ignore real-end))
-      (update-digest state data
-                     :start real-start :end (+ real-start (- end start)))))
+  #+(or cmu sbcl)
+  (locally
+      (declare (type (vector (unsigned-byte 8)) sequence) (type index start))
+    ;; respect the fill-pointer
+    (let ((end (or end (length sequence))))
+      (declare (type index end))
+      (#+cmu lisp::with-array-data
+       #+sbcl sb-kernel:with-array-data ((data sequence) (real-start start) (real-end end))
+	(declare (ignore real-end))
+	(update-digest state data
+		       :start real-start :end (+ real-start (- end start))))))
   #-(or cmu sbcl)
   (let ((real-end (or end (length sequence))))
-    (declare (type index real-end))
     (update-digest state sequence
                    :start start :end (or real-end (length sequence))))
   (produce-digest state :digest digest :digest-start digest-start))
