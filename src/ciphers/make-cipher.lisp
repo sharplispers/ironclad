@@ -39,10 +39,11 @@
                       :cipher (class-name (class-of cipher))
                       :block-length block-length))
              (make-instance mode-class
-                            :initialization-vector (copy-seq initialization-vector))))
+                            :initialization-vector (copy-seq initialization-vector)
+                            :cipher cipher)))
     (case mode
       ((:ecb ecb)
-       (make-instance 'ecb-mode))
+       (make-instance 'ecb-mode :cipher cipher))
       ((:cbc cbc)
        (make-extended-mode 'cbc-mode))
       ((:ofb ofb)
@@ -53,7 +54,7 @@
        (make-extended-mode 'cfb8-mode))
       ((:ctr ctr)
        (make-extended-mode 'ctr-mode))
-      (:stream (make-instance 'stream-mode))
+      (:stream (make-instance 'stream-mode :cipher cipher))
       (t
        (error 'unsupported-mode :mode mode))))))
 

@@ -2,25 +2,6 @@
 
 (in-package :crypto)
 
-;;; internal entry points to assure speed
-(defgeneric encrypt-with-mode (cipher mode plaintext ciphertext
-                                      plaintext-start plaintext-end
-                                      ciphertext-start handle-final-block)
-  (:documentation "Encrypt PLAINTEXT, beginning at PLAINTEXT-START and
-continuing until PLAINTEXT-END, according to CIPHER in mode MODE.  Place
-the result in CIPHERTEXT, beginning at CIPHERTEXT-START.  PLAINTEXT and
-CIPHERTEXT are allowed to be the same array.  Return the number of bytes
-encrypted, which may be less than specified."))
-
-(defgeneric decrypt-with-mode (cipher mode ciphertext plaintext
-                                      ciphertext-start ciphertext-end
-                                      plaintext-start handle-final-block)
-  (:documentation "Decrypt CIPHERTEXT, beginning at CIPHERTEXT-START and
-continuing until CIPHERTEXT-END, according to CIPHER in mode MODE.  Place
-the result in PLAINTEXT, beginning at PLAINTEXT-START.  CIPHERTEXT and
-PLAINTEXT are allowed to be the same array.  Return the number of bytes
-encrypted, which may be less than specified."))
-
 (defgeneric encrypted-message-length (cipher mode length
                                       &optional handle-final-block)
   (:documentation "Return the length a message of LENGTH would be if it
@@ -30,7 +11,18 @@ indicates whether we are encrypting up to and including the final block
 
 Note that this computation may involve MODE's state."))
 
-(defclass encryption-mode () ())
+(defgeneric mode-crypt-functions (cipher mode)
+  (:documentation "Returns two functions that perform encryption and
+decryption, respectively, with CIPHER in MODE.  The lambda list of each
+function is (IN OUT IN-START IN-END OUT-START HANDLE-FINAL-BLOCK).
+HANDLE-FINAL-BLOCK is as in ENCRYPT and DECRYPT; the remaining parameters
+should be self-explanatory.  Each function, when called, returns two values:
+the number of octets processed from IN and the number of octets processed
+from OUT.  Note that for some cipher modes, IN and OUT may be different."))
+
+(defclass encryption-mode ()
+  ((encrypt-function :reader encrypt-function)
+   (decrypt-function :reader decrypt-function)))
 (defclass ecb-mode (encryption-mode) ())
 (defclass stream-mode (encryption-mode) ())
 (defclass inititialization-vector-mixin ()
@@ -39,10 +31,8 @@ Note that this computation may involve MODE's state."))
 (defclass cbc-mode (encryption-mode inititialization-vector-mixin) ())
 (defclass ofb-mode (encryption-mode inititialization-vector-mixin) ())
 (defclass cfb-mode (encryption-mode inititialization-vector-mixin) ())
-(defclass cfb8-mode (encryption-mode inititialization-vector-mixin)
-  ((encrypted-iv :reader encrypted-iv :initarg :encrypted-iv)))
-(defclass ctr-mode (encryption-mode inititialization-vector-mixin)
-  ((encrypted-iv :reader encrypted-iv :initarg :encrypted-iv)))
+(defclass cfb8-mode (encryption-mode inititialization-vector-mixin) ())
+(defclass ctr-mode (encryption-mode inititialization-vector-mixin) ())
 
 (defclass padded-cipher-mode (encryption-mode)
   ((buffer :reader buffer)
@@ -53,13 +43,10 @@ Note that this computation may involve MODE's state."))
   (print-unreadable-object (object stream :identity t)
     (format stream "~A" (class-name (class-of object)))))
 
-(defmethod initialize-instance :after ((mode cfb8-mode) &key)
-  (let ((iv (iv mode)))
-    (setf (slot-value mode 'encrypted-iv) (copy-seq iv))))
-
-(defmethod initialize-instance :after ((mode ctr-mode) &key)
-  (let ((iv (iv mode)))
-    (setf (slot-value mode 'encrypted-iv) (copy-seq iv))))
+(defmethod initialize-instance :after ((mode encryption-mode) &key cipher)
+  (multiple-value-bind (efun dfun) (mode-crypt-functions cipher mode)
+    (setf (slot-value mode 'encrypt-function) efun
+          (slot-value mode 'decrypt-function) dfun)))
 
 (defmethod initialize-instance :after ((mode padded-cipher-mode)
                                        &key buffer-length)
@@ -79,18 +66,20 @@ Note that this computation may involve MODE's state."))
                     (ciphertext-start 0)
                     handle-final-block)
   (let ((plaintext-end (or plaintext-end (length plaintext))))
-    (encrypt-with-mode cipher (mode cipher) plaintext ciphertext
-                       plaintext-start plaintext-end
-                       ciphertext-start handle-final-block)))
+    (funcall (slot-value (mode cipher) 'encrypt-function)
+             plaintext ciphertext
+             plaintext-start plaintext-end ciphertext-start
+             handle-final-block)))
 
 (defmethod decrypt (cipher ciphertext plaintext
                     &key (ciphertext-start 0) ciphertext-end
                     (plaintext-start 0)
                     handle-final-block)
   (let ((ciphertext-end (or ciphertext-end (length ciphertext))))
-    (decrypt-with-mode cipher (mode cipher) ciphertext plaintext
-                       ciphertext-start ciphertext-end
-                       plaintext-start handle-final-block)))
+    (funcall (slot-value (mode cipher) 'decrypt-function)
+             ciphertext plaintext
+             ciphertext-start ciphertext-end
+             plaintext-start handle-final-block)))
 
 (defmethod encrypt-message (cipher msg &key (start 0) (end (length msg)))
   (let* ((length (- end start))
@@ -131,180 +120,130 @@ Note that this computation may involve MODE's state."))
              (loop for fun in mode-definition-funs
                    collect (macroexpand `(,fun 16-byte-block-mixin 16) env) into forms
                    collect (macroexpand `(,fun 8-byte-block-mixin 8) env) into forms
-                   finally (return `(progn ,@forms)))))
+                   finally (return `(progn ,@forms))))
+           (mode-lambda (&body body)
+             `(lambda (in out in-start in-end out-start handle-final-block)
+                (declare (type simple-octet-vector in out))
+                (declare (type index in-start in-end out-start))
+                (declare (ignorable handle-final-block))
+                ,@body)))
 
 
 ;;; ECB mode
 
-(macrolet ((encrypt (cipher-specializer block-length-expr)
-             `(defmethod encrypt-with-mode ((cipher ,cipher-specializer)
-                                            (mode ecb-mode) plaintext ciphertext
-                                            plaintext-start plaintext-end
-                                            ciphertext-start handle-final-block)
-                (declare (type simple-octet-vector plaintext ciphertext))
-                (declare (type index plaintext-start plaintext-end ciphertext-start))
-                (declare (ignorable handle-final-block))
-                (loop with offset of-type index = plaintext-start
-                      with encrypt-function of-type function = (encrypt-function cipher)
-                      while (<= offset (- plaintext-end ,block-length-expr))
-                      do (funcall encrypt-function cipher plaintext offset
-                                  ciphertext ciphertext-start)
-                         (incf offset ,block-length-expr)
-                         (incf ciphertext-start ,block-length-expr)
-                      finally (return-from encrypt-with-mode
-                                (let ((n-bytes-encrypted (- offset plaintext-start)))
-                                  (values n-bytes-encrypted n-bytes-encrypted))))))
-           (decrypt (cipher-specializer block-length-expr)
-             `(defmethod decrypt-with-mode ((cipher ,cipher-specializer)
-                                            (mode ecb-mode) ciphertext plaintext
-                                            ciphertext-start ciphertext-end
-                                            plaintext-start handle-final-block)
-                (declare (type simple-octet-vector plaintext ciphertext))
-                (declare (type index ciphertext-start ciphertext-end plaintext-start))
-                (declare (ignorable handle-final-block))
-                (loop with offset of-type index = ciphertext-start
-                      with decrypt-function of-type function = (decrypt-function cipher)
-                      while (<= offset (- ciphertext-end ,block-length-expr))
-                      do (funcall decrypt-function cipher ciphertext offset
-                                  plaintext plaintext-start)
-                         (incf offset ,block-length-expr)
-                         (incf plaintext-start ,block-length-expr)
-                      finally (return-from decrypt-with-mode
-                                (let ((n-bytes-decrypted (- offset ciphertext-start)))
-                                  (values n-bytes-decrypted n-bytes-decrypted))))))
+(macrolet ((mode-crypt (cipher-specializer block-length-expr)
+             `(defmethod mode-crypt-functions ((cipher ,cipher-specializer)
+                                               (mode ecb-mode))
+                (flet ((ecb-crypt-function (function)
+                         (declare (type function function))
+                         (mode-lambda
+                          (loop with offset of-type index = in-start
+                                while (<= offset (- in-end ,block-length-expr))
+                                do (funcall function cipher in offset out out-start)
+                                   (incf offset ,block-length-expr)
+                                   (incf out-start ,block-length-expr)
+                                finally (return
+                                          (let ((n-bytes-processed (- offset in-start)))
+                                            (values n-bytes-processed n-bytes-processed)))))))
+                  (values (ecb-crypt-function (encrypt-function cipher))
+                          (ecb-crypt-function (decrypt-function cipher))))))
            (message-length (cipher-specializer block-length-expr)
              `(defmethod encrypted-message-length ((cipher ,cipher-specializer)
                                                    (mode ecb-mode) length
                                                    &optional handle-final-block)
                 (declare (ignore handle-final-block))
                 (* (truncate length ,block-length-expr) ,block-length-expr))))
-  (define-mode-function encrypt decrypt message-length))
+  (define-mode-function mode-crypt message-length))
 
 
 ;;; CBC mode
 
-(macrolet ((encrypt (cipher-specializer block-length-expr)
-             `(defmethod encrypt-with-mode ((cipher ,cipher-specializer)
-                                            (mode cbc-mode) plaintext ciphertext
-                                            plaintext-start plaintext-end
-                                            ciphertext-start handle-final-block)
-                (declare (type simple-octet-vector plaintext ciphertext))
-                (declare (type index plaintext-start plaintext-end ciphertext-start))
-                (declare (ignorable handle-final-block))
-                (loop with iv of-type (simple-octet-vector ,(if (constantp `,block-length-expr)
-                                                                `,block-length-expr
-                                                                '*)) = (iv mode)
-                      with offset of-type index = plaintext-start
-                      with encrypt-function of-type function = (encrypt-function cipher)
-                      while (<= offset (- plaintext-end ,block-length-expr))
-                      do (xor-block ,block-length-expr iv plaintext offset
-                             ciphertext ciphertext-start)
-                         (funcall encrypt-function cipher ciphertext ciphertext-start
-                                  ciphertext ciphertext-start)
-                         (replace iv ciphertext :start1 0 :end1 ,block-length-expr
-                                  :start2 ciphertext-start)
-                         (incf offset ,block-length-expr)
-                         (incf ciphertext-start ,block-length-expr)
-                      finally (return-from encrypt-with-mode
-                                (let ((n-bytes-encrypted (- offset plaintext-start)))
-                                  (values n-bytes-encrypted n-bytes-encrypted))))))
-           (decrypt (cipher-specializer block-length-expr)
-             `(defmethod decrypt-with-mode ((cipher ,cipher-specializer)
-                                            (mode cbc-mode) ciphertext plaintext
-                                            ciphertext-start ciphertext-end
-                                            plaintext-start handle-final-block)
-                (declare (type simple-octet-vector plaintext ciphertext))
-                (declare (type index ciphertext-start ciphertext-end plaintext-start))
-                (declare (ignorable handle-final-block))
-                (let ((temp-block (make-array ,block-length-expr :element-type '(unsigned-byte 8))))
-                  (declare (type (simple-octet-vector ,(if (constantp `,block-length-expr)
-                                                           `,block-length-expr
-                                                           '*)) temp-block))
-                  (declare (dynamic-extent temp-block))
-                  (loop with iv of-type (simple-octet-vector ,(if (constantp `,block-length-expr)
-                                                                  `,block-length-expr
-                                                                  '*)) = (iv mode)
-                        with offset of-type index = ciphertext-start
-                        with decrypt-function of-type function = (decrypt-function cipher)
-                        while (<= offset (- ciphertext-end ,block-length-expr))
-                        do (replace temp-block ciphertext :start1 0
-                                    :end1 ,block-length-expr :start2 offset)
-                           (funcall decrypt-function cipher ciphertext offset
-                                    plaintext plaintext-start)
-                           (xor-block ,block-length-expr iv plaintext plaintext-start
-                               plaintext plaintext-start)
-                           (replace iv temp-block :end1 ,block-length-expr
-                                    :end2 ,block-length-expr)
-                           (incf offset ,block-length-expr)
-                           (incf plaintext-start ,block-length-expr)
-                        finally (return-from decrypt-with-mode
-                                  (let ((n-bytes-decrypted (- offset ciphertext-start)))
-                                    (values n-bytes-decrypted n-bytes-decrypted)))))))
+(macrolet ((mode-crypt (cipher-specializer block-length-expr)
+             `(defmethod mode-crypt-functions ((cipher ,cipher-specializer)
+                                               (mode cbc-mode))
+                (let ((efun (encrypt-function cipher))
+                      (dfun (decrypt-function cipher))
+                      (iv (iv mode)))
+                  (declare (type function efun dfun))
+                  (declare (type (simple-octet-vector ,block-length-expr) iv))
+                  (values
+                    (mode-lambda
+                     (loop with offset of-type index = in-start
+                           while (<= offset (- in-end ,block-length-expr))
+                           do (xor-block ,block-length-expr iv in offset
+                                  out out-start)
+                              (funcall efun cipher out out-start out out-start)
+                              (replace iv out :start1 0 :end1 ,block-length-expr
+                                       :start2 out-start)
+                              (incf offset ,block-length-expr)
+                              (incf out-start ,block-length-expr)
+                           finally (return
+                                     (let ((n-bytes-processed (- offset in-start)))
+                                       (values n-bytes-processed n-bytes-processed)))))
+                    (mode-lambda
+                     (let ((temp-block (make-array ,block-length-expr
+                                                   :element-type '(unsigned-byte 8))))
+                       (declare (type (simple-octet-vector ,block-length-expr) temp-block))
+                       (declare (dynamic-extent temp-block))
+                       (loop with offset of-type index = in-start
+                             while (<= offset (- in-end ,block-length-expr))
+                             do (replace temp-block in :start1 0 :end1 ,block-length-expr
+                                         :start2 offset)
+                                (funcall dfun cipher in offset out out-start)
+                                (xor-block ,block-length-expr iv out out-start
+                                    out out-start)
+                                (replace iv temp-block :end1 ,block-length-expr
+                                         :end2 ,block-length-expr)
+                                (incf offset ,block-length-expr)
+                                (incf out-start ,block-length-expr)
+                             finally (return
+                                       (let ((n-bytes-processed (- offset in-start)))
+                                         (values n-bytes-processed n-bytes-processed))))))))))
            (message-length (cipher-specializer block-length-expr)
              `(defmethod encrypted-message-length ((cipher ,cipher-specializer)
                                                    (mode cbc-mode) length
                                                    &optional handle-final-block)
                 (declare (ignore handle-final-block))
                 (* (truncate length ,block-length-expr) ,block-length-expr))))
-  (define-mode-function encrypt decrypt message-length))
+  (define-mode-function mode-crypt message-length))
 
 
 ;;; CFB mode
 
-(macrolet ((encrypt (cipher-specializer block-length-expr)
-           `(defmethod encrypt-with-mode ((cipher ,cipher-specializer)
-                                          (mode cfb-mode) plaintext ciphertext
-                                          plaintext-start plaintext-end
-                                          ciphertext-start handle-final-block)
-              (declare (type simple-octet-vector plaintext ciphertext))
-              (declare (type index plaintext-start plaintext-end ciphertext-start))
-              (declare (ignorable handle-final-block))
-              (loop with iv of-type (simple-octet-vector ,(if (constantp `,block-length-expr)
-                                                              `,block-length-expr
-                                                              '*)) = (iv mode)
-                    with iv-position of-type (integer 0 ,(if (constantp `,block-length-expr)
-                                                             `(,block-length-expr)
-                                                             '*)) = (iv-position mode)
-                    with encrypt-function of-type function = (encrypt-function cipher)
-                    for i of-type index from plaintext-start below plaintext-end
-                    for j of-type index from ciphertext-start
-                    do (when (zerop iv-position)
-                         (funcall encrypt-function cipher iv 0 iv 0))
-                       (let ((b (logxor (aref plaintext i) (aref iv iv-position))))
-                         (setf (aref ciphertext j) b)
-                         (setf (aref iv iv-position) b)
-                         (setf iv-position (mod (1+ iv-position) ,block-length-expr)))
-                    finally (return-from encrypt-with-mode
-                              (let ((n-bytes-encrypted (- plaintext-end plaintext-start)))
-                                (setf (iv-position mode) iv-position)
-                                (values n-bytes-encrypted n-bytes-encrypted))))))
-           (decrypt (cipher-specializer block-length-expr)
-             `(defmethod decrypt-with-mode ((cipher ,cipher-specializer)
-                                            (mode cfb-mode) ciphertext plaintext
-                                            ciphertext-start ciphertext-end
-                                            plaintext-start handle-final-block)
-                (declare (type simple-octet-vector plaintext ciphertext))
-                (declare (type index ciphertext-start ciphertext-end plaintext-start))
-                (declare (ignorable handle-final-block))
-                (loop with iv of-type (simple-octet-vector ,(if (constantp `,block-length-expr)
-                                                                `,block-length-expr
-                                                                '*)) = (iv mode)
-                      with iv-position of-type (integer 0 ,(if (constantp `,block-length-expr)
-                                                               `(,block-length-expr)
-                                                               '*)) = (iv-position mode)
-                      with encrypt-function of-type function = (encrypt-function cipher)
-                      for i of-type index from ciphertext-start below ciphertext-end
-                      for j of-type index from plaintext-start
-                      do (when (zerop iv-position)
-                           (funcall encrypt-function cipher iv 0 iv 0))
-                         (let ((b (logxor (aref ciphertext i) (aref iv iv-position))))
-                           (setf (aref iv iv-position) (aref ciphertext i))
-                           (setf (aref plaintext j) b)
-                           (setf iv-position (mod (1+ iv-position) ,block-length-expr)))
-                      finally (return-from decrypt-with-mode
-                                (let ((n-bytes-decrypted (- ciphertext-end ciphertext-start)))
-                                  (setf (iv-position mode) iv-position)
-                                  (values n-bytes-decrypted n-bytes-decrypted))))))
+(macrolet ((mode-crypt (cipher-specializer block-length-expr)
+             `(defmethod mode-crypt-functions ((cipher ,cipher-specializer)
+                                               (mode cfb-mode))
+                (let ((function (encrypt-function cipher))
+                      (iv (iv mode))
+                      (iv-position (iv-position mode)))
+                  (declare (type function function))
+                  (declare (type (simple-octet-vector ,block-length-expr) iv))
+                  (declare (type (integer 0 (,block-length-expr)) iv-position))
+                  (values
+                    (mode-lambda
+                     (loop for i of-type index from in-start below in-end
+                           for j of-type index from out-start
+                           do (when (zerop iv-position)
+                                (funcall function cipher iv 0 iv 0))
+                              (let ((b (logxor (aref in i) (aref iv iv-position))))
+                                (setf (aref out j) b)
+                                (setf (aref iv iv-position) b)
+                                (setf iv-position (mod (1+ iv-position) ,block-length-expr)))
+                           finally (return
+                                     (let ((n-bytes-processed (- in-end in-start)))
+                                       (values n-bytes-processed n-bytes-processed)))))
+                    (mode-lambda
+                     (loop for i of-type index from in-start below in-end
+                           for j of-type index from out-start
+                           do (when (zerop iv-position)
+                                (funcall function cipher iv 0 iv 0))
+                              (let ((b (logxor (aref in i) (aref iv iv-position))))
+                                (setf (aref out j) b)
+                                (setf (aref iv iv-position) (aref in i))
+                                (setf iv-position (mod (1+ iv-position) ,block-length-expr)))
+                           finally (return
+                                     (let ((n-bytes-processed (- in-end in-start)))
+                                       (values n-bytes-processed n-bytes-processed)))))))))
            (message-length (cipher-specializer block-length-expr)
              (declare (ignore block-length-expr))
              `(defmethod encrypted-message-length ((cipher ,cipher-specializer)
@@ -313,57 +252,46 @@ Note that this computation may involve MODE's state."))
                 (declare (ignore handle-final-block))
                 ;; We can encrypt the whole thing.
                 length)))
-  (define-mode-function encrypt decrypt message-length))
+  (define-mode-function mode-crypt message-length))
 
 
 ;;; CFB8 mode
 
-(macrolet ((encrypt (cipher-specializer block-length-expr)
-           `(defmethod encrypt-with-mode ((cipher ,cipher-specializer)
-                                          (mode cfb8-mode) plaintext ciphertext
-                                          plaintext-start plaintext-end
-                                          ciphertext-start handle-final-block)
-              (declare (type simple-octet-vector plaintext ciphertext))
-              (declare (type index plaintext-start plaintext-end ciphertext-start))
-              (declare (ignorable handle-final-block))
-              (loop with iv of-type (simple-octet-vector ,block-length-expr) = (iv mode)
-                    with encrypted-iv of-type (simple-octet-vector ,block-length-expr) = (encrypted-iv mode)
-                    with encrypt-function of-type function = (encrypt-function cipher)
-                    for i of-type index from plaintext-start below plaintext-end
-                    for j of-type index from ciphertext-start
-                    do (replace encrypted-iv iv :end1 ,block-length-expr :end2 ,block-length-expr)
-                       (funcall encrypt-function cipher encrypted-iv 0 encrypted-iv 0)
-                       (let ((b (logxor (aref plaintext i) (aref encrypted-iv 0))))
-                         (setf (aref ciphertext j) b)
-                         (replace iv iv :start1 0 :start2 1
-                                  :end1 (1- ,block-length-expr) :end2 ,block-length-expr)
-                         (setf (aref iv (1- ,block-length-expr)) b))
-                    finally (return-from encrypt-with-mode
-                              (let ((n-bytes-encrypted (- plaintext-end plaintext-start)))
-                                (values n-bytes-encrypted n-bytes-encrypted))))))
-           (decrypt (cipher-specializer block-length-expr)
-             `(defmethod decrypt-with-mode ((cipher ,cipher-specializer)
-                                            (mode cfb8-mode) ciphertext plaintext
-                                            ciphertext-start ciphertext-end
-                                            plaintext-start handle-final-block)
-                (declare (type simple-octet-vector plaintext ciphertext))
-                (declare (type index ciphertext-start ciphertext-end plaintext-start))
-                (declare (ignorable handle-final-block))
-                (loop with iv of-type (simple-octet-vector ,block-length-expr) = (iv mode)
-                      with encrypted-iv of-type (simple-octet-vector ,block-length-expr) = (encrypted-iv mode)
-                      with encrypt-function of-type function = (encrypt-function cipher)
-                      for i of-type index from ciphertext-start below ciphertext-end
-                      for j of-type index from plaintext-start
-                      do (replace encrypted-iv iv :end1 ,block-length-expr :end2 ,block-length-expr)
-                         (funcall encrypt-function cipher encrypted-iv 0 encrypted-iv 0)
-                         (replace iv iv :start1 0 :start2 1
-                                  :end1 (1- ,block-length-expr) :end2 ,block-length-expr)
-                         (let ((b (aref ciphertext i)))
-                           (setf (aref iv (1- ,block-length-expr)) b)
-                           (setf (aref plaintext j) (logxor b (aref encrypted-iv 0))))
-                      finally (return-from decrypt-with-mode
-                                (let ((n-bytes-decrypted (- ciphertext-end ciphertext-start)))
-                                  (values n-bytes-decrypted n-bytes-decrypted))))))
+(macrolet ((mode-crypt (cipher-specializer block-length-expr)
+           `(defmethod mode-crypt-functions ((cipher ,cipher-specializer)
+                                             (mode cfb8-mode))
+              (let ((function (encrypt-function cipher))
+                    (iv (iv mode))
+                    (encrypted-iv (nibbles:make-octet-vector ,block-length-expr)))
+                (declare (type function function))
+                (declare (type (simple-octet-vector ,block-length-expr) iv encrypted-iv))
+                (values
+                  (mode-lambda
+                   (loop for i of-type index from in-start below in-end
+                         for j of-type index from out-start
+                         do (replace encrypted-iv iv :end1 ,block-length-expr :end2 ,block-length-expr)
+                            (funcall function cipher encrypted-iv 0 encrypted-iv 0)
+                            (let ((b (logxor (aref in i) (aref encrypted-iv 0))))
+                              (setf (aref out j) b)
+                              (replace iv iv :start1 0 :start2 1
+                                       :end1 (1- ,block-length-expr) :end2 ,block-length-expr)
+                              (setf (aref iv (1- ,block-length-expr)) b))
+                         finally (return
+                                   (let ((n-bytes-processed (- in-end in-start)))
+                                     (values n-bytes-processed n-bytes-processed)))))
+                  (mode-lambda
+                   (loop for i of-type index from in-start below in-end
+                         for j of-type index from out-start
+                         do (replace encrypted-iv iv :end1 ,block-length-expr :end2 ,block-length-expr)
+                            (funcall function cipher encrypted-iv 0 encrypted-iv 0)
+                            (replace iv iv :start1 0 :start2 1
+                                     :end1 (1- ,block-length-expr) :end2 ,block-length-expr)
+                            (let ((b (aref in i)))
+                              (setf (aref iv (1- ,block-length-expr)) b)
+                              (setf (aref out j) (logxor b (aref encrypted-iv 0))))
+                         finally (return
+                                   (let ((n-bytes-processed (- in-end in-start)))
+                                     (values n-bytes-processed n-bytes-processed)))))))))
            (message-length (cipher-specializer block-length-expr)
              (declare (ignore block-length-expr))
              `(defmethod encrypted-message-length ((cipher ,cipher-specializer)
@@ -372,55 +300,33 @@ Note that this computation may involve MODE's state."))
                 (declare (ignore handle-final-block))
                 ;; We can encrypt the whole thing.
                 length)))
-  (define-mode-function encrypt decrypt message-length))
+  (define-mode-function mode-crypt message-length))
 
 
 ;;; OFB mode
 
-(macrolet ((encrypt (cipher-specializer block-length-expr)
-             `(defmethod encrypt-with-mode ((cipher ,cipher-specializer)
-                                            (mode ofb-mode) plaintext ciphertext
-                                            plaintext-start plaintext-end
-                                            ciphertext-start handle-final-block)
-                (declare (type simple-octet-vector plaintext ciphertext))
-                (declare (type index plaintext-start plaintext-end ciphertext-start))
-                (declare (ignorable handle-final-block))
-                (loop with iv of-type (simple-octet-vector ,block-length-expr) = (iv mode)
-                      with iv-position of-type (integer 0 (,block-length-expr)) = (iv-position mode)
-                      with encrypt-function of-type function = (encrypt-function cipher)
-                      for i of-type index from plaintext-start below plaintext-end
-                      for j of-type index from ciphertext-start
-                      do (when (zerop iv-position)
-                           (funcall encrypt-function cipher iv 0 iv 0))
-                         (setf (aref ciphertext j) (logxor (aref plaintext i)
-                                                           (aref iv iv-position)))
-                         (setf iv-position (mod (1+ iv-position) ,block-length-expr))
-                      finally (return-from encrypt-with-mode
-                                (let ((n-bytes-encrypted (- plaintext-end plaintext-start)))
-                                  (setf (iv-position mode) iv-position)
-                                  (values n-bytes-encrypted n-bytes-encrypted))))))
-           (decrypt (cipher-specializer block-length-expr)
-             `(defmethod decrypt-with-mode ((cipher ,cipher-specializer)
-                                            (mode ofb-mode) ciphertext plaintext
-                                            ciphertext-start ciphertext-end
-                                            plaintext-start handle-final-block)
-                (declare (type simple-octet-vector plaintext ciphertext))
-                (declare (type index ciphertext-start ciphertext-end plaintext-start))
-                (declare (ignorable handle-final-block))
-                (loop with iv of-type (simple-octet-vector ,block-length-expr) = (iv mode)
-                      with iv-position of-type (integer 0 (,block-length-expr)) = (iv-position mode)
-                      with encrypt-function of-type function = (encrypt-function cipher)
-                      for i of-type index from ciphertext-start below ciphertext-end
-                      for j of-type index from plaintext-start
-                      do (when (zerop iv-position)
-                           (funcall encrypt-function cipher iv 0 iv 0))
-                         (setf (aref plaintext j) (logxor (aref ciphertext i)
-                                                          (aref iv iv-position)))
-                         (setf iv-position (mod (1+ iv-position) ,block-length-expr))
-                      finally (return-from decrypt-with-mode
-                                (let ((n-bytes-decrypted (- ciphertext-end ciphertext-start)))
-                                  (setf (iv-position mode) iv-position)
-                                  (values n-bytes-decrypted n-bytes-decrypted))))))
+(macrolet ((mode-crypt (cipher-specializer block-length-expr)
+             `(defmethod mode-crypt-functions ((cipher ,cipher-specializer)
+                                               (mode ofb-mode))
+                (let ((iv (iv mode))
+                      (iv-position (iv-position mode)))
+                  (declare (type (simple-octet-vector ,block-length-expr) iv))
+                  (declare (type (integer 0 (,block-length-expr)) iv-position))
+                  (flet ((ofb-crypt-function (function)
+                           (declare (type function function))
+                           (mode-lambda
+                            (loop for i of-type index from in-start below in-end
+                                  for j of-type index from out-start
+                                  do (when (zerop iv-position)
+                                       (funcall function cipher iv 0 iv 0))
+                                     (setf (aref out j) (logxor (aref in i)
+                                                                (aref iv iv-position)))
+                                     (setf iv-position (mod (1+ iv-position) ,block-length-expr))
+                                  finally (return
+                                            (let ((n-bytes-processed (- in-end in-start)))
+                                              (values n-bytes-processed n-bytes-processed)))))))
+                    (let ((f (ofb-crypt-function (encrypt-function cipher))))
+                      (values f f))))))
            (message-length (cipher-specializer block-length-expr)
              (declare (ignore block-length-expr))
              `(defmethod encrypted-message-length ((cipher ,cipher-specializer)
@@ -429,59 +335,35 @@ Note that this computation may involve MODE's state."))
                 (declare (ignore handle-final-block))
                 ;; We can encrypt the whole thing.
                 length)))
-  (define-mode-function encrypt decrypt message-length))
+  (define-mode-function mode-crypt message-length))
 
 
 ;;; CTR mode
 
-(macrolet ((encrypt (cipher-specializer block-length-expr)
-             `(defmethod encrypt-with-mode ((cipher ,cipher-specializer)
-                                            (mode ctr-mode) plaintext ciphertext
-                                            plaintext-start plaintext-end
-                                            ciphertext-start handle-final-block)
-                (declare (type simple-octet-vector plaintext ciphertext))
-                (declare (type index plaintext-start plaintext-end ciphertext-start))
-                (declare (ignorable handle-final-block))
-                (loop with iv of-type (simple-octet-vector ,block-length-expr) = (iv mode)
-                      with iv-position of-type (integer 0 (,block-length-expr)) = (iv-position mode)
-                      with encrypted-iv of-type (simple-octet-vector ,block-length-expr) = (encrypted-iv mode)
-                      with encrypt-function of-type function = (encrypt-function cipher)
-                      for i of-type index from plaintext-start below plaintext-end
-                      for j of-type index from ciphertext-start
-                      do (when (zerop iv-position)
-                           (funcall encrypt-function cipher iv 0 encrypted-iv 0)
-                           (increment-counter-block iv))
-                         (setf (aref ciphertext j) (logxor (aref plaintext i)
-                                                           (aref encrypted-iv iv-position)))
-                         (setf iv-position (mod (1+ iv-position) ,block-length-expr))
-                      finally (return-from encrypt-with-mode
-                                (let ((n-bytes-encrypted (- plaintext-end plaintext-start)))
-                                  (setf (iv-position mode) iv-position)
-                                  (values n-bytes-encrypted n-bytes-encrypted))))))
-           (decrypt (cipher-specializer block-length-expr)
-             `(defmethod decrypt-with-mode ((cipher ,cipher-specializer)
-                                            (mode ctr-mode) ciphertext plaintext
-                                            ciphertext-start ciphertext-end
-                                            plaintext-start handle-final-block)
-                (declare (type simple-octet-vector plaintext ciphertext))
-                (declare (type index ciphertext-start ciphertext-end plaintext-start))
-                (declare (ignorable handle-final-block))
-                (loop with iv of-type (simple-octet-vector ,block-length-expr) = (iv mode)
-                      with iv-position of-type (integer 0 (,block-length-expr)) = (iv-position mode)
-                      with encrypted-iv of-type (simple-octet-vector ,block-length-expr) = (encrypted-iv mode)
-                      with encrypt-function of-type function = (encrypt-function cipher)
-                      for i of-type index from ciphertext-start below ciphertext-end
-                      for j of-type index from plaintext-start
-                      do (when (zerop iv-position)
-                           (funcall encrypt-function cipher iv 0 encrypted-iv 0)
-                           (increment-counter-block iv))
-                         (setf (aref plaintext j) (logxor (aref ciphertext i)
-                                                          (aref encrypted-iv iv-position)))
-                         (setf iv-position (mod (1+ iv-position) ,block-length-expr))
-                      finally (return-from decrypt-with-mode
-                                (let ((n-bytes-decrypted (- ciphertext-end ciphertext-start)))
-                                  (setf (iv-position mode) iv-position)
-                                  (values n-bytes-decrypted n-bytes-decrypted))))))
+(macrolet ((mode-crypt (cipher-specializer block-length-expr)
+             `(defmethod mode-crypt-functions ((cipher ,cipher-specializer)
+                                               (mode ctr-mode))
+                (let ((iv (iv mode))
+                      (encrypted-iv (nibbles:make-octet-vector ,block-length-expr))
+                      (iv-position (iv-position mode)))
+                  (declare (type (simple-octet-vector ,block-length-expr) iv encrypted-iv))
+                  (declare (type (integer 0 (,block-length-expr)) iv-position))
+                  (flet ((ctr-crypt-function (function)
+                           (declare (type function function))
+                           (mode-lambda
+                            (loop for i of-type index from in-start below in-end
+                                  for j of-type index from out-start
+                                  do (when (zerop iv-position)
+                                       (funcall function cipher iv 0 encrypted-iv 0)
+                                       (increment-counter-block iv))
+                                     (setf (aref out j) (logxor (aref in i)
+                                                                (aref encrypted-iv iv-position)))
+                                     (setf iv-position (mod (1+ iv-position) ,block-length-expr))
+                                  finally (return
+                                            (let ((n-bytes-processed (- in-end in-start)))
+                                              (values n-bytes-processed n-bytes-processed)))))))
+                    (let ((f (ctr-crypt-function (encrypt-function cipher))))
+                      (values f f))))))
            (message-length (cipher-specializer block-length-expr)
              (declare (ignore block-length-expr))
              `(defmethod encrypted-message-length ((cipher ,cipher-specializer)
@@ -490,7 +372,7 @@ Note that this computation may involve MODE's state."))
                 (declare (ignore handle-final-block))
                 ;; We can encrypt the whole thing.
                 length)))
-  (define-mode-function encrypt decrypt message-length))
+  (define-mode-function mode-crypt message-length))
 
 
 ;;; Padded modes
@@ -603,33 +485,19 @@ Note that this computation may involve MODE's state."))
                        (* full-blocks ,block-length-expr))))))))
   (define-mode-function encrypt decrypt message-length))
 
+(defmethod mode-crypt-functions (cipher (mode stream-mode))
+  (flet ((stream-crypt-function (function)
+           (declare (type function function))
+           (mode-lambda
+            (let ((length (- in-end in-start)))
+              (when (plusp length)
+                (funcall function cipher in in-start out out-start length))
+              (let ((n-bytes-processed (max 0 length)))
+                (values n-bytes-processed n-bytes-processed))))))
+    (values (stream-crypt-function (encrypt-function cipher))
+            (stream-crypt-function (decrypt-function cipher)))))
+
 ) ; DEFINE-MODE-FUNCTION MACROLET
-
-(defmethod encrypt-with-mode (context (mode stream-mode)
-                              plaintext ciphertext
-                              plaintext-start plaintext-end
-                              ciphertext-start handle-final-block)
-  (declare (type simple-octet-vector plaintext ciphertext))
-  (declare (type index plaintext-start plaintext-end ciphertext-start))
-  (declare (ignorable handle-final-block mode))
-  (let ((length (- plaintext-end plaintext-start)))
-    (when (plusp length)
-      (funcall (encrypt-function context) context plaintext plaintext-start
-               ciphertext ciphertext-start length))
-    (max 0 length)))
-
-(defmethod decrypt-with-mode (context (mode stream-mode)
-                              ciphertext plaintext
-                              ciphertext-start ciphertext-end
-                              plaintext-start handle-final-block)
-  (declare (type simple-octet-vector ciphertext plaintext))
-  (declare (type index ciphertext-start ciphertext-end plaintext-start))
-  (declare (ignorable handle-final-block mode))
-  (let ((length (- ciphertext-end ciphertext-start)))
-    (when (plusp length)
-      (funcall (decrypt-function context) context ciphertext ciphertext-start
-               plaintext plaintext-start length))
-    (max 0 length)))
 
 (defmethod encrypted-message-length (context
                                      (mode stream-mode) length
