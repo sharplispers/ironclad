@@ -1,3 +1,4 @@
+;;;; -*- mode: lisp; indent-tabs-mode: nil -*-
 (in-package :sb-vm)
 
 #+(or x86 x86-64)

@@ -1,3 +1,4 @@
+;;;; -*- mode: lisp; indent-tabs-mode: nil -*-
 (in-package :crypto-tests)
 
 (rtest:deftest :hmac (run-test-vector-file :hmac *mac-tests*) t)

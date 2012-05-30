@@ -1,3 +1,4 @@
+;;;; -*- mode: lisp; indent-tabs-mode: nil -*-
 (in-package :crypto)
 ;;; See the spec at
 ;;; http://zgp.org/pipermail/p2p-hackers/2002-June/000621.html

@@ -1,3 +1,4 @@
+;;;; -*- mode: lisp; indent-tabs-mode: nil -*-
 ;;;; rc2.lisp -- implementation of the RC2 cipher algorithm from RFC 2268
 
 (in-package :crypto)

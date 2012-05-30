@@ -1,3 +1,4 @@
+;;;; -*- mode: lisp; indent-tabs-mode: nil -*-
 ;;;; cipher.lisp -- generic functions for symmetric encryption
 
 (in-package :crypto)

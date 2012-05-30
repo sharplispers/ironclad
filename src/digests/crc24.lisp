@@ -1,3 +1,4 @@
+;;;; -*- mode: lisp; indent-tabs-mode: nil -*-
 ;;;; crc24.lisp
 
 (in-package :crypto)

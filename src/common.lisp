@@ -1,3 +1,4 @@
+;;;; -*- mode: lisp; indent-tabs-mode: nil -*-
 ;;;; common.lisp -- efficient implementations of mod32 arithmetic and macros
 
 ;;; Functions in this file are intended to be fast

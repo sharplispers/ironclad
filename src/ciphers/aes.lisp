@@ -1,3 +1,4 @@
+;;;; -*- mode: lisp; indent-tabs-mode: nil -*-
 ;;;; aes.lisp -- implementation of the Rijndael block cipher
 ;;;
 ;;; Currently limited to 128-bit block sizes, although the full range of

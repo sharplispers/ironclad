@@ -1,3 +1,4 @@
+;;;; -*- mode: lisp; indent-tabs-mode: nil -*-
 ;;;;
 ;;;; MD5-LISPWORKS-INT32 - MD5 implementation using SYS:INT32 in Lispworks
 ;;;;

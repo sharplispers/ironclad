@@ -1,3 +1,4 @@
+;;;; -*- mode: lisp; indent-tabs-mode: nil -*-
 ;;;; arcfour.lisp -- implementation of the alleged RC4 stream cipher
 
 (in-package :crypto)

@@ -1,3 +1,4 @@
+;;;; -*- mode: lisp; indent-tabs-mode: nil -*-
 (in-package :crypto-tests)
 
 (rtest:deftest verify-key.bad-cipher

@@ -1,3 +1,4 @@
+;;;; -*- mode: lisp; indent-tabs-mode: nil -*-
 (cl:defpackage :ironclad
   (:use :cl)
   (:nicknames :crypto)

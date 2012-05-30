@@ -1,3 +1,4 @@
+;;;; -*- mode: lisp; indent-tabs-mode: nil -*-
 (in-package :sb-c)
 
 (defknown (ironclad::fill-block-ub8-le ironclad::fill-block-ub8-be)

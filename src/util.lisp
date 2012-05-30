@@ -1,3 +1,4 @@
+;;;; -*- mode: lisp; indent-tabs-mode: nil -*-
 ;;;; util.lisp -- functions that come in handy in crypto applications
 
 (in-package :crypto)

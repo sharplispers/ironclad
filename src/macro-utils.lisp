@@ -1,3 +1,4 @@
+;;;; -*- mode: lisp; indent-tabs-mode: nil -*-
 ;;;; macro-utils.lisp -- things to make compiler macros easier
 
 (in-package :crypto)

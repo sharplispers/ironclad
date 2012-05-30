@@ -1,3 +1,4 @@
+;;;; -*- mode: lisp; indent-tabs-mode: nil -*-
 ;;;; This is an implementation of the US Secure Hash Algorithm 1 (SHA1),
 ;;;; defined in RFC 3174, written by D. Eastlake and P. Jones, September
 ;;;; 2001.  The RFC was based on the document "Secure Hash Standard",

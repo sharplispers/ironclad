@@ -1,3 +1,4 @@
+;;;; -*- mode: lisp; indent-tabs-mode: nil -*-
 ;;; sha512.lisp -- implementation of SHA-384/512 from NIST
 
 (in-package :crypto)

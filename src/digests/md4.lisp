@@ -1,3 +1,4 @@
+;;;; -*- mode: lisp; indent-tabs-mode: nil -*-
 ;;;; md4.lisp -- the MD4 digest algorithm as given in RFC1320
 
 (in-package :crypto)

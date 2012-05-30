@@ -1,3 +1,4 @@
+;;;; -*- mode: lisp; indent-tabs-mode: nil -*-
 ;;;; This file implements the Whirlpool message-digest algoritm, as
 ;;;; defined in The WHIRLPOOL Hashing Function, by Paulo S.L.M. Barreto1
 ;;;; and Vincent Rijmen, revised on Revised on May 24, 2003 (1).

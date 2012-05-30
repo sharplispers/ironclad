@@ -1,3 +1,4 @@
+;;;; -*- mode: lisp; indent-tabs-mode: nil -*-
 ;;;; sha256.lisp -- implementation of SHA-2/256 from NIST
 
 (in-package :crypto)

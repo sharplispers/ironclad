@@ -1,3 +1,4 @@
+;;;; -*- mode: lisp; indent-tabs-mode: nil -*-
 ;;;; blowfish.lisp -- implementation of Bruce Schneier's Blowfish block cipher
 
 (in-package :crypto)

@@ -1,3 +1,4 @@
+;;;; -*- mode: lisp; indent-tabs-mode: nil -*-
 ;;;; This file implements The MD5 Message-Digest Algorithm, as defined in
 ;;;; RFC 1321 by R. Rivest, published April 1992.
 ;;;;

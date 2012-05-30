@@ -1,3 +1,4 @@
+;;;; -*- mode: lisp; indent-tabs-mode: nil -*-
 ;;;; des.lisp -- implementation of DES
 
 ;;; converted from the C code appearing in _Applied Cryptography_ by

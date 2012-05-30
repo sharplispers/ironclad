@@ -1,3 +1,4 @@
+;;;; -*- mode: lisp; indent-tabs-mode: nil -*-
 ;;;; modes.lisp -- using encryption modes with block ciphers
 
 (in-package :crypto)

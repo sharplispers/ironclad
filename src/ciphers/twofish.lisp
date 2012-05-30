@@ -1,3 +1,4 @@
+;;;; -*- mode: lisp; indent-tabs-mode: nil -*-
 ;;;; twofish.lisp -- implementation of Counterpane's Twofish AES candidate
 
 (in-package :crypto)

@@ -1,3 +1,4 @@
+;;;; -*- mode: lisp; indent-tabs-mode: nil -*-
 ;;;; rc6.lisp -- implementation of the RC6 block cipher
 
 (in-package :ironclad)

@@ -1,3 +1,4 @@
+;;;; -*- mode: lisp; indent-tabs-mode: nil -*-
 ;;;; null-cipher.lisp -- the do-nothing cipher
 
 ;;; It's not very secure, but it does come in handy to serve as a dummy

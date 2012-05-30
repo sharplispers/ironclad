@@ -1,3 +1,4 @@
+;;;; -*- mode: lisp; indent-tabs-mode: nil -*-
 (in-package :crypto)
 
 (defconstant +tea-n-rounds+ 32)

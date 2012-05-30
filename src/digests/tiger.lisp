@@ -1,3 +1,4 @@
+;;;; -*- mode: lisp; indent-tabs-mode: nil -*-
 ;;;; tiger.lisp -- implementation of the Tiger digest function
 
 (in-package :crypto)

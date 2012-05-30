@@ -1,3 +1,4 @@
+;;;; -*- mode: lisp; indent-tabs-mode: nil -*-
 ;;;; make-cipher.lisp -- all the machinery necessary for MAKE-CIPHER
 
 (in-package :crypto)

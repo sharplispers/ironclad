@@ -1,3 +1,4 @@
+;;;; -*- mode: lisp; indent-tabs-mode: nil -*-
 ;;;; padding.lisp -- implementation of various padding algorithms
 
 (in-package :crypto)

@@ -1,3 +1,4 @@
+;;;; -*- mode: lisp; indent-tabs-mode: nil -*-
 (in-package :crypto-tests)
 
 (rtest:deftest :prng-fortuna (run-test-vector-file :prng *prng-tests*) t)

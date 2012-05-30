@@ -1,3 +1,4 @@
+;;;; -*- mode: lisp; indent-tabs-mode: nil -*-
 ;;;; rc5.lisp -- implementation of the RC5 encryption algorithm from RFC 2040
 
 (in-package :ironclad)

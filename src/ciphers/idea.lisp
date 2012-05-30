@@ -1,3 +1,4 @@
+;;;; -*- mode: lisp; indent-tabs-mode: nil -*-
 ;;;; idea.lisp -- implementation of the IDEA block cipher
 
 ;;; converted mostly from the C code appearing in _Applied Cryptography_

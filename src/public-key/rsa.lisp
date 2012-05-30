@@ -1,3 +1,4 @@
+;;;; -*- mode: lisp; indent-tabs-mode: nil -*-
 ;;;; rsa.lisp -- implementation of the RSA public key algorithm
 
 (in-package :crypto)

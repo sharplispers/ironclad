@@ -1,3 +1,4 @@
+;;;; -*- mode: lisp; indent-tabs-mode: nil -*-
 (in-package :crypto-tests)
 
 ;;; Test vectors for "bare" PBKDF* are impossible to find; RSA has some,

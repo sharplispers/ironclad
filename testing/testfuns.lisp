@@ -1,3 +1,4 @@
+;;;; -*- mode: lisp; indent-tabs-mode: nil -*-
 (in-package :crypto-tests)
 
 (defun hex-string-to-byte-array (string &key (start 0) (end nil))
