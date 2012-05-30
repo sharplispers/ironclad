@@ -225,12 +225,12 @@
 ;;; PRNG testing routines
 (defun fortuna-test (name seed entropy expected-sequence)
   (let ((prng (crypto:make-prng :fortuna
-				:seed (coerce seed 'crypto::simple-octet-vector)))
-	(num-bytes (length expected-sequence)))
+                                :seed (coerce seed 'crypto::simple-octet-vector)))
+        (num-bytes (length expected-sequence)))
     (loop for (source pool-id event) in entropy
        do (crypto:add-random-event prng source pool-id event))
     (equalp expected-sequence
-	    (crypto:random-data prng num-bytes))))
+            (crypto:random-data prng num-bytes))))
 
 
 (defun generator-test (name cipher seeds expected-sequences)
@@ -239,11 +239,11 @@
     (loop for seed in seeds
        do (crypto::reseed generator (coerce seed '(vector (unsigned-byte 8)))))
     (every (lambda (sequence)
-	     (assert (zerop (mod (length sequence) 16)))
-	     (equalp sequence
-		     (crypto::generate-blocks generator
-					      (/ (length sequence) 16))))
-	   expected-sequences)))
+             (assert (zerop (mod (length sequence) 16)))
+             (equalp sequence
+                     (crypto::generate-blocks generator
+                                              (/ (length sequence) 16))))
+           expected-sequences)))
 
 
 (defparameter *prng-tests*

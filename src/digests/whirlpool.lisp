@@ -190,7 +190,7 @@
   "this is the core part of the whirlpool algorithm. it takes a complete 16
 word block of input, and updates the working state in the regs."
   (declare (type whirlpool-regs regs)
-	   (type (simple-array (unsigned-byte 32) (16)) block))
+           (type (simple-array (unsigned-byte 32) (16)) block))
   (macrolet ((hash (i)
                `(aref regs (+ ,i +whirlpool-regs-hash-offset+)))
              (k (i)

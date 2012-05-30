@@ -44,7 +44,7 @@
   (declare (type (simple-array (unsigned-byte 32) (64)) block)
            #.(burn-baby-burn))
   (let ((a (sha256-regs-a regs)) (b (sha256-regs-b regs))
-	(c (sha256-regs-c regs)) (d (sha256-regs-d regs))
+        (c (sha256-regs-c regs)) (d (sha256-regs-d regs))
         (e (sha256-regs-e regs)) (f (sha256-regs-f regs))
         (g (sha256-regs-g regs)) (h (sha256-regs-h regs)))
     (flet ((ch (x y z)
@@ -140,15 +140,15 @@
 (defmethod copy-digest ((state sha256) &optional copy)
   (declare (type (or cl:null sha256) copy))
   (let ((copy (if copy
-		  copy
-		  (etypecase state
-		    (sha224 (%make-sha224-digest))
-		    (sha256 (%make-sha256-digest))))))
+                  copy
+                  (etypecase state
+                    (sha224 (%make-sha224-digest))
+                    (sha256 (%make-sha256-digest))))))
     (declare (type sha256 copy))
     (replace (sha256-regs copy) (sha256-regs state))
     (replace (sha256-buffer copy) (sha256-buffer state))
     (setf (sha256-amount copy) (sha256-amount state)
-	  (sha256-buffer-index copy) (sha256-buffer-index state))
+          (sha256-buffer-index copy) (sha256-buffer-index state))
     copy))
 
 (define-digest-updater sha256

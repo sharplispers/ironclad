@@ -159,7 +159,7 @@ with `(OPTIMIZE (FLOAT 0))'."
         collect
         `(setq ,a (mod32+ ,b (rol32 (mod32+ (mod32+ ,a (,op ,b ,c ,d))
                                             (mod32+ (ub32-aref ,block ,k)
-                                                    ,(sys:int32-to-integer	; due to LW bug
+                                                    ,(sys:int32-to-integer        ; due to LW bug
                                                       (ub32-aref *t* (1- i)))))
                                     ,s)))
         into result
@@ -407,7 +407,7 @@ The resulting MD5 message-digest is returned as an array of sixteen
             (block (%md5-block state))
             (buffer (%md5-buffer state))
             (buffer-index (%md5-buffer-index state))
-            (total-length (* 8 (%md5-amount state))))	; potentially bignum
+            (total-length (* 8 (%md5-amount state))))        ; potentially bignum
         (declare (type md5-regs regs)
                  (type (integer 0 63) buffer-index)
                  (type (ub32-vector 16) block)

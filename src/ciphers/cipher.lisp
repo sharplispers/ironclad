@@ -11,8 +11,8 @@
   ())
 
 (defun encrypt (cipher plaintext ciphertext
-		&key (plaintext-start 0) plaintext-end
-		(ciphertext-start 0) handle-final-block)
+                &key (plaintext-start 0) plaintext-end
+                (ciphertext-start 0) handle-final-block)
   "Encrypt the data in PLAINTEXT between PLAINTEXT-START and
 PLAINTEXT-END according to CIPHER.  Places the encrypted data in
 CIPHERTEXT, beginning at CIPHERTEXT-START.  Less data than
@@ -26,8 +26,8 @@ CIPHERTEXT."
              handle-final-block)))
 
 (defun decrypt (cipher ciphertext plaintext
-		&key (ciphertext-start 0) ciphertext-end
-		(plaintext-start 0) handle-final-block)
+                &key (ciphertext-start 0) ciphertext-end
+                (plaintext-start 0) handle-final-block)
   "Decrypt the data in CIPHERTEXT between CIPHERTEXT-START and
 CIPHERTEXT-END according to CIPHER.  Places the decrypted data in
 PLAINTEXT, beginning at PLAINTEXT-START.  Less data than

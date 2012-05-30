@@ -295,9 +295,9 @@
 (declaim (inline cast5-f1 cast5-f2 cast5-f3))
 
 (macrolet ((cast5-s-box (s-boxes s-box-index index)
-	     (declare (ignore s-boxes))
-	     `(aref ,(intern (format nil "+~A~A+" '#:cast5-sbox s-box-index))
-		    ,index)))
+             (declare (ignore s-boxes))
+             `(aref ,(intern (format nil "+~A~A+" '#:cast5-sbox s-box-index))
+                    ,index)))
 
 (defun cast5-f1 (input mask rotate)
   (declare (type (unsigned-byte 32) input mask))

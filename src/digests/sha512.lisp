@@ -53,7 +53,7 @@
   (declare (type (simple-array (unsigned-byte 64) (80)) block)
            #.(burn-baby-burn))
   (let ((a (sha512-regs-a regs)) (b (sha512-regs-b regs))
-	(c (sha512-regs-c regs)) (d (sha512-regs-d regs))
+        (c (sha512-regs-c regs)) (d (sha512-regs-d regs))
         (e (sha512-regs-e regs)) (f (sha512-regs-f regs))
         (g (sha512-regs-g regs)) (h (sha512-regs-h regs)))
     (flet ((rho (x r1 r2 r3)
@@ -136,15 +136,15 @@
 (defmethod copy-digest ((state sha512) &optional copy)
   (declare (type (or cl:null sha512) copy))
   (let ((copy (if copy
-		  copy
-		  (etypecase state
-		    (sha384 (%make-sha384-digest))
-		    (sha512 (%make-sha512-digest))))))
+                  copy
+                  (etypecase state
+                    (sha384 (%make-sha384-digest))
+                    (sha512 (%make-sha512-digest))))))
     (declare (type sha512 copy))
     (replace (sha512-regs copy) (sha512-regs state))
     (replace (sha512-buffer copy) (sha512-buffer state))
     (setf (sha512-amount copy) (sha512-amount state)
-	  (sha512-buffer-index copy) (sha512-buffer-index state))
+          (sha512-buffer-index copy) (sha512-buffer-index state))
     copy))
 
 (define-digest-updater sha512

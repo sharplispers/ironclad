@@ -132,8 +132,8 @@
        (check-type start index)
        (check-type end index)
        ,@(if (stringp maybe-doc-string)
-	     rest
-	     body))))
+             rest
+             body))))
 
 ;;; SPECS is either (DIGEST-NAME DIGEST-BYTES) or a list of the same.
 ;;; The latter spelling is for digests that are related, but have
@@ -147,44 +147,44 @@
          (inner-fun-name (intern (format nil "%~A-~A-~A" '#:finalize (caar specs) '#:state))))
     (destructuring-bind (maybe-doc-string &rest rest) body
       (let ((primary-digest (caar specs)))
-	`(defmethod finalize-digest ((state ,primary-digest)
-				     &optional buffer buffer-start)
-	   ,@(when (stringp maybe-doc-string)
-	       `(,maybe-doc-string))
-	   (flet ((,inner-fun-name (state %buffer buffer-start)
-		    ,(hold-me-back)
-		    (macrolet ((finalize-registers (state regs)
-				 (let ((clauses
-					(loop for (digest-name digest-length) in ',specs
-					      collect `(,digest-name
-							 (,(intern (format nil "~A~A"
-									   digest-name '#:regs-digest))
-								   ,regs %buffer buffer-start)))))
-				   (if ,single-digest-p
-				       (second (first clauses))
-				       (list* 'etypecase state
-					      (reverse clauses))))))
-		      ,@(if (stringp maybe-doc-string)
-			    rest
-			    body))))
-	     (let ((digest-size ,(if single-digest-p
-				     (second (first specs))
-				     `(etypecase state
-					,@(reverse specs)))))
-	       (etypecase buffer
-		 ((simple-array (unsigned-byte 8) (*))
-		  ;; verify that the buffer is large enough
-		  (let ((buffer-start (or buffer-start 0)))
-		    (if (<= digest-size (- (length buffer) buffer-start))
-			(,inner-fun-name state buffer buffer-start)
-			(error 'insufficient-buffer-space
-			       :buffer buffer :start buffer-start
-			       :length digest-size))))
-		 (cl:null
-		  (,inner-fun-name state
-				   (make-array digest-size
-					       :element-type '(unsigned-byte 8))
-				   0))))))))))
+        `(defmethod finalize-digest ((state ,primary-digest)
+                                     &optional buffer buffer-start)
+           ,@(when (stringp maybe-doc-string)
+               `(,maybe-doc-string))
+           (flet ((,inner-fun-name (state %buffer buffer-start)
+                    ,(hold-me-back)
+                    (macrolet ((finalize-registers (state regs)
+                                 (let ((clauses
+                                        (loop for (digest-name digest-length) in ',specs
+                                              collect `(,digest-name
+                                                         (,(intern (format nil "~A~A"
+                                                                           digest-name '#:regs-digest))
+                                                                   ,regs %buffer buffer-start)))))
+                                   (if ,single-digest-p
+                                       (second (first clauses))
+                                       (list* 'etypecase state
+                                              (reverse clauses))))))
+                      ,@(if (stringp maybe-doc-string)
+                            rest
+                            body))))
+             (let ((digest-size ,(if single-digest-p
+                                     (second (first specs))
+                                     `(etypecase state
+                                        ,@(reverse specs)))))
+               (etypecase buffer
+                 ((simple-array (unsigned-byte 8) (*))
+                  ;; verify that the buffer is large enough
+                  (let ((buffer-start (or buffer-start 0)))
+                    (if (<= digest-size (- (length buffer) buffer-start))
+                        (,inner-fun-name state buffer buffer-start)
+                        (error 'insufficient-buffer-space
+                               :buffer buffer :start buffer-start
+                               :length digest-size))))
+                 (cl:null
+                  (,inner-fun-name state
+                                   (make-array digest-size
+                                               :element-type '(unsigned-byte 8))
+                                   0))))))))))
 
 ;;; common superclass (superstructure?) for MD5-style digest functions
 
@@ -322,9 +322,9 @@ An error will be signaled if there is insufficient room in DIGEST."))
       (declare (type index end))
       (#+cmu lisp::with-array-data
        #+sbcl sb-kernel:with-array-data ((data sequence) (real-start start) (real-end end))
-	(declare (ignore real-end))
-	(update-digest state data
-		       :start real-start :end (+ real-start (- end start))))))
+        (declare (ignore real-end))
+        (update-digest state data
+                       :start real-start :end (+ real-start (- end start))))))
   #-(or cmu sbcl)
   (let ((real-end (or end (length sequence))))
     (update-digest state sequence
@@ -404,9 +404,9 @@ An error will be signaled if there is insufficient room in DIGEST."))
     ;; Ironclad gets compiled with *PRINT-CASE* set to :UPCASE; ensure
     ;; that names we return match what got compiled.n
     (intern (format nil "%~A-~A-~A"
-		    (symbol-name '#:make)
-		    (symbol-name name)
-		    (symbol-name '#:digest)))))
+                    (symbol-name '#:make)
+                    (symbol-name name)
+                    (symbol-name '#:digest)))))
 
 (defmacro defdigest (name &key digest-length block-length)
   (let ((optimized-maker-name (optimized-maker-name name)))

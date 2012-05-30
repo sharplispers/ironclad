@@ -70,7 +70,7 @@
 ;;; efficient 32-bit arithmetic, which a lot of algorithms require
 
 (declaim #+ironclad-fast-mod32-arithmetic (inline mod32+)
-	 (ftype (function ((unsigned-byte 32) (unsigned-byte 32)) (unsigned-byte 32)) mod32+))
+         (ftype (function ((unsigned-byte 32) (unsigned-byte 32)) (unsigned-byte 32)) mod32+))
 (defun mod32+ (a b)
   (declare (type (unsigned-byte 32) a b))
   (ldb (byte 32 0) (+ a b)))
@@ -140,14 +140,14 @@
   `(ldb (byte 32 0) (lognot ,num)))
 
 (declaim #+ironclad-fast-mod32-arithmetic (inline rol32 ror32)
-	 (ftype (function ((unsigned-byte 32) (unsigned-byte 5)) (unsigned-byte 32)) rol32 ror32))
+         (ftype (function ((unsigned-byte 32) (unsigned-byte 5)) (unsigned-byte 32)) rol32 ror32))
 
 (defun rol32 (a s)
   (declare (type (unsigned-byte 32) a) (type (integer 0 32) s))
   #+cmu
   (kernel:32bit-logical-or #+little-endian (kernel:shift-towards-end a s)
-			   #+big-endian (kernel:shift-towards-start a s)
-			   (ash a (- s 32)))
+                           #+big-endian (kernel:shift-towards-start a s)
+                           (ash a (- s 32)))
   #+sbcl
   (sb-rotate-byte:rotate-byte s (byte 32 0) a)
   #-(or sbcl cmu)
@@ -161,7 +161,7 @@
   (rol32 a (- 32 s)))
 
 (declaim #+ironclad-fast-mod64-arithmetic (inline mod64+ mod64- mod64*)
-	 (ftype (function ((unsigned-byte 64) (unsigned-byte 64)) (unsigned-byte 64)) mod64+))
+         (ftype (function ((unsigned-byte 64) (unsigned-byte 64)) (unsigned-byte 64)) mod64+))
 (defun mod64+ (a b)
   (declare (type (unsigned-byte 64) a b))
   (ldb (byte 64 0) (+ a b)))
@@ -187,7 +187,7 @@
   `(ldb (byte 64 0) (* ,a ,b)))
 
 (declaim #+ironclad-fast-mod64-arithmetic (inline rol64 ror64)
-	 (ftype (function ((unsigned-byte 64) (unsigned-byte 6)) (unsigned-byte 64)) rol64 ror64))
+         (ftype (function ((unsigned-byte 64) (unsigned-byte 6)) (unsigned-byte 64)) rol64 ror64))
 
 (declaim #+ironclad-fast-mod64-arithmetic (inline mod64ash)
          (ftype (function ((unsigned-byte 64) (integer -63 63)) (unsigned-byte 64)) mod64ash))
@@ -214,7 +214,7 @@
   `(ldb (byte 64 0) (lognot ,num)))
 
 (declaim #+ironclad-fast-mod64-arithmetic (inline rol64 ror64)
-	 (ftype (function ((unsigned-byte 64) (unsigned-byte 6)) (unsigned-byte 64)) rol64 ror64))
+         (ftype (function ((unsigned-byte 64) (unsigned-byte 6)) (unsigned-byte 64)) rol64 ror64))
 
 (defun rol64 (a s)
   (declare (type (unsigned-byte 64) a) (type (integer 0 64) s))
@@ -281,15 +281,15 @@
 from-offset and copying count elements into the 64 byte buffer
 starting at buffer-offset."
   (declare (type index from-offset)
-	   (type (integer 0 127) count buffer-offset)
-	   (type simple-octet-vector from)
-	   (type simple-octet-vector buffer)
+           (type (integer 0 127) count buffer-offset)
+           (type simple-octet-vector from)
+           (type simple-octet-vector buffer)
            #.(burn-baby-burn))
   #+cmu
   (kernel:bit-bash-copy
    from (+ (* vm:vector-data-offset vm:word-bits) (* from-offset vm:byte-bits))
    buffer (+ (* vm:vector-data-offset vm:word-bits)
-	     (* buffer-offset vm:byte-bits))
+             (* buffer-offset vm:byte-bits))
    (* count vm:byte-bits))
   #+sbcl
   (sb-kernel:ub8-bash-copy from from-offset buffer buffer-offset count)
@@ -304,8 +304,8 @@ starting at buffer-offset."
   "Convert a complete 64 (UNSIGNED-BYTE 8) input BUFFER starting from
 OFFSET into the given (UNSIGNED-BYTE 32) BLOCK."
   (declare (type (integer 0 #.(- array-dimension-limit 64)) offset)
-	   (type (simple-array (unsigned-byte 32) (16)) block)
-	   (type simple-octet-vector buffer))
+           (type (simple-array (unsigned-byte 32) (16)) block)
+           (type simple-octet-vector buffer))
   #+(and :cmu :little-endian)
   (kernel:bit-bash-copy
    buffer (+ (* vm:vector-data-offset vm:word-bits) (* offset vm:byte-bits))
@@ -315,18 +315,18 @@ OFFSET into the given (UNSIGNED-BYTE 32) BLOCK."
   (sb-kernel:ub8-bash-copy buffer offset block 0 64)
   #-(or (and :sbcl :little-endian) (and :cmu :little-endian))
   (loop for i of-type (integer 0 16) from 0
-	for j of-type (integer 0 #.array-dimension-limit)
-	from offset to (+ offset 63) by 4
-	do
-	(setf (aref block i) (nibbles:ub32ref/le buffer j))))
+        for j of-type (integer 0 #.array-dimension-limit)
+        from offset to (+ offset 63) by 4
+        do
+        (setf (aref block i) (nibbles:ub32ref/le buffer j))))
 
 (defun fill-block-ub8-be (block buffer offset)
   "Convert a complete 64 (unsigned-byte 8) input vector segment
 starting from offset into the given 16 word SHA1 block.  Calling this function
 without subsequently calling EXPAND-BLOCK results in undefined behavior."
   (declare (type (integer 0 #.(- array-dimension-limit 64)) offset)
-	   (type (simple-array (unsigned-byte 32) (*)) block)
-	   (type simple-octet-vector buffer))
+           (type (simple-array (unsigned-byte 32) (*)) block)
+           (type simple-octet-vector buffer))
   ;; convert to 32-bit words
   #+(and :cmu :big-endian)
   (kernel:bit-bash-copy
@@ -349,8 +349,8 @@ starting from offset into the given 16 qword SHA1 block.  Calling this
 function without subsequently calling EXPAND-BLOCK results in undefined
 behavior."
   (declare (type (integer 0 #.(- array-dimension-limit 64)) offset)
-	   (type (simple-array (unsigned-byte 64) (*)) block)
-	   (type simple-octet-vector buffer)
+           (type (simple-array (unsigned-byte 64) (*)) block)
+           (type simple-octet-vector buffer)
            #.(burn-baby-burn))
   ;; convert to 64-bit words
   #+(and :cmu :little-endian :64-bit)
@@ -373,8 +373,8 @@ starting from offset into the given 16 qword SHA1 block.  Calling this
 function without subsequently calling EXPAND-BLOCK results in undefined
 behavior."
   (declare (type (integer 0 #.(- array-dimension-limit 128)) offset)
-	   (type (simple-array (unsigned-byte 64) (*)) block)
-	   (type simple-octet-vector buffer)
+           (type (simple-array (unsigned-byte 64) (*)) block)
+           (type simple-octet-vector buffer)
            #.(burn-baby-burn))
   ;; convert to 64-bit words
   #+(and :cmu :big-endian :64-bit)

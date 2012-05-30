@@ -50,7 +50,7 @@
   (%update-sha1-block regs block)
   #-(and sbcl x86-64)
   (let ((a (sha1-regs-a regs)) (b (sha1-regs-b regs))
-	(c (sha1-regs-c regs)) (d (sha1-regs-d regs))
+        (c (sha1-regs-c regs)) (d (sha1-regs-d regs))
         (e (sha1-regs-e regs)))
     (macrolet ((sha1-rounds (block func constant low high &rest initial-order)
                  ;; Yay for "implementation-dependent" behavior (6.1.1.4).
