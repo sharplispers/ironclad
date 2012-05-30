@@ -61,26 +61,6 @@ from OUT.  Note that for some cipher modes, IN and OUT may be different."))
 (defun list-all-modes ()
   (copy-seq *supported-modes*))
 
-(defmethod encrypt (cipher plaintext ciphertext
-                    &key (plaintext-start 0) plaintext-end
-                    (ciphertext-start 0)
-                    handle-final-block)
-  (let ((plaintext-end (or plaintext-end (length plaintext))))
-    (funcall (slot-value (mode cipher) 'encrypt-function)
-             plaintext ciphertext
-             plaintext-start plaintext-end ciphertext-start
-             handle-final-block)))
-
-(defmethod decrypt (cipher ciphertext plaintext
-                    &key (ciphertext-start 0) ciphertext-end
-                    (plaintext-start 0)
-                    handle-final-block)
-  (let ((ciphertext-end (or ciphertext-end (length ciphertext))))
-    (funcall (slot-value (mode cipher) 'decrypt-function)
-             ciphertext plaintext
-             ciphertext-start ciphertext-end
-             plaintext-start handle-final-block)))
-
 (defmethod encrypt-message (cipher msg &key (start 0) (end (length msg)))
   (let* ((length (- end start))
          (encrypted-length (encrypted-message-length cipher (mode cipher)

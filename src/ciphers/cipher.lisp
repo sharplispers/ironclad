@@ -2,27 +2,43 @@
 
 (in-package :crypto)
 
-(defgeneric encrypt (cipher plaintext ciphertext
-                            &key plaintext-start plaintext-end
-                            ciphertext-start
-                            handle-final-block)
-  (:documentation "Encrypt the data in PLAINTEXT between PLAINTEXT-START
-and PLAINTEXT-END according to CIPHER.  Places the encrypted data in
+(defclass cipher ()
+  ((mode :initarg :mode :accessor mode)
+   (initialized-p :initform nil :accessor initialized-p)))
+
+;;; Block ciphers are denoted by the use of the {8,16}-byte-block-mixin.
+(defclass stream-cipher (cipher)
+  ())
+
+(defun encrypt (cipher plaintext ciphertext
+		&key (plaintext-start 0) plaintext-end
+		(ciphertext-start 0) handle-final-block)
+  "Encrypt the data in PLAINTEXT between PLAINTEXT-START and
+PLAINTEXT-END according to CIPHER.  Places the encrypted data in
 CIPHERTEXT, beginning at CIPHERTEXT-START.  Less data than
  (- PLAINTEXT-END PLAINTEXT-START) may be encrypted, depending on the
 alignment constraints of CIPHER and the amount of space available in
-CIPHERTEXT."))
+CIPHERTEXT."
+  (let ((plaintext-end (or plaintext-end (length plaintext))))
+    (funcall (slot-value (mode cipher) 'encrypt-function)
+             plaintext ciphertext
+             plaintext-start plaintext-end ciphertext-start
+             handle-final-block)))
 
-(defgeneric decrypt (cipher ciphertext plaintext
-                            &key ciphertext-start ciphertext-end
-                            plaintext-start
-                            handle-final-block)
-  (:documentation "Decrypt the data in CIPHERTEXT between CIPHERTEXT-START
-and CIPHERTEXT-END according to CIPHER.  Places the decrypted data in
+(defun decrypt (cipher ciphertext plaintext
+		&key (ciphertext-start 0) ciphertext-end
+		(plaintext-start 0) handle-final-block)
+  "Decrypt the data in CIPHERTEXT between CIPHERTEXT-START and
+CIPHERTEXT-END according to CIPHER.  Places the decrypted data in
 PLAINTEXT, beginning at PLAINTEXT-START.  Less data than
  (- CIPHERTEXT-END CIPHERTEXT-START) may be encrypted, depending on the
 alignment constraints of CIPHER and the amount of space available in
-PLAINTEXT."))
+PLAINTEXT."
+  (let ((ciphertext-end (or ciphertext-end (length ciphertext))))
+    (funcall (slot-value (mode cipher) 'decrypt-function)
+             ciphertext plaintext
+             ciphertext-start ciphertext-end
+             plaintext-start handle-final-block)))
 
 (defun encrypt-in-place (cipher text &key (start 0) end)
   (encrypt cipher text text
@@ -33,14 +49,6 @@ PLAINTEXT."))
   (decrypt cipher text text
            :ciphertext-start start :ciphertext-end (or end (length text))
            :plaintext-start start))
-
-(defclass cipher ()
-  ((mode :initarg :mode :accessor mode)
-   (initialized-p :initform nil :accessor initialized-p)))
-
-;;; Block ciphers are denoted by the use of the {8,16}-byte-block-mixin.
-(defclass stream-cipher (cipher)
-  ())
 
 
 ;;; utilities for wordwise fetches and stores
