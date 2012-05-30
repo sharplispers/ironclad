@@ -45,12 +45,12 @@ PLAINTEXT."
 
 (defun encrypt-in-place (cipher text &key (start 0) end)
   (encrypt cipher text text
-           :plaintext-start start :plaintext-end (or end (length text))
+           :plaintext-start start :plaintext-end end
            :ciphertext-start start))
 
 (defun decrypt-in-place (cipher text &key (start 0) end)
   (decrypt cipher text text
-           :ciphertext-start start :ciphertext-end (or end (length text))
+           :ciphertext-start start :ciphertext-end end
            :plaintext-start start))
 
 
