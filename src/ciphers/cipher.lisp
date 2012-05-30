@@ -20,6 +20,7 @@ CIPHERTEXT, beginning at CIPHERTEXT-START.  Less data than
  (- PLAINTEXT-END PLAINTEXT-START) may be encrypted, depending on the
 alignment constraints of CIPHER and the amount of space available in
 CIPHERTEXT."
+  (check-type plaintext vector)
   (let ((plaintext-end (or plaintext-end (length plaintext))))
     (funcall (slot-value (mode cipher) 'encrypt-function)
              plaintext ciphertext
@@ -35,6 +36,7 @@ PLAINTEXT, beginning at PLAINTEXT-START.  Less data than
  (- CIPHERTEXT-END CIPHERTEXT-START) may be encrypted, depending on the
 alignment constraints of CIPHER and the amount of space available in
 PLAINTEXT."
+  (check-type ciphertext vector)
   (let ((ciphertext-end (or ciphertext-end (length ciphertext))))
     (funcall (slot-value (mode cipher) 'decrypt-function)
              ciphertext plaintext
