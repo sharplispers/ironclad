@@ -154,9 +154,12 @@
   #+allegro
   (list :ironclad-gray-streams)
   #+lispworks
-  (list* :ironclad-gray-streams
-         (when (not (member :lispworks4 *features*))
-           '(:ironclad-md5-lispworks-int32)))
+  (list :ironclad-gray-streams
+        ;; Disable due to problem reports from Lispworks users and
+        ;; non-obviousness of the fix.
+        #+nil
+        (when (not (member :lispworks4 *features*))
+          '(:ironclad-md5-lispworks-int32)))
   #+openmcl
   (list :ironclad-gray-streams)
   #-(or sbcl cmu allegro lispworks openmcl)
