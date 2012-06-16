@@ -412,8 +412,6 @@ An error will be signaled if there is insufficient room in DIGEST."))
 (defmacro defdigest (name &key digest-length block-length)
   (let ((optimized-maker-name (optimized-maker-name name)))
     `(progn
-       (eval-when (:compile-toplevel :load-toplevel)
-         (export ',name :ironclad))
        (setf (get ',name '%digest-length) ,digest-length)
        (setf (get ',name '%make-digest) (symbol-function ',optimized-maker-name))
        (defmethod digest-length ((digest ,name))

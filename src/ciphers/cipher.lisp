@@ -383,16 +383,12 @@ cipher or is not a cipher object."))
                     ((and (eq mode :block) key-length-spec encrypt-function decrypt-function)
                      (return
                        `(progn
-                          (eval-when (:compile-toplevel :load-toplevel)
-                            (export ',name :ironclad))
                           ,(generate-common-cipher-methods name block-length key-length-spec)
                           ,(generate-block-cipher-forms name key-length-spec
                                                         encrypt-function decrypt-function))))
                     ((and (eq mode :stream) crypt-function key-length-spec)
                      (return
                        `(progn
-                          (eval-when (:compile-toplevel :load-toplevel)
-                            (export ',name :ironclad))
                           ,(generate-common-cipher-methods name 1 key-length-spec)
                           ,(generate-stream-cipher-forms name key-length-spec crypt-function))))
                     (t
