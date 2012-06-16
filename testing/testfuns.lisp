@@ -225,6 +225,7 @@
 
 ;;; PRNG testing routines
 (defun fortuna-test (name seed entropy expected-sequence)
+  (declare (ignore name))
   (let ((prng (crypto:make-prng :fortuna
                                 :seed (coerce seed 'crypto::simple-octet-vector)))
         (num-bytes (length expected-sequence)))
