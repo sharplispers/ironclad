@@ -33,7 +33,7 @@
 ;;;; of this software.
 (in-package :crypto)
 
-#-(and lispworks (not lispworks4))
+#-ironclad-md5-lispworks-int32
 (eval-when (:compile-toplevel :load-toplevel :execute)
   ;;; Section 3.4:  Table T
   (defparameter *t* (make-array 64 :element-type '(unsigned-byte 32)
@@ -44,7 +44,7 @@
                                        (* 4294967296
                                           (abs (sin (float i 0.0d0)))))))))
 
-#-(and lispworks (not lispworks4))
+#-ironclad-md5-lispworks-int32
 (progn
 ;;; This PROGN covers the rest of the file.
 ;;; Lispworks implementation of MD5 in md5-lispworks-int32.lisp.

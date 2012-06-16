@@ -18,21 +18,21 @@
 ;;;; - Ironclad integration by Klaus Harbo <klaus@harbo.net>
 ;;;;
 
-#+(and lispworks (not lispworks4))
+#+ironclad-md5-lispworks-int32
 (cl:defpackage :md5-lispworks-int32
   (:use :cl))
 
-#+(and lispworks (not lispworks4))
+#+ironclad-md5-lispworks-int32
 (in-package :md5-lispworks-int32)
-#-(and lispworks (not lispworks4))
+#-ironclad-md5-lispworks-int32
 (in-package :cl-user)
 
-#+(and lispworks (not lispworks4))
+#+ironclad-md5-lispworks-int32
 (eval-when (:compile-toplevel :load-toplevel :execute)
   (unless (fboundp (find-symbol "INT32+" '#:SYSTEM))
     (error "It does not look like this version of Lispworks supports the SYS:INT32 API.")))
 
-#+(and lispworks (not lispworks4))
+#+ironclad-md5-lispworks-int32
 (eval-when (:compile-toplevel :load-toplevel :execute)
 
 (defun %optimization-settings ()
@@ -60,7 +60,7 @@ where a is the intended low-order byte and d the high-order byte."
                                      (truncate (* 4294967296
                                                   (abs (sin (float i 0.0d0)))))))))))
 
-#+(and lispworks (not lispworks4))
+#+ironclad-md5-lispworks-int32
 (progn
   ;;; This PROGN covers the rest of the file.
   ;;; Non-Lispworks implementation of MD5 in md5.lisp
