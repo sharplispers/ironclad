@@ -148,11 +148,11 @@
          (inner-fun-name (intern (format nil "%~A-~A-~A" '#:finalize (caar specs) '#:state))))
     (destructuring-bind (maybe-doc-string &rest rest) body
       (let ((primary-digest (caar specs)))
-        `(defmethod finalize-digest ((state ,primary-digest)
-                                     &optional buffer buffer-start)
+        `(defmethod produce-digest ((state ,primary-digest)
+                                    &key digest (digest-start 0))
            ,@(when (stringp maybe-doc-string)
                `(,maybe-doc-string))
-           (flet ((,inner-fun-name (state %buffer buffer-start)
+           (flet ((,inner-fun-name (state digest digest-start)
                     ;; CCL requires special treatment to not introduce
                     ;; array indexing errors.
                     ,(cond
@@ -166,7 +166,7 @@
                                               collect `(,digest-name
                                                          (,(intern (format nil "~A~A"
                                                                            digest-name '#:regs-digest))
-                                                                   ,regs %buffer buffer-start)))))
+                                                                   ,regs digest digest-start)))))
                                    (if ,single-digest-p
                                        (second (first clauses))
                                        (list* 'etypecase state
@@ -178,15 +178,14 @@
                                      (second (first specs))
                                      `(etypecase state
                                         ,@(reverse specs)))))
-               (etypecase buffer
+               (etypecase digest
                  ((simple-array (unsigned-byte 8) (*))
                   ;; verify that the buffer is large enough
-                  (let ((buffer-start (or buffer-start 0)))
-                    (if (<= digest-size (- (length buffer) buffer-start))
-                        (,inner-fun-name state buffer buffer-start)
-                        (error 'insufficient-buffer-space
-                               :buffer buffer :start buffer-start
-                               :length digest-size))))
+                  (if (<= digest-size (- (length digest) digest-start))
+                      (,inner-fun-name state digest digest-start)
+                      (error 'insufficient-buffer-space
+                             :buffer digest :start digest-start
+                             :length digest-size)))
                  (cl:null
                   (,inner-fun-name state
                                    (make-array digest-size
@@ -371,9 +370,6 @@ DIGESTER so far. This function modifies the internal state of DIGESTER.
 If DIGEST is provided, the hash will be placed into DIGEST starting at
 DIGEST-START.  DIGEST must be a (SIMPLE-ARRAY (UNSIGNED-BYTE 8) (*)).
 An error will be signaled if there is insufficient room in DIGEST."))
-
-(defmethod produce-digest (digester &key digest (digest-start 0))
-  (finalize-digest digester digest digest-start))
  
 
 ;;; the digest-defining macro

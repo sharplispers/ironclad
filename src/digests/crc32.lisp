@@ -89,9 +89,11 @@
            digest))
     (declare (inline stuff-state))
     (let ((result (logxor #xffffffff (crc32-crc state))))
-      (cond
-        (%buffer (stuff-state result %buffer buffer-start))
-        (t (stuff-state result
-                        (make-array 4 :element-type '(unsigned-byte 8)) 0))))))
+      (etypecase digest
+        ((simple-array (unsigned-byte 8) (*))
+         (stuff-state result digest digest-start))
+        (cl:null
+         (stuff-state result
+                      (make-array 4 :element-type '(unsigned-byte 8)) 0))))))
 
 (defdigest crc32 :digest-length 4 :block-length 1)

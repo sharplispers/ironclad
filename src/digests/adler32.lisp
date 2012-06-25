@@ -67,9 +67,11 @@
                          (adler32-s1 state)))
            digest))
     (declare (inline stuff-state))
-    (cond
-      (%buffer (stuff-state state %buffer buffer-start))
-      (t (stuff-state state
-                      (make-array 4 :element-type '(unsigned-byte 8)) 0)))))
+    (etypecase digest
+      ((simple-array (unsigned-byte 8) (*))
+       (stuff-state state digest digest-start))
+      (cl:null
+       (stuff-state state
+                    (make-array 4 :element-type '(unsigned-byte 8)) 0)))))
 
 (defdigest adler32 :digest-length 4 :block-length 1)
