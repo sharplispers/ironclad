@@ -104,25 +104,24 @@ bounded by start and end, which must be numeric bounding-indices."
   (update-digest digest hash2)
   (produce-digest digest))
 
-(defmethod finalize-digest ((state tree-hash) &optional buffer buffer-start)
+(defmethod produce-digest ((state tree-hash) &key digest (digest-start 0))
   (when (or (not (zerop (tree-hash-block-index state)))
             (cl:null (tree-hash-branch state)))
     (update-tree-hash-branch state))
-  (let* ((digest (tree-hash-state state))
+  (let* ((internal-state (tree-hash-state state))
          (result
           (reduce (lambda (hash2 hash1)
                     (cond
                       ((cl:null hash2) hash1)
                       ((cl:null hash1) hash2)
-                      (t (combine-hash-tree-digests digest hash1 hash2))))
+                      (t (combine-hash-tree-digests internal-state hash1 hash2))))
                   (tree-hash-branch state))))
-    (if buffer
-        (let ((buffer-start (or buffer-start 0)))
-          (if (<= (length result) (- (length buffer) buffer-start))
-              (replace buffer result :start1 buffer-start)
-              (error 'insufficient-buffer-space
-                     :buffer buffer :start buffer-start
-                     :length (length result))))
+    (if digest
+        (if (<= (length result) (- (length digest) digest-start))
+            (replace digest result :start1 digest-start)
+            (error 'insufficient-buffer-space
+                   :buffer digest :start digest-start
+                   :length (length result)))
         result)))
 
 (setf (get 'tree-hash '%digest-length) 24)
