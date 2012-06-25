@@ -160,6 +160,7 @@
                         '(declare (optimize (speed 0))))
                        (t (hold-me-back)))
                     (macrolet ((finalize-registers (state regs)
+                                 (declare (ignorable state))
                                  (let ((clauses
                                         (loop for (digest-name digest-length) in ',specs
                                               collect `(,digest-name
