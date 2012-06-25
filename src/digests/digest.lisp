@@ -153,7 +153,12 @@
            ,@(when (stringp maybe-doc-string)
                `(,maybe-doc-string))
            (flet ((,inner-fun-name (state %buffer buffer-start)
-                    ,(hold-me-back)
+                    ;; CCL requires special treatment to not introduce
+                    ;; array indexing errors.
+                    ,(cond
+                       ((member :ccl *features*)
+                        '(declare (optimize (speed 0))))
+                       (t (hold-me-back)))
                     (macrolet ((finalize-registers (state regs)
                                  (let ((clauses
                                         (loop for (digest-name digest-length) in ',specs
