@@ -239,8 +239,8 @@
           finally (return
                     (let ((amount (- end start)))
                       (unless (zerop amount)
-                        (copy-to-buffer seq start amount buffer 0)
-                        (setf (mdx-buffer-index state) amount))
+                        (copy-to-buffer seq start amount buffer 0))
+                      (setf (mdx-buffer-index state) amount)
                       (incf (mdx-amount state) length)
                       state)))))
 (declaim (notinline mdx-updater))
