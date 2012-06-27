@@ -1,5 +1,46 @@
 -*- mode: outline -*-
 
+* Version 0.31, released
+
+** bug fixes
+
+Fixed a problem with digest buffering introduced in Ironclad 0.29.
+(Thanks to Zach Beane for the bug report.)
+
+MD5 on some versions of Lispworks works correctly again; unfortunately
+this change required disabling the improved MD5 implementation added in
+Ironclad 0.30.  (Thanks to Chhi'mèd Künzang for the bug report.)
+
+Some compiler warnings on Lispworks have been fixed.  (Thanks to
+Chhi'mèd Künzang for the bug report.)
+
+The digest functions now really check their types instead of incorrectly
+relying on DECLARE to provide the necessary type checks.  (Thanks to
+dbunner-de on Github for the bug report.)
+
+** improvements
+
+Encryption and decryption with block ciphers and small numbers of blocks
+should be somewhat faster.
+
+Several small improvements have been made to the digest code which may
+make it slightly faster when hashing short blocks of data.
+
+The modular inverse code has been made significantly faster, which
+should improve performance of public-key algorithms.  (Thanks to Robert
+Uhl.)
+
+Several digest tests should no longer fail on Clozure CL.  There have
+been reports of tests taking inordinate amounts of time on various CCL
+versions on various platforms, however.  (CCL 1.8, for instance, works
+fine on Linux/x86-64, but explodes on Windows.)
+
+** new features
+
+An implementation of the Fortuna pseudo-random number generator has been
+added.  Please see the documentation for details.  (Thanks to Robert Uhl
+for the implementation.)
+
 * Version 0.30, released 2012-03-27
 
 ** bug fixes
