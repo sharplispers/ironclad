@@ -49,6 +49,36 @@
                    (run-test-vector-file ',digest *digest-incremental-tests*) t) into forms
         finally (return `(progn ,@forms)))
 
+#.(loop for digest in (crypto:list-all-digests)
+        collect `(rtest:deftest ,(intern (format nil "~A/~A" digest '#:block-buffering))
+                   (let* ((sequences
+                            (mapcar (lambda (s) (coerce s 'nibbles:simple-octet-vector))
+                                    '(#(71 69 84) #(10) #(10) #(10) #(10)
+                                      #(120 45 97 109 122 45 100 97 116 101 58)
+                                      #(84 117 101 44 32 50 54 32 74 117 110 32 50)
+                                      #(48 49 50 32 49 55 58 50 49 58 51)
+                                      #(57 32 71 77 84)
+                                      #(10)
+                                      #(47 120 47 97 97 97 97 97 97 97 97 97 97 97
+                                        97 97 97 97 97 97 97 97 97 97 97 97 97 97
+                                        97 97 97 97 97 97 97 97 97 97 97 97 97 97
+                                        97 97 97 97 97 97 97 97 97 97 97 97 97 97
+                                        97 97 97 97 97 97 97 97 97 97 97 97 97 97
+                                        97 97 97 97 97 97 97 97 97 97))))
+                          (incremental-digest (ironclad:make-digest ',digest))
+                          (incremental-result
+                            (dolist (s sequences
+                                       (ironclad:produce-digest incremental-digest))
+                              (ironclad:update-digest incremental-digest s)))
+                          (one-shot-result
+                            (ironclad:digest-sequence ',digest
+                                                      (apply 'concatenate
+                                                             'nibbles:simple-octet-vector
+                                                             sequences))))
+                     (equalp incremental-result one-shot-result))
+                   t) into forms
+        finally (return `(progn ,@forms)))
+
 #.(if (boundp '*digest-stream-tests*)
       (loop for digest in (crypto:list-all-digests)
          collect `(rtest:deftest ,(intern (format nil "~A/~A" digest '#:stream))
