@@ -332,14 +332,14 @@ supported.  This means one can write a fairly efficient clone of the "
 `md5sum` " program like so:")
 
 (:pre
-"(defun digest-sum-files (digest &rest files)
+"(defun digest-sum-files (digest-name &rest files)
   (unless files
     (error \"no files given to digest\"))
   (loop with buffer = (make-array 8192 :element-type '(unsigned-byte 8))
-     with digest = (make-array (ironclad:digest-length digest)
+     with digest = (make-array (ironclad:digest-length digest-name)
                                :element-type '(unsigned-byte 8))
      for file in files
-     for digester = (ironclad:make-digest digest)
+     for digester = (ironclad:make-digest digest-name)
      then (reinitialize-instance digester)
      do (ironclad:digest-file digester file :buffer buffer :digest digest)
        (format t \"~A ~A~%\" (file-namestring file)
