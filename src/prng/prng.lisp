@@ -80,7 +80,7 @@ replacement for COMMON-LISP:RANDOM."
             (assert (>= (read-sequence seq seed-file) num-bytes))
             seq))
   ;; FIXME: this is _untested_!
-  #+(and win32 sb-dynamic-core)(sb!win32:crypt-gen-random num-bytes)
+  #+(and win32 sb-dynamic-core)(sb-win32:crypt-gen-random num-bytes)
   #-(or unix (and win32 sb-dynamic-core))(error "OS-RANDOM-SEED is not supported on your platform."))
 
 (defun read-os-random-seed (source &optional (prng *prng*))
