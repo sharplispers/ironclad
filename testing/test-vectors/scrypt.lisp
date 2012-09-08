@@ -1,9 +1,8 @@
 ;;;; -*- mode: lisp; indent-tabs-mode: nil -*-
 (in-package :crypto-tests)
 
-;;; Test vectors based on those defined in the Go implementation.
-;;;
-;;; http://github.com/dchest/scrypt
+;;; Test vectors based on calling crypto_scrypt library function in
+;;; the original scrypt utility.
 
 (defvar *scrypt1-password*
   (coerce #(112 97 115 115 119 111 114 100)
