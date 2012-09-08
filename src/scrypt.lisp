@@ -67,7 +67,7 @@
     (let ((j (ldb (byte 32 0) (logand (nibbles:ub64ref/le x (* (1- (* 2 r)) 64)) (1- N)))))
       (xor-block (* 128 r) x v (* j 128 r) x 0)
       (block-mix x xy xy-start r)))
-  (replace b x :start1 b-start :end1 (* 128 r))))
+  (replace b x :start1 b-start :end1 (+ b-start (* 128 r)))))
 
 (defmethod derive-key ((kdf scryptkdf) passphrase salt iteration-count key-length)
  (declare (ignore iteration-count))
