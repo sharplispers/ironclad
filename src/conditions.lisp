@@ -69,7 +69,7 @@ for a particular mode of operation but not supplied."))
    (r :initarg :r :reader cost-r)
    (p :initarg :p :reader cost-p))
   (:report (lambda (condition stream)
-             (format stream "Scrypt cost factors not supported. N=~A must be a power of two and (r=~A * p=~A) <= 2 power of 30."
+             (format stream "Scrypt cost factors not supported. N=~A must be a power of two and (r=~A * p=~A) <= 2^30."
                      (cost-N condition) (cost-r condition) (cost-p condition))))
   (:documentation "Signaled when a invalid cost factors are provided to MAKE-SCRYPT-KDF."))
 

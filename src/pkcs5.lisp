@@ -1,13 +1,8 @@
 ;;;; -*- mode: lisp; indent-tabs-mode: nil -*-
 (in-package :crypto)
 
-(defgeneric derive-key (kdf passphrase salt iteration-count key-length))
-
 
 ;;; PBKDF1 from RFC 2898, section 5.1
-
-(defclass pbkdf1 ()
-  ((digest :reader kdf-digest)))
 
 (defmethod shared-initialize :after ((kdf pbkdf1) slot-names &rest initargs
                                      &key digest &allow-other-keys)
@@ -53,9 +48,6 @@
 
 ;;; PBKDF2, from RFC 2898, section 5.2
 
-(defclass pbkdf2 ()
-  ((digest-name :initarg :digest :reader kdf-digest)))
-
 (defun pbkdf2-derive-key (digest passphrase salt iteration-count key-length)
   (unless (plusp iteration-count)
     (error 'invalid-argument))
@@ -91,15 +83,3 @@
 
 (defmethod derive-key ((kdf pbkdf2) passphrase salt iteration-count key-length)
   (pbkdf2-derive-key (kdf-digest kdf) passphrase salt iteration-count key-length))
-
-(defun make-kdf (kind &key digest)
-  ;; PBKDF1, at least, will do stricter checking; this is good enough for now.
-  (unless (digestp digest)
-    (error 'unsupported-digest :name digest))
-  (case kind
-    (pbkdf1
-     (make-instance 'pbkdf1 :digest digest))
-    (pbkdf2
-     (make-instance 'pbkdf2 :digest digest))
-    (t
-     (error 'unsupported-kdf :kdf kind))))

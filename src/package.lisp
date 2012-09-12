@@ -33,8 +33,8 @@
    #:ecb #:cbc #:ctr #:ofb #:cfb #:stream
 
    ;; KDFs
-   #:pbkdf1 #:pbkdf2 #:scryptkdf
-   #:make-kdf #:make-scrypt-kdf #:derive-key
+   #:pbkdf1 #:pbkdf2 #:scrypt-kdf
+   #:make-kdf #:derive-key
 
    ;; KDF convenience functions
    #:make-random-salt #:pbkdf2-hash-password
