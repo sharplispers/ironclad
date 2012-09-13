@@ -351,7 +351,6 @@
                                 (when (= n-rounds 16)
                                   ,@(subseq forms 12)))))
       (store-words ciphertext ciphertext-start r0 l0))))
-) ; MACROLET
 
 (define-block-decryptor cast5 8
   (let ((mask-vector (mask-vector context))
@@ -375,6 +374,7 @@
                                         ,@(subseq forms 0 4))
                                 ,@(subseq forms 4))))
       (store-words plaintext plaintext-start r0 l0))))
+) ; MACROLET
 
 (defun generate-cast5-key-schedule (key)
   (declare (type (simple-array (unsigned-byte 8) (16)) key))
