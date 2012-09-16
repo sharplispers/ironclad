@@ -64,6 +64,15 @@ for a particular mode of operation but not supplied."))
                      (digest condition))))
   (:documentation "Signaled when an invalid digest name is provided to MAKE-DIGEST."))
 
+(define-condition unsupported-scrypt-cost-factors (ironclad-error)
+  ((N :initarg :N :reader cost-N)
+   (r :initarg :r :reader cost-r)
+   (p :initarg :p :reader cost-p))
+  (:report (lambda (condition stream)
+             (format stream "Scrypt cost factors not supported. N=~A must be a power of two and (r=~A * p=~A) <= 2^30."
+                     (cost-N condition) (cost-r condition) (cost-p condition))))
+  (:documentation "Signaled when a invalid cost factors are provided to MAKE-SCRYPT-KDF."))
+
 (define-condition insufficient-buffer-space (ironclad-error)
   ((buffer :initarg :buffer :reader insufficient-buffer-space-buffer)
    (start :initarg :start :reader insufficient-buffer-space-start)

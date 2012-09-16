@@ -48,7 +48,9 @@
                          #+(or lispworks sbcl openmcl cmu allegro)
                          (:file "octet-stream" :depends-on ("common"))
                          (:file "padding" :depends-on ("common"))
-                         (:file "pkcs5" :depends-on ("common"))
+                         (:file "kdf-common" :depends-on ("package"))
+                         (:file "pkcs5" :depends-on ("common" "kdf-common"))
+                         (:file "scrypt" :depends-on ("kdf-common" "pkcs5"))
                          (:file "password-hash" :depends-on ("pkcs5"))
                          (:file "math" :depends-on ("prng" "public-key"))
                          (:module "sbcl-opt"
@@ -226,6 +228,7 @@
                                    (:file "digests")
                                    (:file "padding")
                                    (:file "pkcs5")
+                                   (:file "scrypt")
                                    (:file "ironclad")
                                    (:file "prng")
                                    ;; test vectors

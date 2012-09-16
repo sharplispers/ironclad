@@ -33,7 +33,7 @@
    #:ecb #:cbc #:ctr #:ofb #:cfb #:stream
 
    ;; KDFs
-   #:pbkdf1 #:pbkdf2
+   #:pbkdf1 #:pbkdf2 #:scrypt-kdf
    #:make-kdf #:derive-key
 
    ;; KDF convenience functions
@@ -65,6 +65,7 @@
    #:ironclad-error #:initialization-vector-not-supplied
    #:invalid-initialization-vector #:invalid-key-length
    #:unsupported-cipher #:unsupported-mode #:unsupported-digest
+   #:unsupported-scrypt-cost-factors
    #:insufficient-buffer-space #:invalid-padding
    #:key-not-supplied
 
