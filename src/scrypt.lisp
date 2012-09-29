@@ -36,8 +36,8 @@
 
 (defun block-mix (b xy xy-start r)
  (let ((xs (make-array 64 :element-type '(unsigned-byte 8))))
-  (declare (type (simple-array (unsigned-byte 8) (64)) x w))
-  (declare (dynamic-extent x w))
+  (declare (type (simple-array (unsigned-byte 8) (64)) xs))
+  (declare (dynamic-extent xs))
   (replace xs b :start2 (* 64 (1- (* 2 r))) :end1 64)
   (dotimes (i (* 2 r))
     (xor-block 64 xs b (* i 64) xs 0)
