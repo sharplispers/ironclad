@@ -99,10 +99,10 @@
                       :scale 4
                       :disp (+ (- (* n-word-bytes vector-data-offset)
                                   other-pointer-lowtag)
-                               (* 4 (+ 80 elem-offset))))))
+                               (* 4 elem-offset)))))
       (let ((loop (gen-label))
             #+x86-64 (temp (reg-in-size temp :dword)))
-        (inst mov count -64)
+        (inst mov count 16)
         (emit-label loop)
         (inst mov temp (block-word -3))
         (inst xor temp (block-word -8))
@@ -111,7 +111,8 @@
         (inst rol temp 1)
         (inst mov (block-word 0) temp)
         (inst add count 1)
-        (inst jmp :nz loop)))))
+        (inst cmp count 79)
+        (inst jmp :le loop)))))
 
 (define-vop (sha256-expand-block)
   (:translate ironclad::sha256-expand-block)
@@ -126,7 +127,7 @@
                       :scale 4
                       :disp (+ (- (* n-word-bytes vector-data-offset)
                                   other-pointer-lowtag)
-                               (* 4 (+ 64 elem-offset))))))
+                               (* 4 elem-offset)))))
       (let ((loop (gen-label))
             #+x86-64 (t1 (reg-in-size t1 :dword))
             #+x86-64 (t2 (reg-in-size t2 :dword))
@@ -137,7 +138,7 @@
         ;; 64-bit and eliminates many of the stupidities in the modular
         ;; arithmetic version (mostly on 64-bit, but some lameness in
         ;; the 32-bit version as well).
-        (inst mov count -48)
+        (inst mov count 16)
         (emit-label loop)
         (inst mov t1 (block-word -2))
         ;; sigma1
@@ -162,7 +163,8 @@
         (inst add t1 t2)
         (inst mov (block-word 0) t1)
         (inst add count 1)
-        (inst jmp :nz loop)))))
+        (inst cmp count 63)
+        (inst jmp :le loop)))))
 
 ;;; Implementing this for x86 would require nasty hacks with
 ;;; pseudo-atomic.  Might just be worth it for the speed increase,
