@@ -14,7 +14,7 @@
   (r :initarg :r :reader scrypt-kdf-r)
   (p :initarg :p :reader scrypt-kdf-p)))
 
-(defun make-kdf (kind &key digest (N 16384) (r 8) (p 1))
+(defun make-kdf (kind &key digest (N 4096) (r 8) (p 2))
   ;; PBKDF1, at least, will do stricter checking; this is good enough for now.
   "digest is used for pbkdf1 and pbkdf2.
    N, p, and r are cost factors for scrypt."

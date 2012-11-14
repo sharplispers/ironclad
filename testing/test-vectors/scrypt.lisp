@@ -16,6 +16,12 @@
             3 172 86 30 100 165 172 161 33 121 123 247 115)
           '(vector (unsigned-byte 8))))
 
+;; The parameters for this test can easily cause an attempt to allocate
+;; a vector of length greater than ARRAY-DIMENSION-LIMIT.  Try to avoid
+;; such a scenario.  This is not exhaustive; if other implementations
+;; run into problems, we can try expanding this conditional and/or
+;; adjusting the scrypt implementation.
+#+x86-64
 (rtest:deftest scryptkdf1
     (run-kdf-test (crypto:make-kdf 'crypto:scrypt-kdf :N 16384 :r 8 :p 1)
                   *scrypt1-password* *scrypt1-salt* 1000 (length *scrypt1-key*) *scrypt1-key*)
@@ -33,6 +39,8 @@
             59 58 111 136 95 54 139 227 241 159 14 126 231 215)
           '(vector (unsigned-byte 8))))
 
+;; Avoid issues around ARRAY-DIMENSION-LIMIT.
+#+x86-64
 (rtest:deftest scryptkdf2
     (run-kdf-test (crypto:make-kdf 'crypto:scrypt-kdf :N 16384 :r 8 :p 2)
                   *scrypt2-password* *scrypt2-salt* 1000 (length *scrypt2-key*) *scrypt2-key*)
