@@ -4,7 +4,7 @@
 Lisp.  It includes support for several popular <A HREF="#ciphers">ciphers</A>, <A HREF="#digests">digests</A>, and <A HREF="#macs">MACs</A>.  Rudimentary support for <A HREF="#public-key">public-key
 cryptography</A> is included.  For several implementations that support
 Gray Streams, <A HREF="#gray-streams">support</A> is included for
-convenient stream wrappers.</P><P>Ironclad was written primarily by Nathan Froyd (froydnj@gmail.com).</P><H2>Installation</H2><P>Ironclad can be downloaded at <A HREF="http://www.method-combination.net/lisp/files/ironclad.tar.gz">http://www.method-combination.net/lisp/files/ironclad.tar.gz</A>.  The latest released version is 0.31.  If you are feeling
+convenient stream wrappers.</P><P>Ironclad was written primarily by Nathan Froyd (froydnj@gmail.com).</P><H2>Installation</H2><P>Ironclad can be downloaded at <A HREF="http://www.method-combination.net/lisp/files/ironclad.tar.gz">http://www.method-combination.net/lisp/files/ironclad.tar.gz</A>.  The latest released version is 0.32.  If you are feeling
 adventurous, you can download a bleeding-edge version at <A HREF="http://github.com/froydnj/ironclad">http://github.com/froydnj/ironclad</A>.</P><P>It comes with an ASDF system definition, so <TT>(ASDF:OOS
 'ASDF:LOAD-OP :IRONCLAD)</TT> should be all that you need to get started.
 The testsuite can be run by substituting <TT>ASDF:TEST-OP</TT> for <TT>ASDF:LOAD-OP</TT> in the form above.</P><P>Ironclad has been tested in the following implementations:</P><UL><LI>SBCL x86/linux, x86-64/linux (primary development platforms)</LI><LI>SBCL x86-64/solaris, x86/darwin</LI><LI>CMUCL x86/linux</LI><LI>ABCL with Sun's 1.5.0 JVM</LI><LI>Lispworks 5.0.1 x86/linux</LI><LI>Lispworks 5.1.2 x86-64/darwin x86/windows</LI><LI>Allegro 8.0 x86/linux</LI><LI>Allegro 8.1 x86/linux, x86-64/linux, sparc/solaris</LI><LI>CLISP 2.41 x86/linux, x86/cygwin</LI><LI>Clozure Common Lisp 1.2 x86-64/Linux</LI></UL><P>All included tests should pass successfully.  If you use a platform
@@ -120,11 +120,19 @@ be a <TT>(SIMPLE-ARRAY (UNSIGNED-BYTE 8) (*))</TT>.</P><DIV CLASS="lisp-symbol">
 The internal state of <EM>hmac</EM> is not modified; this feature makes it
 possible to compute a "rolling MAC" of a document.  The length of <EM>digest</EM> is determined by the <A HREF="#digest-length" STYLE="symbol">digest-length</A> of <EM>digest-name</EM>
 passed to <A HREF="#make-hmac" STYLE="symbol">make-hmac</A> when <EM>hmac</EM> was constructed.</P><P>If <EM>buffer</EM> is provided, the computed MAC will be placed into <EM>buffer</EM> starting at <EM>buffer-start</EM>.  <EM>buffer</EM> must be a <TT>(SIMPLE-ARRAY (UNSIGNED-BYTE 8) (*))</TT>.  An <A HREF="#insufficient-buffer-space" STYLE="symbol">insufficient-buffer-space</A> error will be signaled if there is
-insufficient space in <EM>buffer</EM>.</P><H3>PBKDF</H3><P>Ironclad comes with the basic PBKDF1 and PBKDF2 algorithms, as
-well as convenience functions for using them to store passwords.</P><DIV CLASS="lisp-symbol"><A NAME="derive-key"></A><TT><STRONG>derive-key</STRONG> <EM>kdf</EM> <EM>passphrase</EM> <EM>salt</EM> <EM>iteration-count</EM> <EM>key-length</EM> =&gt; <EM>digest</EM></TT><BR /></DIV><P>Given a key derivation function object (produced by <TT>make-kdf</TT>), a password and salt (both must be of type <TT>(SIMPLE-ARRAY
+insufficient space in <EM>buffer</EM>.</P><H2 ID="kdfs">Key derivation functions</H2><P>Ironclad comes with the basic PBKDF1 and PBKDF2 algorithms, as well as
+an implementation of the scrypt key derivation function as defined by 
+Colin Percival's <A HREF="http://www.tarsnap.com/scrypt.html">The scrypt key derivation function.</A></P><DIV CLASS="lisp-symbol"><A NAME="derive-key"></A><TT><STRONG>derive-key</STRONG> <EM>kdf</EM> <EM>passphrase</EM> <EM>salt</EM> <EM>iteration-count</EM> <EM>key-length</EM> =&gt; <EM>digest</EM></TT><BR /></DIV><P>Given a key derivation function object (produced by <TT>make-kdf</TT>),
+ a password and salt (both must be of type <TT>(SIMPLE-ARRAY
 (UNSIGNED-BYTE 8) (*))</TT>), and number of digest iterations, returns
-the password digest as a byte array of length <EM>key-length</EM>.</P><DIV CLASS="lisp-symbol"><A NAME="make-kdf"></A><TT><STRONG>make-kdf</STRONG> <EM>kind</EM> <EM><TT>&key</TT></EM> <EM>digest</EM> =&gt; <EM>kind</EM></TT><BR /></DIV><P>Returns a key derivation function instance (<EM>kind</EM> must
-either be <EM>pbkdf1</EM> or <EM>pbkdf2</EM>) that uses the given <EM>digest</EM>.</P><DIV CLASS="lisp-symbol"><A NAME="pbkdf2-hash-password"></A><TT><STRONG>pbkdf2-hash-password</STRONG> <EM>password</EM> <EM><TT>&key</TT></EM> <EM>salt</EM> <EM>digest</EM> <EM>iterations</EM> =&gt; <EM>password</EM></TT><BR /></DIV><P>Convenience function for hashing passwords using the PBKDF2
+the password digest as a byte array of length <EM>key-length</EM>.</P><P>Scrypt ignores <EM>iteration-count</EM> parameter.</P><DIV CLASS="lisp-symbol"><A NAME="make-kdf"></A><TT><STRONG>make-kdf</STRONG> <EM>kind</EM> <EM><TT>&key</TT></EM> <EM>digest</EM> <EM>n</EM> <EM>r</EM> <EM>p</EM> =&gt; <EM>kdf</EM></TT><BR /></DIV><P>Returns a key derivation function instance (<EM>kind</EM> must
+either be <TT>PBKDF1</TT>, <TT>PBKDF2</TT> or <TT>SCRYPT-KDF</TT>). The PBKDF
+algorithms use <EM>digest</EM>. The scrypt key derivation uses cost parameters <EM>N</EM>, <EM>r</EM> and <EM>p</EM> (<EM>N</EM> is a CPU cost parameter that must be a 
+power of 2, <EM>r</EM> and <EM>p</EM> are memory cost parameters that must be defined
+such that <EM>r</EM> * <EM>p</EM> <= 2^30.)</P><P>The default parameters are <EM>N</EM> = 4096, <EM>r</EM> = 8, and <EM>p</EM>
+= 2.  Please note that depending on the values of <EM>N</EM> and <EM>r</EM>, <A HREF="#derive-key" STYLE="symbol">derive-key</A> may not be able to allocate sufficient space for its
+temporary arrays.</P><H3>PBKDF Convenience functions</H3><P>Ironclad comes with convenience functions for using PBKDF1 and
+ PBKDF2 to store passwords.</P><DIV CLASS="lisp-symbol"><A NAME="pbkdf2-hash-password"></A><TT><STRONG>pbkdf2-hash-password</STRONG> <EM>password</EM> <EM><TT>&key</TT></EM> <EM>salt</EM> <EM>digest</EM> <EM>iterations</EM> =&gt; <EM>password</EM></TT><BR /></DIV><P>Convenience function for hashing passwords using the PBKDF2
 algorithm. Returns the derived hash of the password, and the original
 salt, as byte vectors.</P><DIV CLASS="lisp-symbol"><A NAME="pbkdf2-hash-password-to-combined-string"></A><TT><STRONG>pbkdf2-hash-password-to-combined-string</STRONG> <EM>password</EM> <EM><TT>&key</TT></EM> <EM>salt</EM> <EM>digest</EM> <EM>iterations</EM> =&gt; <EM>password</EM></TT><BR /></DIV><P>Convenience function for hashing passwords using the PBKDF2
 algorithm. Returns the derived hash of the password as a single string
@@ -157,23 +165,23 @@ depending on the result of verification.</P><DIV CLASS="lisp-symbol"><A NAME="ve
 vectors; different applications may have different requirements.  <A HREF="#sign-message" STYLE="symbol">sign-message</A> therefore returns objects and lets the user determine
 how to best format the values contained therein.</P><DIV CLASS="lisp-symbol"><A NAME="dsa-signature"></A><TT><STRONG>dsa-signature</STRONG></TT><BR /></DIV><P>A DSA signature object.</P><DIV CLASS="lisp-symbol"><A NAME="make-dsa-signature"></A><TT><STRONG>make-dsa-signature</STRONG> <EM>r</EM> <EM>s</EM> =&gt; <EM>signature</EM></TT><BR /></DIV><P>Returns a DSA signature with the provided <EM>r</EM> and <EM>s</EM>
 values.  <EM>r</EM> and <EM>s</EM> may be either integers or they may be
-20-byte octet vectors.</P><DIV CLASS="lisp-symbol"><A NAME="dsa-signature-r"></A><TT><STRONG>dsa-signature-r</STRONG> <EM>object</EM> =&gt; <EM>integer</EM></TT><BR /></DIV><P>Returns the <EM>r</EM> value of the provided DSA signature.</P><DIV CLASS="lisp-symbol"><A NAME="dsa-signature-s"></A><TT><STRONG>dsa-signature-s</STRONG> <EM>object</EM> =&gt; <EM>integer</EM></TT><BR /></DIV><P>Returns the <EM>s</EM> value of the provided DSA signature.</P><H3>Encryption and decryption</H3><DIV CLASS="lisp-symbol"><A NAME="encrypt-message"></A><TT><STRONG>encrypt-message</STRONG> <EM>key</EM> <EM>message</EM> <EM><TT>&key</TT></EM> <EM>start</EM> <EM>end</EM> <EM>start</EM> =&gt; <EM>encrypted-message</EM></TT><BR /></DIV><DIV CLASS="lisp-symbol"><A NAME="decrypt-message"></A><TT><STRONG>decrypt-message</STRONG> <EM>key</EM> <EM>message</EM> <EM><TT>&key</TT></EM> <EM>start</EM> <EM>end</EM> <EM>start</EM> =&gt; <EM>decrypted-message</EM></TT><BR /></DIV><H2 ID="prng">Pseudo-random Number Generation</H2><H3>Example</H3><P><PRE>> (setf *prng* (make-prng :fortuna))
--> #<fortuna-prng>
-> (random-data 16)
--> #(61 145 133 130 220 200 90 86 0 101 62 169 0 40 101 78)
-> (setf *prng* (make-prng :fortuna :seed nil))
--> #<fortuna-prng>
-> (crypto:read-os-random-seed :random)
--> 1
-> (crypto:strong-random 16)
--> 3
-> (write-seed #P"/tmp/seed")
--> t
-> (crypto:read-seed #P"/tmp/seed")
--> t
-> (crypto:random-bits 16)
--> 41546
-> (add-random-event 0 0 (string-to-octets "foobar"))</PRE></P><P>See details about <A HREF="#add-random-event" STYLE="symbol">add-random-event</A> below.</P><DIV CLASS="lisp-symbol"><A NAME="make-prng"></A><TT><STRONG>make-prng</STRONG> <EM>name</EM> <EM><TT>&key</TT></EM> <EM>seed</EM> <EM>seed</EM> <EM>cipher</EM> =&gt; <EM>prng</EM></TT><BR /></DIV><P>Create an unseeded pseudo-random number generator.</P><P><EM>name</EM> denotes the style of PRNG to use.  <A HREF="#list-all-prngs" STYLE="symbol">list-all-prngs</A> will
+20-byte octet vectors.</P><DIV CLASS="lisp-symbol"><A NAME="dsa-signature-r"></A><TT><STRONG>dsa-signature-r</STRONG> <EM>object</EM> =&gt; <EM>integer</EM></TT><BR /></DIV><P>Returns the <EM>r</EM> value of the provided DSA signature.</P><DIV CLASS="lisp-symbol"><A NAME="dsa-signature-s"></A><TT><STRONG>dsa-signature-s</STRONG> <EM>object</EM> =&gt; <EM>integer</EM></TT><BR /></DIV><P>Returns the <EM>s</EM> value of the provided DSA signature.</P><H3>Encryption and decryption</H3><DIV CLASS="lisp-symbol"><A NAME="encrypt-message"></A><TT><STRONG>encrypt-message</STRONG> <EM>key</EM> <EM>message</EM> <EM><TT>&key</TT></EM> <EM>start</EM> <EM>end</EM> <EM>end</EM> <EM>start</EM> =&gt; <EM>encrypted-message</EM></TT><BR /></DIV><DIV CLASS="lisp-symbol"><A NAME="decrypt-message"></A><TT><STRONG>decrypt-message</STRONG> <EM>key</EM> <EM>message</EM> <EM><TT>&key</TT></EM> <EM>start</EM> <EM>end</EM> <EM>start</EM> =&gt; <EM>decrypted-message</EM></TT><BR /></DIV><H2 ID="prng">Pseudo-random Number Generation</H2><H3>Example</H3><P><PRE>&gt; (setf *prng* (make-prng :fortuna))
+-&gt; #&lt;fortuna-prng&gt;
+&gt; (random-data 16)
+-&gt; #(61 145 133 130 220 200 90 86 0 101 62 169 0 40 101 78)
+&gt; (setf *prng* (make-prng :fortuna :seed nil))
+-&gt; #&lt;fortuna-prng&gt;
+&gt; (crypto:read-os-random-seed :random)
+-&gt; 1
+&gt; (crypto:strong-random 16)
+-&gt; 3
+&gt; (write-seed #P"/tmp/seed")
+-&gt; t
+&gt; (crypto:read-seed #P"/tmp/seed")
+-&gt; t
+&gt; (crypto:random-bits 16)
+-&gt; 41546
+&gt; (add-random-event 0 0 (string-to-octets "foobar"))</PRE></P><P>See details about <A HREF="#add-random-event" STYLE="symbol">add-random-event</A> below.</P><DIV CLASS="lisp-symbol"><A NAME="make-prng"></A><TT><STRONG>make-prng</STRONG> <EM>name</EM> <EM><TT>&key</TT></EM> <EM>seed</EM> <EM>seed</EM> <EM>cipher</EM> =&gt; <EM>prng</EM></TT><BR /></DIV><P>Create an unseeded pseudo-random number generator.</P><P><EM>name</EM> denotes the style of PRNG to use.  <A HREF="#list-all-prngs" STYLE="symbol">list-all-prngs</A> will
 tell you the names of all supported PRNGs.  Currently only Fortuna is
 supported.  <EM>name</EM> can be a symbol in the <TT>KEYWORD</TT> package or
 the <TT>IRONCLAD</TT> package.</P><P><EM>seed</EM> is a <EM>seed descriptor</EM>.  If NIL, the PRNG will

@@ -1,5 +1,32 @@
 -*- mode: outline -*-
 
+* Version 0.32, released 2012-11-13
+
+** bug fixes
+
+Fixed a SB!WIN32 typo.  (Thanks to Leonard Huang.)
+
+Fix cipher key verification for implementations that don't provide a
+specialized (UNSIGNED-BYTE 8) array.  (Thanks to ralcantaraperez on github.)
+
+Fix CAST5 compilation on some versions of Lispworks.
+
+Fix an invalid LOOP form in the bignum math code.  (Thanks to Juan Jose
+Garcia Ripoll.)
+
+Fix a problem that some (all?) versions of x86-64 CCL have with the
+64-bit SHA variants.
+
+** improvements
+
+The x86oid assembly SHA expand functions have been made significantly
+smaller and faster.
+
+** new features
+
+An implementation of the scrypt key derivation function has been added.
+Please see the documentation for details.  (Thanks to Chris Howey.)
+
 * Version 0.31, released 2012-07-01
 
 ** bug fixes
