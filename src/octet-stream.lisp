@@ -13,7 +13,10 @@
 ;;; TRIVIAL-GRAY-STREAMS has it, we might as well, too...
 #+allegro
 (eval-when (:compile-toplevel :load-toplevel :execute)
-  (unless (fboundp 'stream:stream-write-string)
+  (unless (fboundp #+(and allegro-version>= (not (version>= 9)))
+                   'stream:stream-write-string
+                   #+(and allegro-version>= (version>= 9))
+                   'excl:stream-write-string)
     (require "streamc.fasl")))
 
 (eval-when (:compile-toplevel :load-toplevel :execute)
@@ -188,14 +191,22 @@
           ,@body))
        (t
         (call-next-method))))
+
   #+allegro
-  `(defmethod stream:stream-write-sequence ((stream ,specializer) seq &optional (start 0) end)
-     (typecase seq
-       (,type
-        (let ((end (or end (length seq))))
-          ,@body))
-       (t
-        (call-next-method))))
+  (let ((stream-write-sequence 
+         #+(not allegro-version>=) 'stream:stream-write-sequence
+         #+(and allegro-version>= (not (version>= 9)))
+         'stream:stream-write-sequence 
+         #+(and allegro-version>= (version>= 9)) 'excl:stream-write-sequence))
+    `(defmethod ,stream-write-sequence ((stream ,specializer) seq &optional
+                                        (start 0) end)
+       (typecase seq
+         (,type
+          (let ((end (or end (length seq))))
+            ,@body))
+         (t
+          (call-next-method)))))
+
   #+openmcl
   `(defmethod ccl:stream-write-vector ((stream ,specializer) seq start end)
      (typecase seq
