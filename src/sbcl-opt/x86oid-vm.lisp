@@ -1,7 +1,8 @@
 ;;;; -*- mode: lisp; indent-tabs-mode: nil -*-
+#+sbcl
 (in-package :sb-vm)
 
-#+(or x86 x86-64)
+#+(and sbcl (or x86 x86-64))
 (progn
 (define-vop (fill-block-ub8)
   (:policy :fast-safe)

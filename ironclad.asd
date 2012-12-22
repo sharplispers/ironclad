@@ -20,11 +20,8 @@
     readtable))
 
 (defclass ironclad-source-file (cl-source-file) ())
-(defclass txt-file (doc-file) ())
-(defclass css-file (doc-file) ())
-
-(defmethod source-file-type ((c txt-file) (s module)) "txt")
-(defmethod source-file-type ((c css-file) (s module)) "css")
+(defclass txt-file (doc-file) ((type :initform "txt")))
+(defclass css-file (doc-file) ((type :initform "css")))
 
 (asdf:defsystem :ironclad
   :version "0.32"
@@ -56,18 +53,8 @@
                          (:module "sbcl-opt"
                                   :depends-on ("package" "common")
                                   :components
-                                  ;; ASDF doesn't DTRT, so we can't make
-                                  ;; the whole module :IN-ORDER-TO.
-                                  ;; We'll settle for this one file and
-                                  ;; key off of that.
-                                  ((:file "fndb"
-                                          :in-order-to ((compile-op
-                                                         (feature :sbcl))))
-                                   ;; It would be nice if we could say
-                                   ;; (OR (FEATURE :X86) (FEATURE :X86-64))
-                                   ;; but ASDF is not that flexible.
-                                   (:file "x86oid-vm" :depends-on ("fndb")))
-                                  :if-component-dep-fails :ignore)
+                                  ((:file "fndb")
+                                   (:file "x86oid-vm" :depends-on ("fndb"))))
                          (:module "ciphers"
                                   :depends-on ("common" "macro-utils")
                                   :components
@@ -196,9 +183,7 @@
 ;;; testing
 
 (defclass test-vector-file (static-file)
-  ())
-
-(defmethod source-file-type ((c test-vector-file) (s module)) "testvec")
+  ((type :initform "testvec")))
 
 (defpackage :ironclad-tests
   (:nicknames :crypto-tests)
@@ -206,10 +191,6 @@
 
 (defmethod perform ((op test-op) (c (eql (find-system :ironclad))))
   (oos 'test-op 'ironclad-tests))
-
-;;; A tester's job is never done!
-(defmethod operation-done-p ((op test-op) (c (eql (find-system :ironclad))))
-  nil)
 
 (asdf:defsystem ironclad-tests
   :depends-on (ironclad)
@@ -274,10 +255,6 @@
                                    (:test-vector-file "cfb8")
                                    ;; stream ciphers
                                    (:test-vector-file "arcfour")))))))
-
-(defmethod operation-done-p ((op test-op)
-                             (c (eql (find-system :ironclad-tests))))
-  nil)
 
 (defmethod perform ((op test-op) (c (eql (find-system :ironclad-tests))))
   (or (funcall (intern "DO-TESTS" (find-package "RTEST")))

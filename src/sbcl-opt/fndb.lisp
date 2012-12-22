@@ -1,5 +1,8 @@
 ;;;; -*- mode: lisp; indent-tabs-mode: nil -*-
+#+sbcl
 (in-package :sb-c)
+
+#+sbcl (progn
 
 (defknown (ironclad::fill-block-ub8-le ironclad::fill-block-ub8-be)
   ((simple-array (unsigned-byte 32) (*))
@@ -29,3 +32,5 @@
 (defknown ironclad::sha256-expand-block
   ((simple-array (unsigned-byte 32) (*)))
   (values))
+
+);#+sbcl
