@@ -1,5 +1,20 @@
 -*- mode: outline -*-
 
+* Version 0.32.1, released 2012-12-29
+
+** bug fixes
+
+Fixed octet-streams for Allegro versions >= 9.0.  (Thanks to Elliott
+Johnson.)
+
+Fixed WRITE-SEQUENCE on octet-output-streams.  (Thanks to Martin
+Nzioki.)
+
+Tweak system definition to work better with newer versions of ASDF.
+(Thanks to François-René Rideau.)
+
+Fixed problems with the Fortuna prng.  (Thanks to Robert Uhl.)
+
 * Version 0.32, released 2012-11-13
 
 ** bug fixes
