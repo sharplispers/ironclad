@@ -286,9 +286,10 @@
 (define-stream-write-sequence octet-output-stream simple-octet-vector
   (let* ((buffer (buffer stream))
          (length (length buffer))
-         (index (index stream)))
+         (index (index stream))
+         seq-length)
     (declare (type simple-octet-vector buffer))
-    (when (>= (+ index (length seq)) length)
+    (when (>= (+ index (setq seq-length (length seq))) length)
       (let ((new-buffer (make-array (* 2 (max (length seq) length))
                                     :element-type '(unsigned-byte 8))))
         (declare (type simple-octet-vector new-buffer))
@@ -296,6 +297,10 @@
         (setf buffer new-buffer
               (buffer stream) new-buffer)))
     (replace buffer seq :start1 index :start2 start :end2 end)
+    (incf (index stream)
+          (if (or start end)
+              (- (or end seq-length) (or start 0))
+            seq-length))
     seq))
 
 (defmethod #.*stream-clear-output-function* ((stream octet-output-stream))
