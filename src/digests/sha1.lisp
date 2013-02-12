@@ -130,7 +130,8 @@ available."
                                      (aref block (- i 8))
                                      (aref block (- i 14))
                                      (aref block (- i 16))))
-                        1))))
+                        1)))
+  (values))
 
 ;;; mid-level
 
