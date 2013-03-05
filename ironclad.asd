@@ -1,8 +1,8 @@
 ;;;; -*- mode: lisp; indent-tabs-mode: nil -*-
-(defpackage #:ironclad-system
-  (:use :cl :asdf))
+(cl:defpackage #:ironclad-system
+  (:use :cl))
 
-(in-package #:ironclad-system)
+(cl:in-package #:ironclad-system)
 
 ;;; easy-to-type readmacro for creating s-boxes and the like
 
@@ -19,9 +19,9 @@
     (set-dispatch-macro-character #\# #\@ #'array-reader readtable)
     readtable))
 
-(defclass ironclad-source-file (cl-source-file) ())
-(defclass txt-file (doc-file) ((type :initform "txt")))
-(defclass css-file (doc-file) ((type :initform "css")))
+(defclass ironclad-source-file (asdf:cl-source-file) ())
+(defclass txt-file (asdf:doc-file) ((type :initform "txt")))
+(defclass css-file (asdf:doc-file) ((type :initform "css")))
 
 (asdf:defsystem :ironclad
   :version "0.32.1"
@@ -170,7 +170,7 @@
                              #+sbcl (sb-ext:compiler-note #'muffle-warning)
                              ((satisfies defknown-redefinition-error-p) #'continue))
                 ,@body)))
-(defmethod perform :around ((op compile-op) (c ironclad-source-file))
+(defmethod asdf:perform :around ((op asdf:compile-op) (c ironclad-source-file))
   (let ((*readtable* *ironclad-readtable*)
         (*print-base* 10)               ; INTERN'ing FORMAT'd symbols
         (*print-case* :upcase)
@@ -179,29 +179,31 @@
         (*features* (append (ironclad-implementation-features) *features*)))
     (do-silently (call-next-method))))
 
-(defmethod perform :around ((op load-op) (c ironclad-source-file))
+(defmethod asdf:perform :around ((op asdf:load-op) (c ironclad-source-file))
   (do-silently (call-next-method))))
 
-(defmethod perform :after ((op load-op) (c (eql (find-system :ironclad))))
+(defmethod asdf:perform :after ((op asdf:load-op)
+                                (c (eql (asdf:find-system :ironclad))))
   (provide :ironclad))
 
 
 ;;; testing
 
-(defclass test-vector-file (static-file)
+(defclass test-vector-file (asdf:static-file)
   ((type :initform "testvec")))
 
 (defpackage :ironclad-tests
   (:nicknames :crypto-tests)
   (:use :cl))
 
-(defmethod perform ((op test-op) (c (eql (find-system :ironclad))))
-  (oos 'test-op 'ironclad-tests))
+(defmethod asdf:perform ((op asdf:test-op)
+                         (c (eql (asdf:find-system :ironclad))))
+  (asdf:oos 'asdf:test-op 'ironclad-tests))
 
 (asdf:defsystem ironclad-tests
   :depends-on (ironclad)
   :version "0.6"
-  :in-order-to ((test-op (load-op :ironclad-tests)))
+  :in-order-to ((asdf:test-op (asdf:load-op :ironclad-tests)))
   :components ((:module "testing"
                         :components
                         ((:file "rt")
@@ -262,6 +264,7 @@
                                    ;; stream ciphers
                                    (:test-vector-file "arcfour")))))))
 
-(defmethod perform ((op test-op) (c (eql (find-system :ironclad-tests))))
+(defmethod asdf:perform ((op asdf:test-op)
+                         (c (eql (asdf:find-system :ironclad-tests))))
   (or (funcall (intern "DO-TESTS" (find-package "RTEST")))
       (error "TEST-OP failed for IRONCLAD-TESTS")))
