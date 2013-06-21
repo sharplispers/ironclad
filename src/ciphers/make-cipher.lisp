@@ -81,7 +81,11 @@
     ;; FIXME: (CLASS-NAME (CLASS-OF ...)) is not quite right.
     (error 'unsupported-mode :mode mode
            :cipher (class-name (class-of cipher))))
-  (when mode-p
+  (when (and iv-p
+             (not mode-p))
+    (setq mode (mode-name cipher)))
+  (when (or mode-p iv-p)
+    (setf (slot-value cipher 'mode-name) mode)
     (let ((mode-instance (make-mode-for-cipher cipher mode initialization-vector)))
       (typecase (mode cipher)
         #+nil

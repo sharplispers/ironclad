@@ -5,6 +5,7 @@
 
 (defclass cipher ()
   ((mode :initarg :mode :accessor mode)
+   (mode-name :reader mode-name)
    (initialized-p :initform nil :accessor initialized-p)))
 
 ;;; Block ciphers are denoted by the use of the {8,16}-byte-block-mixin.
