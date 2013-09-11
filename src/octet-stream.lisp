@@ -221,6 +221,14 @@
         ,@body)
        (t
         (call-next-method)))))
+
+(defun execute-with-digesting-stream (digest fn)
+  (with-open-stream (stream (make-digesting-stream digest))
+    (funcall fn stream)
+    (produce-digest stream)))
+
+(defmacro with-digesting-stream ((var digest) &body body)
+  `(execute-with-digesting-stream ,digest (lambda (,var) ,@body)))
 
 ;;; input streams
 
