@@ -268,7 +268,7 @@
   (:info n-rounds)
   (:arg-types (:constant (signed-byte 61)) simple-array-unsigned-byte-8
               simple-array-unsigned-byte-32)
-  (:temporary (:sc sse-reg) x0 x1 x2 x3)
+  (:temporary (:sc double-reg) x0 x1 x2 x3)
   (:temporary (:sc unsigned-reg) r0 r1 r2 r3 temp count)
   (:generator 1000
     (labels ((nth-xmm-mem (base i)
