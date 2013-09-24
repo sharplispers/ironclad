@@ -61,8 +61,7 @@
 (defun salsa20/20-core (buffer state)
   (declare (type salsa20-keystream-buffer buffer))
   (declare (type salsa20-state state))
-  (salsa-core 10 buffer state)
-  (values))
+  (salsa-core 10 buffer state))
 
 (defclass salsa20 (stream-cipher)
   ((state :reader salsa20-state
