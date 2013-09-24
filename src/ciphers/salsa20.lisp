@@ -17,6 +17,7 @@
 (defun salsa-core (n-rounds buffer state)
   (declare (type salsa20-keystream-buffer buffer))
   (declare (type salsa20-state state))
+  (declare (optimize speed))
   #+(and sbcl x86-64)
   (x-salsa-core n-rounds buffer state)
   #-(and sbcl x86-64)
