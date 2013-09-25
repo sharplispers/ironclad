@@ -69,10 +69,12 @@
   (list (cons :ecb-mode-test 'ecb-mode-test)
         (cons :stream-mode-test 'stream-mode-test)))
 
-(defun cipher-test-guts (cipher-name mode key input output)
+(defun cipher-test-guts (cipher-name mode key input output
+                         &optional extra-make-cipher-args)
   (labels ((frob-hex-string (func input)
-             (let ((cipher (crypto:make-cipher cipher-name :key key
-                                               :mode mode))
+             (let ((cipher (apply #'crypto:make-cipher cipher-name
+                                  :key key :mode mode
+                                  extra-make-cipher-args))
                     (scratch (copy-seq input)))
                (funcall func cipher input scratch)
                scratch))
