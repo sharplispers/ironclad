@@ -89,4 +89,4 @@
   (:export #:blowfish #:tea #:xtea #:square #:rc2 #:rc5 #:rc6 #:des #:3des
            #:aes #:twofish #:cast5 #:idea #:misty1 #:null)
   ;; supported stream ciphers
-  (:export #:arcfour))
+  (:export #:arcfour #:salsa20 #:salsa20/12 #:salsa20/8))
