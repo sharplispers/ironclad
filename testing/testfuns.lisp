@@ -65,9 +65,14 @@
 (defun stream-mode-test (cipher-name hexkey hexinput hexoutput)
   (cipher-test-guts cipher-name :stream hexkey hexinput hexoutput))
 
+(defun stream-nonce-mode-test (cipher-name hexkey hexiv hexinput hexoutput)
+  (cipher-test-guts cipher-name :stream hexkey hexinput hexoutput
+                    (list :initialization-vector hexiv)))
+
 (defparameter *cipher-tests*
   (list (cons :ecb-mode-test 'ecb-mode-test)
-        (cons :stream-mode-test 'stream-mode-test)))
+        (cons :stream-mode-test 'stream-mode-test)
+        (cons :stream-nonce-mode-test 'stream-nonce-mode-test)))
 
 (defun cipher-test-guts (cipher-name mode key input output
                          &optional extra-make-cipher-args)
