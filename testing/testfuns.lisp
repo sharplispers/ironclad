@@ -25,7 +25,7 @@
 
 (defun test-vector-filename (ident)
   (merge-pathnames (make-pathname :directory '(:relative "test-vectors")
-                                  :name (format nil "~(~A~)" ident)
+                                  :name (substitute #\- #\/ (format nil "~(~A~)" ident))
                                   :type "testvec")
                    #.*compile-file-pathname*))
 
