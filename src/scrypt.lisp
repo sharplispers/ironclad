@@ -14,6 +14,7 @@
          (aref ,x ,i0) (ldb (byte 32 0) (logxor (aref ,x ,i0) (rol32 (mod32+ (aref ,x ,i12) (aref ,x ,i8)) 18)))))
 
 (defun scrypt-vector-salsa (b)
+  (declare (type (simple-octet-vector 64) b))
   (let ((x (make-array 16 :element-type '(unsigned-byte 32)))
         (w (make-array 16 :element-type '(unsigned-byte 32))))
     (declare (type (simple-array (unsigned-byte 32) (16)) x w))
@@ -35,6 +36,11 @@
       (setf (nibbles:ub32ref/le b (* i 4)) (mod32+ (aref x i) (aref w i))))))
 
 (defun block-mix (b xy xy-start r)
+  (declare (type (simple-array (unsigned-byte 8) (*)) b xy))
+  ;; The derivation of the bound here is that (* I 64) in the first loop below
+  ;; must be a legitimate array index.  That loop runs to (* 2 R), hence the
+  ;; truncation by 128.  The subtraction of 64 comes from loops further down.
+  (declare (type (integer 0 (#.(truncate (- array-dimension-limit 64) 128))) r))
   (let ((xs (make-array 64 :element-type '(unsigned-byte 8))))
     (declare (type (simple-array (unsigned-byte 8) (64)) xs))
     (declare (dynamic-extent xs))
@@ -49,6 +55,8 @@
       (replace b xy :start1 (* 64 (+ i r)) :end1 (+ (* 64 (+ i r)) 64) :start2 (+ xy-start (* 64 (1+ (* i 2))))))))
 
 (defun smix (b b-start r N v xy)
+  (declare (type (simple-array (unsigned-byte 8) (*)) b v xy))
+  (declare (type (integer 0 (#.(truncate array-dimension-limit 128))) r))
   (let ((x xy)
         (xy-start (* 128 r))
         (smix-length (* 128 r)))
