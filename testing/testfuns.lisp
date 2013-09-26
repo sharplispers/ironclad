@@ -10,7 +10,8 @@
          (key (make-array length :element-type '(unsigned-byte 8))))
     (declare (type (simple-array (unsigned-byte 8) (*)) key))
     (flet ((char-to-digit (char)
-             (let ((x (cl:position char "0123456789abcdef"
+             (declare (type base-char char))
+             (let ((x (cl:position char #.(coerce "0123456789abcdef" 'simple-base-string)
                                    :test #'char-equal)))
                (or x (error "Invalid hex key ~A specified" string)))))
       (loop for i from 0
