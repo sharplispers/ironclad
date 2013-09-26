@@ -17,6 +17,9 @@
 (defun salsa-core (n-rounds buffer state)
   (declare (type salsa20-keystream-buffer buffer))
   (declare (type salsa20-state state))
+  #+(and sbcl x86-64)
+  (x-salsa-core n-rounds buffer state)
+  #-(and sbcl x86-64)
   (let ((x (make-array 16 :element-type '(unsigned-byte 32))))
     (declare (dynamic-extent x))
     (replace x state)
@@ -41,8 +44,8 @@
         (quarter-round 12 13 14 15))
       (dotimes (i 16)
         (setf (ub32ref/le buffer (* i 4))
-              (mod32+ (aref x i) (aref state i))))
-      (values))))
+              (mod32+ (aref x i) (aref state i))))))
+  (values))
 
 (defun salsa20/8-core (buffer state)
   (declare (type salsa20-keystream-buffer buffer))
@@ -57,7 +60,8 @@
 (defun salsa20/20-core (buffer state)
   (declare (type salsa20-keystream-buffer buffer))
   (declare (type salsa20-state state))
-  (salsa-core 10 buffer state))
+  (salsa-core 10 buffer state)
+  (values))
 
 (defclass salsa20 (stream-cipher)
   ((state :reader salsa20-state
