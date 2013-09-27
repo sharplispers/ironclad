@@ -131,7 +131,7 @@
     (t
      ;; Stream cipher.
      (unless (or (eq mode 'stream) (eq mode :stream))
-       (error 'unsupposed-mode :cipher (cipher cipher-info) :mode mode))
+       (error 'unsupported-mode :cipher (cipher cipher-info) :mode mode))
      (when padding
        (error "padding is not supported for stream ciphers"))))
   cipher-info)
