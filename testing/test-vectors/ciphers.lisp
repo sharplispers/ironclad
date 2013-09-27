@@ -29,6 +29,15 @@
     (:no-error () :error))
   :ok)
 
+(rtest:deftest unsupported-mode.1
+  (handler-case
+      (crypto:make-cipher :blowfish :mode :stream
+                          :key (make-array 8 :element-type '(unsigned-byte 8))
+                          :initialization-vector (make-array 8 :element-type '(unsigned-byte 8)))
+    (crypto:unsupported-mode () :ok)
+    (:no-error () :error))
+  :ok)
+
 (rtest:deftest block-length.known-ciphers
   (dolist (name (crypto:list-all-ciphers) :ok)
     (unless (crypto:block-length name)
