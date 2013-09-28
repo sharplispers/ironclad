@@ -64,6 +64,13 @@ for a particular mode of operation but not supplied."))
                      (digest condition))))
   (:documentation "Signaled when an invalid digest name is provided to MAKE-DIGEST."))
 
+(define-condition unsupported-kdf (ironclad-error)
+  ((kdf :initarg :kdf :reader kdf))
+  (:report (lambda (condition stream)
+             (format stream "~A is not a supported key derivation function"
+                     (kdf condition))))
+  (:documentation "Signaled when an invalid key derivation function name is provided to MAKE-KDF."))
+
 (define-condition unsupported-scrypt-cost-factors (ironclad-error)
   ((N :initarg :N :reader cost-N)
    (r :initarg :r :reader cost-r)

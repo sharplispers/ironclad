@@ -65,7 +65,7 @@
    #:ironclad-error #:initialization-vector-not-supplied
    #:invalid-initialization-vector #:invalid-key-length
    #:unsupported-cipher #:unsupported-mode #:unsupported-digest
-   #:unsupported-scrypt-cost-factors
+   #:unsupported-kdf #:unsupported-scrypt-cost-factors
    #:insufficient-buffer-space #:invalid-padding
    #:key-not-supplied
 

@@ -56,3 +56,10 @@
      *password*
      "PBKDF2$SHA256:1000$78578e5a5d63cb06$aa2ae650dc866dc4de4fc3c8f06eddac1abc3011a99402fbc46d7e131fac06d5")
   t)
+
+(rtest:deftest unsupported-kdf
+  (handler-case
+      (crypto:make-kdf :random-name)
+    (crypto:unsupported-kdf () :ok)
+    (:no-error () :error))
+  :ok)
