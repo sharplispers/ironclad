@@ -28,8 +28,7 @@
     kdf))
 
 (defmethod derive-key ((kdf pbkdf1) passphrase salt iteration-count key-length)
-  (unless (plusp iteration-count)
-    (error 'invalid-iteration-count))
+  (check-type iteration-count (integer 1 *))
   (loop with digest = (kdf-digest kdf)
      with digest-length = (digest-length digest)
      with key = (make-array 20 :element-type '(unsigned-byte 8))
