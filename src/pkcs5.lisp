@@ -49,8 +49,6 @@
 ;;; PBKDF2, from RFC 2898, section 5.2
 
 (defun pbkdf2-derive-key (digest passphrase salt iteration-count key-length)
-  (unless (plusp (length passphrase))
-    (error 'invalid-argument))
   (check-type iteration-count (integer 1 *))
   (loop with count = 1
      with hmac = (make-hmac passphrase digest)
