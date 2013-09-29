@@ -88,3 +88,11 @@
     (:no-error () :error))
   :ok)
 
+(rtest:deftest pbkdf2-invalid-key-length
+  (handler-case
+      (ironclad:derive-key (ironclad:make-kdf 'ironclad:pbkdf2 :digest 'ironclad:sha1)
+                           *password* *salt* 2048 -1)
+    (type-error () :ok)
+    (:no-error () :error))
+  :ok)
+
