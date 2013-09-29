@@ -63,3 +63,11 @@
     (crypto:unsupported-kdf () :ok)
     (:no-error () :error))
   :ok)
+
+(rtest:deftest pbkdf2-invalid-iteration-count
+  (handler-case
+      (ironclad:derive-key (ironclad:make-kdf 'ironclad:pbkdf2 :digest 'ironclad:sha1)
+                           *password* *salt* -1 24)
+    (type-error () :ok)
+    (:no-error () :error))
+  :ok)
