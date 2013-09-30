@@ -101,7 +101,7 @@
            '(simple-array (unsigned-byte ,register-bit-size) (,(length registers)))))
        (defun ,digest-fun (regs buffer start)
          (declare (type ,struct-name regs)
-                  (type (simple-array (unsigned-byte 8) (*)) buffer)
+                  (type simple-octet-vector buffer)
                   (type (integer 0 ,(- array-dimension-limit digest-size)) start)
                   ,(burn-baby-burn))
          ,(let ((inlined-unpacking
@@ -129,7 +129,7 @@
        ,@(when (stringp maybe-doc-string)
                `(,maybe-doc-string))
        ,(hold-me-back)
-       (check-type sequence (simple-array (unsigned-byte 8) (*)))
+       (check-type sequence simple-octet-vector)
        (check-type start index)
        (check-type end index)
        ,@(if (stringp maybe-doc-string)
@@ -179,7 +179,7 @@
                                      `(etypecase state
                                         ,@(reverse specs)))))
                (etypecase digest
-                 ((simple-array (unsigned-byte 8) (*))
+                 (simple-octet-vector
                   ;; verify that the buffer is large enough
                   (if (<= digest-size (- (length digest) digest-start))
                       (,inner-fun-name state digest digest-start)

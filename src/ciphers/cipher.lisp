@@ -177,7 +177,7 @@ PLAINTEXT."
   `(defun ,(intern (format nil "~A-~A" algorithm '#:crypt))
        (context plaintext plaintext-start ciphertext ciphertext-start length)
      (declare (optimize (speed 3) (debug 0) (space 0)))
-     (declare (type (simple-array (unsigned-byte 8) (*)) plaintext ciphertext))
+     (declare (type simple-octet-vector plaintext ciphertext))
      (declare (type index plaintext-start ciphertext-start length))
      ,@body))
 
