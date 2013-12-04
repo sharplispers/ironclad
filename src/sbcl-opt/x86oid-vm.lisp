@@ -339,10 +339,6 @@
         (inst sub count 1)
         (inst jmp :nz repeat))
 
-      (inst movdqa x0 (nth-xmm-mem state 0))
-      (inst movdqa x1 (nth-xmm-mem state 1))
-      (inst movdqa x2 (nth-xmm-mem state 2))
-      (inst movdqa x3 (nth-xmm-mem state 3))
       (inst paddd x0 (nth-xmm-mem buffer 0))
       (inst paddd x1 (nth-xmm-mem buffer 1))
       (inst paddd x2 (nth-xmm-mem buffer 2))
@@ -429,10 +425,6 @@
         (inst sub count 1)
         (inst jmp :nz repeat))
 
-      (inst movdqa x0 (nth-xmm-mem state 0))
-      (inst movdqa x1 (nth-xmm-mem state 1))
-      (inst movdqa x2 (nth-xmm-mem state 2))
-      (inst movdqa x3 (nth-xmm-mem state 3))
       (inst paddd x0 (nth-xmm-mem buffer 0))
       (inst paddd x1 (nth-xmm-mem buffer 1))
       (inst paddd x2 (nth-xmm-mem buffer 2))
