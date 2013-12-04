@@ -7,33 +7,13 @@
 ;;; presented at BSDCan'09, May 2009.
 ;;; http://www.tarsnap.com/scrypt.html
 
-(defmacro salsa-vector-4mix (x i4 i8 i12 i0)
-  `(setf (aref ,x ,i4) (ldb (byte 32 0) (logxor (aref ,x ,i4) (rol32 (mod32+ (aref ,x ,i0) (aref ,x ,i12)) 7)))
-         (aref ,x ,i8) (ldb (byte 32 0) (logxor (aref ,x ,i8) (rol32 (mod32+ (aref ,x ,i4) (aref ,x ,i0)) 9)))
-         (aref ,x ,i12) (ldb (byte 32 0) (logxor (aref ,x ,i12) (rol32 (mod32+ (aref ,x ,i8) (aref ,x ,i4)) 13)))
-         (aref ,x ,i0) (ldb (byte 32 0) (logxor (aref ,x ,i0) (rol32 (mod32+ (aref ,x ,i12) (aref ,x ,i8)) 18)))))
-
 (defun scrypt-vector-salsa (b)
   (declare (type (simple-octet-vector 64) b))
-  (let ((x (make-array 16 :element-type '(unsigned-byte 32)))
-        (w (make-array 16 :element-type '(unsigned-byte 32))))
-    (declare (type (simple-array (unsigned-byte 32) (16)) x w))
-    (declare (dynamic-extent x w))
+  (let ((x (make-array 16 :element-type '(unsigned-byte 32))))
+    (declare (type (simple-array (unsigned-byte 32) (16)) x))
+    (declare (dynamic-extent x))
     (fill-block-ub8-le x b 0)
-    (replace w x)
-
-    (loop repeat 4 do
-      (salsa-vector-4mix x 4 8 12 0)
-      (salsa-vector-4mix x 9 13 1 5)
-      (salsa-vector-4mix x 14 2 6 10)
-      (salsa-vector-4mix x 3 7 11 15)
-      (salsa-vector-4mix x 1 2 3 0)
-      (salsa-vector-4mix x 6 7 4 5)
-      (salsa-vector-4mix x 11 8 9 10)
-      (salsa-vector-4mix x 12 13 14 15))
-
-    (dotimes (i 16)
-      (setf (nibbles:ub32ref/le b (* i 4)) (mod32+ (aref x i) (aref w i))))))
+    (salsa20/8-core b x)))
 
 (defun block-mix (b xy xy-start r)
   (declare (type (simple-array (unsigned-byte 8) (*)) b xy))
