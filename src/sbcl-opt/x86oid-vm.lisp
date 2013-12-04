@@ -381,10 +381,6 @@
                      (r2 (reg-in-size r2 :dword))
                      (r3 (reg-in-size r3 :dword))
                      (temp (reg-in-size temp :dword)))
-                 ;; x[y0] = XOR(x[y0],ROTATE(PLUS(x[y3],x[y2]), 7));
-                 ;; x[y1] = XOR(x[y1],ROTATE(PLUS(x[y0],x[y3]), 9));
-                 ;; x[y2] = XOR(x[y2],ROTATE(PLUS(x[y1],x[y0]),13));
-                 ;; x[y3] = XOR(x[y3],ROTATE(PLUS(x[y2],x[y1]),18));
                  (inst mov r0 (ea y0))
                  (inst add r0 (ea y1))
                  (inst mov r3 (ea y3))
