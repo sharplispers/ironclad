@@ -352,4 +352,99 @@
       (inst movdqa (nth-xmm-mem buffer 1) x1)
       (inst movdqa (nth-xmm-mem buffer 2) x2)
       (inst movdqa (nth-xmm-mem buffer 3) x3)))))
+
+#+x86-64
+(define-vop (chacha-core-fast)
+  (:translate ironclad::x-chacha-core)
+  (:policy :fast-safe)
+  (:args (buffer :scs (descriptor-reg))
+         (state :scs (descriptor-reg)))
+  (:info n-rounds)
+  (:arg-types (:constant (signed-byte 61)) simple-array-unsigned-byte-8
+              simple-array-unsigned-byte-32)
+  (:temporary (:sc double-reg) x0 x1 x2 x3)
+  (:temporary (:sc unsigned-reg) r0 r1 r2 r3 temp count)
+  (:generator 1000
+    (labels ((nth-xmm-mem (base i)
+               (make-ea :qword :base base
+                               :disp (+ (- (* n-word-bytes vector-data-offset)
+                                           other-pointer-lowtag)
+                                        (* 16 i))))
+             (ea (i)
+               (make-ea :dword :base buffer
+                        :disp (+ (- (* n-word-bytes vector-data-offset)
+                                    other-pointer-lowtag)
+                                 (* 4 i))))
+             (quarter-round (y0 y1 y2 y3)
+               (let ((r0 (reg-in-size r0 :dword))
+                     (r1 (reg-in-size r1 :dword))
+                     (r2 (reg-in-size r2 :dword))
+                     (r3 (reg-in-size r3 :dword))
+                     (temp (reg-in-size temp :dword)))
+                 ;; x[y0] = XOR(x[y0],ROTATE(PLUS(x[y3],x[y2]), 7));
+                 ;; x[y1] = XOR(x[y1],ROTATE(PLUS(x[y0],x[y3]), 9));
+                 ;; x[y2] = XOR(x[y2],ROTATE(PLUS(x[y1],x[y0]),13));
+                 ;; x[y3] = XOR(x[y3],ROTATE(PLUS(x[y2],x[y1]),18));
+                 (inst mov r0 (ea y0))
+                 (inst add r0 (ea y1))
+                 (inst mov r3 (ea y3))
+                 (inst xor r3 r0)
+                 (inst rol r3 16)
+
+                 (inst mov r2 (ea y2))
+                 (inst add r2 r3)
+                 (inst mov r1 (ea y1))
+                 (inst xor r1 r2)
+                 (inst rol r1 12)
+
+                 (inst add r0 r1)
+                 (inst xor r3 r0)
+                 (inst rol r3 8)
+
+                 (inst add r2 r3)
+                 (inst xor r1 r2)
+                 (inst rol r1 7)
+
+                 (inst mov (ea y0) r0)
+                 (inst mov (ea y1) r1)
+                 (inst mov (ea y2) r2)
+                 (inst mov (ea y3) r3))))
+      ;; copy state to the output buffer
+      (inst movdqa x0 (nth-xmm-mem state 0))
+      (inst movdqa x1 (nth-xmm-mem state 1))
+      (inst movdqa x2 (nth-xmm-mem state 2))
+      (inst movdqa x3 (nth-xmm-mem state 3))
+      (inst movdqa (nth-xmm-mem buffer 0) x0)
+      (inst movdqa (nth-xmm-mem buffer 1) x1)
+      (inst movdqa (nth-xmm-mem buffer 2) x2)
+      (inst movdqa (nth-xmm-mem buffer 3) x3)
+
+      (let ((repeat (gen-label)))
+        (inst mov count n-rounds)
+        (emit-label repeat)
+        (quarter-round 0 4 8 12)
+        (quarter-round 1 5 9 13)
+        (quarter-round 2 6 10 14)
+        (quarter-round 3 7 11 15)
+
+        (quarter-round 0 5 10 15)
+        (quarter-round 1 6 11 12)
+        (quarter-round 2 7 8 13)
+        (quarter-round 3 4 9 14)
+        (inst sub count 1)
+        (inst jmp :nz repeat))
+
+      (progn
+      (inst movdqa x0 (nth-xmm-mem state 0))
+      (inst movdqa x1 (nth-xmm-mem state 1))
+      (inst movdqa x2 (nth-xmm-mem state 2))
+      (inst movdqa x3 (nth-xmm-mem state 3))
+      (inst paddd x0 (nth-xmm-mem buffer 0))
+      (inst paddd x1 (nth-xmm-mem buffer 1))
+      (inst paddd x2 (nth-xmm-mem buffer 2))
+      (inst paddd x3 (nth-xmm-mem buffer 3))
+      (inst movdqa (nth-xmm-mem buffer 0) x0)
+      (inst movdqa (nth-xmm-mem buffer 1) x1)
+      (inst movdqa (nth-xmm-mem buffer 2) x2)
+      (inst movdqa (nth-xmm-mem buffer 3) x3)))))
 )                        ; PROGN

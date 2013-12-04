@@ -39,4 +39,10 @@
                    (simple-array (unsigned-byte 32) (*)))
   (values))
 
+#+x86-64
+(defknown ironclad::x-chacha-core
+  ((signed-byte 61) (simple-array (unsigned-byte 8) (*))
+                   (simple-array (unsigned-byte 32) (*)))
+  (values))
+
 );#+sbcl
