@@ -339,7 +339,6 @@
         (inst sub count 1)
         (inst jmp :nz repeat))
 
-      (progn
       (inst movdqa x0 (nth-xmm-mem state 0))
       (inst movdqa x1 (nth-xmm-mem state 1))
       (inst movdqa x2 (nth-xmm-mem state 2))
@@ -351,7 +350,7 @@
       (inst movdqa (nth-xmm-mem buffer 0) x0)
       (inst movdqa (nth-xmm-mem buffer 1) x1)
       (inst movdqa (nth-xmm-mem buffer 2) x2)
-      (inst movdqa (nth-xmm-mem buffer 3) x3)))))
+      (inst movdqa (nth-xmm-mem buffer 3) x3))))
 
 #+x86-64
 (define-vop (chacha-core-fast)
@@ -430,7 +429,6 @@
         (inst sub count 1)
         (inst jmp :nz repeat))
 
-      (progn
       (inst movdqa x0 (nth-xmm-mem state 0))
       (inst movdqa x1 (nth-xmm-mem state 1))
       (inst movdqa x2 (nth-xmm-mem state 2))
@@ -442,5 +440,5 @@
       (inst movdqa (nth-xmm-mem buffer 0) x0)
       (inst movdqa (nth-xmm-mem buffer 1) x1)
       (inst movdqa (nth-xmm-mem buffer 2) x2)
-      (inst movdqa (nth-xmm-mem buffer 3) x3)))))
+      (inst movdqa (nth-xmm-mem buffer 3) x3))))
 )                        ; PROGN
