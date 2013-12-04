@@ -79,7 +79,8 @@
                                    (:file "cast5" :depends-on ("cipher"))
                                    ;; stream ciphers
                                    (:file "arcfour" :depends-on ("cipher"))
-                                   (:file "salsa20" :depends-on ("cipher"))))
+                                   (:file "salsa20" :depends-on ("cipher"))
+                                   (:file "chacha" :depends-on ("cipher"))))
                          (:module "digests"
                                   :depends-on ("common" "macro-utils" "sbcl-opt")
                                   :components
