@@ -406,6 +406,28 @@ behavior."
     (setf (aref output-block (+ output-block-start i))
           (logxor (aref input-block1 i)
                   (aref input-block2 (+ input-block2-start i))))))
+
+(define-compiler-macro xor-block (&whole form &environment env
+                                         block-length input-block1
+                                         input-block2 input-block2-start
+                                         output-block output-block-start)
+  (cond
+    ;; These are the only architectures with efficient nibbles
+    ;; accessors currently.
+    #+(and sbcl (or x86 x86-64))
+    ((and (constantp block-length env)
+          (zerop (mod block-length sb-vm:n-word-bytes)))
+     (let ((accessor (ecase sb-vm:n-word-bits
+                       (32 'nibbles:ub32ref/le)
+                       (64 'nibbles:ub64ref/le))))
+       `(loop for i from 0 below ,block-length by ,sb-vm:n-word-bytes
+              do (setf (,accessor ,output-block (+ ,output-block-start i))
+                       (logxor (,accessor ,input-block1 i)
+                               (,accessor ,input-block2
+                                          (+ ,input-block2-start i)))))))
+    (t
+     form)))
+
 
 ;;; a few functions that are useful during compilation
 
