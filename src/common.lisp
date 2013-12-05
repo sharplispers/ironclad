@@ -392,20 +392,32 @@ behavior."
         from offset to (+ offset 127) by 8
         do (setf (aref block i) (nibbles:ub64ref/be buffer j))))
 
-(declaim (inline xor-block))
+(declaim (notinline xor-block))
 (defun xor-block (block-length input-block1 input-block2 input-block2-start
                                output-block output-block-start)
   (declare (type (simple-array (unsigned-byte 8) (*)) input-block1 input-block2 output-block))
   (declare (type index block-length input-block2-start output-block-start))
-  ;; this could be made more efficient by doing things in a word-wise fashion.
-  ;; of course, then we'd have to deal with fun things like boundary
-  ;; conditions and such like.  maybe we could just win by unrolling the
-  ;; loop a bit.  BLOCK-LENGTH should be a constant in all calls to this
-  ;; function; maybe a compiler macro would work well.
-  (dotimes (i block-length)
-    (setf (aref output-block (+ output-block-start i))
-          (logxor (aref input-block1 i)
-                  (aref input-block2 (+ input-block2-start i))))))
+  (cond
+    ;; These are the only architectures with efficient nibbles
+    ;; accessors currently.  Happily, they also do efficient
+    ;; unaligned access, which helps make this block efficient.
+    #+(and sbcl (or x86 x86-64))
+    ((zerop (mod block-length sb-vm:n-word-bytes))
+     (macrolet ((frob (accessor)
+                  `(loop for i from 0 below block-length by ,sb-vm:n-word-bytes
+                         do (setf (,accessor output-block
+                                             (+ output-block-start i))
+                                  (logxor (,accessor input-block1 i)
+                                          (,accessor input-block2
+                                                     (+ input-block2-start i)))))))
+       (ecase sb-vm:n-word-bits
+         (32 (frob nibbles:ub32ref/le))
+         (64 (frob nibbles:ub64ref/le)))))
+    (t
+     (dotimes (i block-length)
+       (setf (aref output-block (+ output-block-start i))
+             (logxor (aref input-block1 i)
+                     (aref input-block2 (+ input-block2-start i))))))))
 
 (define-compiler-macro xor-block (&whole form &environment env
                                          block-length input-block1
