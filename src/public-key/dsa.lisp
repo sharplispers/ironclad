@@ -26,11 +26,11 @@
    (s :initarg :s :reader dsa-signature-s)))
 
 (defun dsa-key-p (dsa-key)
-  (slot-value (group dsa-key) 'group-p))
+  (group-pval (group dsa-key)))
 (defun dsa-key-q (dsa-key)
-  (slot-value (group dsa-key) 'group-q))
+  (group-qval (group dsa-key)))
 (defun dsa-key-g (dsa-key)
-  (slot-value (group dsa-key) 'group-g))
+  (group-gval (group dsa-key)))
 
 
 ;;; function definitions
