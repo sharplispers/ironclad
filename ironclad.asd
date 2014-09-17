@@ -264,7 +264,9 @@
                                    (:test-vector-file "cfb")
                                    (:test-vector-file "cfb8")
                                    ;; stream ciphers
-                                   (:test-vector-file "arcfour")))))))
+                                   (:test-vector-file "arcfour")
+                                   ;; prng
+                                   (:test-vector-file "prng")))))))
 
 (defmethod asdf:perform ((op asdf:test-op)
                          (c (eql (asdf:find-system :ironclad-tests))))
