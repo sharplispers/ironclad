@@ -147,6 +147,7 @@ from OUT.  Note that for some cipher modes, IN and OUT may be different."))
                       (iv (iv mode)))
                   (declare (type function efun dfun))
                   (declare (type (simple-octet-vector ,block-length-expr) iv))
+                  (declare (inline xor-block))
                   (values
                     (mode-lambda
                      (loop with offset of-type index = in-start
@@ -166,6 +167,7 @@ from OUT.  Note that for some cipher modes, IN and OUT may be different."))
                                                    :element-type '(unsigned-byte 8))))
                        (declare (type (simple-octet-vector ,block-length-expr) temp-block))
                        (declare (dynamic-extent temp-block))
+                       (declare (inline xor-block))
                        (loop with offset of-type index = in-start
                              while (<= offset (- in-end ,block-length-expr))
                              do (replace temp-block in :start1 0 :end1 ,block-length-expr
