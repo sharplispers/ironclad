@@ -265,6 +265,12 @@
                                    (:test-vector-file "cfb8")
                                    ;; stream ciphers
                                    (:test-vector-file "arcfour")
+                                   (:test-vector-file "salsa20")
+                                   (:test-vector-file "salsa20-12")
+                                   (:test-vector-file "salsa20-8")
+                                   (:test-vector-file "chacha")
+                                   (:test-vector-file "chacha-12")
+                                   (:test-vector-file "chacha-8")
                                    ;; prng
                                    (:test-vector-file "prng")))))))
 
