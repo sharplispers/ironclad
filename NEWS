@@ -1,5 +1,31 @@
 -*- mode: outline -*-
 
+* Version 0.33, released 2014-10-15
+
+** bug fixes
+
+Included prng.testvec in the packaged tarball.
+
+The group parameter accessors for DSA keys have been fixed to not throw
+errors.  (Thanks to Patrick Stein.)
+
+** new features
+
+The convenience function WITH-DIGESTING-STREAM has been added to the
+IRONCLAD package.  (Thanks to Samium Gromoff.)
+
+A new convenience package, IRONCLAD-TEXT, is included with this release;
+when loaded, IRONCLAD-TEXT exports the function
+WITH-DIGESTING-TEXT-STREAM from the IRONCLAD package.  IRONCLAD-TEXT
+depends on FLEXI-STREAMS.  (Thanks to Samium Gromoff.)
+
+The Salsa20 and ChaCha stream ciphers have been added, in full and
+reduced-round variants.
+
+The scrypt hash function's performance has been improved on x86-64 SBCL.
+
+Type checking for the PBKDF key derivation functions has been improved.
+
 * Version 0.32.1, released 2012-12-29
 
 ** bug fixes
