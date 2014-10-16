@@ -221,7 +221,7 @@
                                    (:file "pkcs5")
                                    (:file "scrypt")
                                    (:file "ironclad")
-                                   (:file "prng")
+                                   (:file "prng-tests")
                                    ;; test vectors
                                    (:test-vector-file "crc24")
                                    (:test-vector-file "crc32")
