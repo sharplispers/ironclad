@@ -43,7 +43,8 @@ The testsuite can be run by substituting " `ASDF:TEST-OP` " for "
 (:li "Allegro 8.0 x86/linux")
 (:li "Allegro 8.1 x86/linux, x86-64/linux, sparc/solaris")
 (:li "CLISP 2.41 x86/linux, x86/cygwin")
-(:li "Clozure Common Lisp 1.2 x86-64/Linux"))
+(:li "Clozure Common Lisp 1.2 x86-64/linux")
+(:li "Clozure Common Lisp 1.10 x86-64/darwin"))
 
 (:p "All included tests should pass successfully.  If you use a platform
 not listed above, please send your platform information to the author so
