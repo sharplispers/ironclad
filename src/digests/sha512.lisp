@@ -185,7 +185,7 @@
              (type (simple-array (unsigned-byte 64) (80)) block)
              (type (simple-array (unsigned-byte 8) (128)) buffer))
     (setf (aref buffer buffer-index) #x80)
-    (when (> buffer-index 119)
+    (when (> buffer-index 111)
       (loop for index of-type (integer 0 128)
          from (1+ buffer-index) below 128
          do (setf (aref buffer index) #x00))
@@ -195,7 +195,7 @@
       (loop for index of-type (integer 0 16)
          from 0 below 16
          do (setf (aref block index) #x00000000)))
-    (when (<= buffer-index 119)
+    (when (<= buffer-index 111)
       (loop for index of-type (integer 0 128)
          from (1+ buffer-index) below 128
          do (setf (aref buffer index) #x00))
