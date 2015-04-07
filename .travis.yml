@@ -1,0 +1,21 @@
+language: common-lisp
+sudo: required
+
+env:
+  matrix:
+    - LISP=sbcl
+    - LISP=ccl
+    - LISP=clisp
+    - LISP=allegro
+
+install:
+  # Install cl-travis
+  - curl https://raw.githubusercontent.com/luismbo/cl-travis/master/install.sh | bash
+
+script:
+  - cl -l ironclad -l ironclad-tests
+       -e '(setf *debugger-hook*
+                 (lambda (c h)
+                   (declare (ignore c h))
+                   (uiop:quit -1)))'
+       -e '(rt:do-tests)'
