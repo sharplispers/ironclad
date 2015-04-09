@@ -50,10 +50,13 @@
 
    ;; signatures
    #:make-dsa-signature
+   #:make-elgamal-signature
 
    ;; public-key slot readers
    #:dsa-key-p #:dsa-key-q #:dsa-key-g #:dsa-key-y #:dsa-key-x
    #:dsa-signature-r #:dsa-signature-s
+   #:elgamal-key-p #:elgamal-key-g #:elgamal-key-y #:elgamal-key-x
+   #:elgamal-signature-r #:elgamal-signature-s
 
    ;; pseudo-random number generators
    #:pseudo-random-number-generator #:list-all-prngs #:make-prng #:random-data

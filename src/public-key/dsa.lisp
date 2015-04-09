@@ -6,11 +6,6 @@
 
 ;;; class definitions
 
-(defclass discrete-logarithm-group ()
-  ((p :initarg :p :reader group-pval)
-   (q :initarg :q :reader group-qval)
-   (g :initarg :g :reader group-gval)))
-
 (defclass dsa-key ()
   ((group :initarg :group :reader group)))
 

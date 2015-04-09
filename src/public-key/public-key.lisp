@@ -4,6 +4,14 @@
 (in-package :crypto)
 
 
+;;; class definitions
+
+(defclass discrete-logarithm-group ()
+  ((p :initarg :p :reader group-pval)
+   (q :initarg :q :reader group-qval)
+   (g :initarg :g :reader group-gval)))
+
+
 ;;; generic definitions
 
 (defgeneric make-public-key (kind &key &allow-other-keys)
