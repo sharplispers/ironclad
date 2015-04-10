@@ -22,6 +22,10 @@ the specified keyword arguments."))
   (:documentation "Return a private key of KIND, initialized according to
 the specified keyword arguments."))
 
+(defgeneric generate-new-key-pair (kind num-bits &key &allow-other-keys)
+  (:documentation "Generate a new NUM-BITS-bit key pair. The first returned
+value is the secret key, the second value is the public key."))
+
 (defgeneric sign-message (key message &key start end)
   (:documentation "Produce a key-specific signature of MESSAGE; MESSAGE is a
 (VECTOR (UNSIGNED-BYTE 8)).  START and END bound the extent of the
@@ -78,40 +82,3 @@ of the message.  Returns a fresh octet vector."))
   (etypecase thing
     (integer thing)
     ((simple-array (unsigned-byte 8) (*)) (octets-to-integer thing))))
-
-
-;;; modular arithmetic utilities
-
-(defun modular-inverse (N modulus)
-  "Returns M such that N * M mod MODULUS = 1"
-  (declare (type (integer 1 *) modulus))
-  (declare (type (integer 0 *) n))
-  (when (or (zerop n) (and (evenp n) (evenp modulus)))
-    (return-from modular-inverse 0))
-  (loop with remainder = (list n modulus)
-     and auxiliary = '(1 0)
-     for i from 2
-     while (> (first remainder) 1)
-     do (multiple-value-bind (quotient new-remainder)
-            (floor (second remainder) (first remainder))
-          (push new-remainder remainder)
-          (push (+ (* (- quotient) (first auxiliary)) (second auxiliary))
-                auxiliary))
-     finally (return (let ((inverse (first auxiliary)))
-                       (when (< inverse 0)
-                         (setf inverse (mod inverse modulus)))
-                       ;; check to see if the inverse is zero
-                       (if (zerop (mod (* n inverse) modulus))
-                           0
-                           inverse)))))
-
-;;; direct from CLiki
-(defun expt-mod (n exponent modulus)
-  "As (mod (expt n exponent) modulus), but more efficient."
-  (declare (optimize (speed 3) (safety 0) (space 0) (debug 0)))  
-  (loop with result = 1
-        for i of-type fixnum from 0 below (integer-length exponent)
-        for sqr = n then (mod (* sqr sqr) modulus)
-        when (logbitp i exponent) do
-        (setf result (mod (* result sqr) modulus))
-        finally (return result)))

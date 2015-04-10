@@ -44,7 +44,7 @@
    #:pbkdf2-check-password
 
    ;; public-key encryption operations
-   #:make-public-key #:make-private-key
+   #:make-public-key #:make-private-key #:generate-new-key-pair
    #:sign-message #:verify-signature
    #:encrypt-message #:decrypt-message
 
@@ -65,6 +65,7 @@
 
    ;; cryptographic math
    #:generate-prime #:prime-p #:generate-prime-in-range #:egcd
+   #:generate-safe-prime #:find-generator
 
    ;; conditions
    #:ironclad-error #:initialization-vector-not-supplied

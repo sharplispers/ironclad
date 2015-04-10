@@ -19,6 +19,46 @@ denominator."
        (values d u_d v_d))
    (setq q (floor d c))))
 
+
+;;; modular arithmetic utilities
+
+(defun modular-inverse (N modulus)
+  "Returns M such that N * M mod MODULUS = 1"
+  (declare (type (integer 1 *) modulus))
+  (declare (type (integer 0 *) n))
+  (when (or (zerop n) (and (evenp n) (evenp modulus)))
+    (return-from modular-inverse 0))
+  (loop with remainder = (list n modulus)
+     and auxiliary = '(1 0)
+     for i from 2
+     while (> (first remainder) 1)
+     do (multiple-value-bind (quotient new-remainder)
+            (floor (second remainder) (first remainder))
+          (push new-remainder remainder)
+          (push (+ (* (- quotient) (first auxiliary)) (second auxiliary))
+                auxiliary))
+     finally (return (let ((inverse (first auxiliary)))
+                       (when (< inverse 0)
+                         (setf inverse (mod inverse modulus)))
+                       ;; check to see if the inverse is zero
+                       (if (zerop (mod (* n inverse) modulus))
+                           0
+                           inverse)))))
+
+;;; direct from CLiki
+(defun expt-mod (n exponent modulus)
+  "As (mod (expt n exponent) modulus), but more efficient."
+  (declare (optimize (speed 3) (safety 0) (space 0) (debug 0)))
+  (loop with result = 1
+        for i of-type fixnum from 0 below (integer-length exponent)
+        for sqr = n then (mod (* sqr sqr) modulus)
+        when (logbitp i exponent) do
+        (setf result (mod (* result sqr) modulus))
+        finally (return result)))
+
+
+;;; prime numbers utilities
+
 (defconst +small-primes+
   (make-array 269
               :element-type 'fixnum
@@ -103,7 +143,26 @@ using this test."
 (defun generate-prime (num-bits &optional (prng *prng*))
   "Return a NUM-BITS-bit prime number with very high
 probability (1:2^128 chance of returning a composite number)."
-  (loop with big = (ash 2 (1- num-bits))
+  (loop with big = (ash 1 (1- num-bits))
      for x = (logior (strong-random big prng) big 1)
      until (prime-p x prng)
      finally (return x)))
+
+(defun generate-safe-prime (num-bits &optional (prng *prng*))
+  "Generate a NUM-BITS-bit prime number p so that (p-1)/2 is prime too."
+  (loop
+     for q = (generate-prime (1- num-bits) prng)
+     for p = (1+ (* 2 q))
+     until (prime-p p prng)
+     finally (return p)))
+
+(defun find-generator (p &optional (prng *prng*))
+  "Find a random generator of the multiplicative group (Z/pZ)* where p is a safe prime."
+  (assert (> p 3))
+  (loop
+     with factors = (list 2 (/ (1- p) 2))
+     for g = (strong-random p prng)
+     until (loop
+              for d in factors
+              never (= 1 (expt-mod g (/ (1- p) d) p)))
+     finally (return g)))

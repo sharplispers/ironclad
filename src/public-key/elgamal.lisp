@@ -49,12 +49,22 @@
   (let ((group (make-instance 'discrete-logarithm-group :p p :g g)))
     (make-instance 'elgamal-private-key :group group :y y :x x)))
 
-(defmethod make-elgamal-ciphertext (c1 c2)
+(defmethod generate-new-key-pair ((kind (eql :elgamal)) num-bits
+                                  &key &allow-other-keys)
+  (let* ((prng (or *prng* (make-prng :fortuna :seed :random)))
+         (p (generate-safe-prime num-bits prng))
+         (g (find-generator p prng))
+         (x (+ 2 (strong-random (- p 3) prng)))
+         (y (expt-mod g x p)))
+    (values (make-private-key :elgamal :p p :g g :y y :x x)
+            (make-public-key :elgamal :p p :g g :y y))))
+
+(defun make-elgamal-ciphertext (c1 c2)
   (make-instance 'elgamal-ciphertext
                  :c1 (maybe-integerize c1)
                  :c2 (maybe-integerize c2)))
 
-(defmethod make-elgamal-signature (r s)
+(defun make-elgamal-signature (r s)
   (make-instance 'elgamal-signature
                  :r (maybe-integerize r)
                  :s (maybe-integerize s)))
@@ -64,8 +74,7 @@
   (assert (> p 3))
   (let ((prng (or *prng* (make-prng :fortuna :seed :random))))
     (loop
-       with k
-       do (setf k (+ 1 (strong-random (- p 2) prng)))
+       for k = (+ 1 (strong-random (- p 2) prng))
        until (= 1 (gcd k (- p 1)))
        finally (return k))))
 

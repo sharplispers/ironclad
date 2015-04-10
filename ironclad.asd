@@ -49,7 +49,7 @@
                          (:file "pkcs5" :depends-on ("common" "kdf-common"))
                          (:file "scrypt" :depends-on ("kdf-common" "pkcs5"))
                          (:file "password-hash" :depends-on ("pkcs5" "prng"))
-                         (:file "math" :depends-on ("prng" "public-key"))
+                         (:file "math" :depends-on ("prng"))
                          (:module "sbcl-opt"
                                   :depends-on ("package" "common")
                                   :components
@@ -109,7 +109,7 @@
                                    (:file "cmac")
                                    (:file "skein-mac")))
                          (:module "public-key"
-                                  :depends-on ("package" "prng")
+                                  :depends-on ("math")
                                   :components
                                   ((:file "public-key")
                                    (:file "dsa" :depends-on ("public-key"))
