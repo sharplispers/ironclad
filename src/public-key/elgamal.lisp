@@ -143,7 +143,7 @@
           (make-elgamal-signature r s)
           (sign-message key msg :start start :end end)))))
 
-(defmethod verify-signature ((key elgamal-private-key) msg (signature elgamal-signature)
+(defmethod verify-signature ((key elgamal-public-key) msg (signature elgamal-signature)
                              &key (start 0) end)
   (let* ((m (octets-to-integer msg :start start :end end))
          (p (elgamal-key-p key)))
