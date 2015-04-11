@@ -157,7 +157,8 @@ probability (1:2^128 chance of returning a composite number)."
      finally (return p)))
 
 (defun find-generator (p &optional (prng *prng*))
-  "Find a random generator of the multiplicative group (Z/pZ)* where p is a safe prime."
+  "Find a random generator of the multiplicative group (Z/pZ)*
+where p is a safe prime number."
   (assert (> p 3))
   (loop
      with factors = (list 2 (/ (1- p) 2))
@@ -166,3 +167,14 @@ probability (1:2^128 chance of returning a composite number)."
               for d in factors
               never (= 1 (expt-mod g (/ (1- p) d) p)))
      finally (return g)))
+
+(defun find-subgroup-generator (p q &optional (prng *prng*))
+  "Find a random generator of a subgroup of order Q of the multiplicative
+group (Z/pZ)* where p is a prime number."
+  (let ((f (/ (1- p) q)))
+    (assert (integerp f))
+    (loop
+       for h = (+ 2 (strong-random (- p 3) prng))
+       for g = (expt-mod h f p)
+       while (= 1 g)
+       finally (return g))))

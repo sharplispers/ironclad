@@ -30,6 +30,28 @@
     (error "Must specify private exponent and modulus"))
   (make-instance 'rsa-private-key :d d :n n))
 
+(defmethod generate-new-key-pair ((kind (eql :rsa)) num-bits
+                                  &key &allow-other-keys)
+  (let* ((prng (or *prng* (make-prng :fortuna :seed :random)))
+         (l (floor num-bits 2))
+         p q n)
+    (loop
+       for a = (generate-prime (- num-bits l) prng)
+       for b = (generate-prime l prng)
+       for c = (* a b)
+       until (and (/= a b) (= num-bits (integer-length c)))
+       finally (setf p a
+                     q b
+                     n c))
+    (let* ((phi (* (1- p) (1- q)))
+           (e (loop
+                 for e = (+ 2 (strong-random (- phi 2) prng))
+                 until (= 1 (gcd e phi))
+                 finally (return e)))
+           (d (modular-inverse e phi)))
+      (values (make-private-key :rsa :d d :n n)
+              (make-public-key :rsa :e e :n n)))))
+
 (defun rsa-core (msg exponent modulus)
   (expt-mod msg exponent modulus))
 
