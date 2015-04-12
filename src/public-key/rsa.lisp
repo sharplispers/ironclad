@@ -53,6 +53,7 @@
               (make-public-key :rsa :e e :n n)))))
 
 (defun rsa-core (msg exponent modulus)
+  (assert (< msg modulus))
   (expt-mod msg exponent modulus))
 
 (defmethod encrypt-message ((key rsa-private-key) msg &key (start 0) end)

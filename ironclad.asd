@@ -109,12 +109,13 @@
                                    (:file "cmac")
                                    (:file "skein-mac")))
                          (:module "public-key"
-                                  :depends-on ("math")
+                                  :depends-on ("digests" "math")
                                   :components
                                   ((:file "public-key")
                                    (:file "dsa" :depends-on ("public-key"))
                                    (:file "elgamal" :depends-on ("public-key"))
-                                   (:file "rsa" :depends-on ("public-key"))))
+                                   (:file "rsa" :depends-on ("public-key"))
+                                   (:file "oaep" :depends-on ("public-key"))))
                          (:module "prng"
                                   :depends-on ("digests" "ciphers")
                                   :components

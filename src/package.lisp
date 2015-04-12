@@ -48,6 +48,9 @@
    #:sign-message #:verify-signature
    #:encrypt-message #:decrypt-message
 
+   ;; public-key encryption padding
+   #:oaep-encode #:oaep-decode
+
    ;; signatures
    #:make-dsa-signature
    #:make-elgamal-signature
@@ -57,6 +60,7 @@
    #:dsa-signature-r #:dsa-signature-s
    #:elgamal-key-p #:elgamal-key-g #:elgamal-key-y #:elgamal-key-x
    #:elgamal-signature-r #:elgamal-signature-s
+   #:rsa-key-modulus #:rsa-key-exponent
 
    ;; pseudo-random number generators
    #:pseudo-random-number-generator #:list-all-prngs #:make-prng #:random-data
