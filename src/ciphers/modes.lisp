@@ -102,6 +102,9 @@ from OUT.  Note that for some cipher modes, IN and OUT may be different."))
 ;;; This way is kind of ugly, but I don't know a better way.
 (macrolet ((define-mode-function (&rest mode-definition-funs &environment env)
              (loop for fun in mode-definition-funs
+                   collect (macroexpand `(,fun 128-byte-block-mixin 128) env) into forms
+                   collect (macroexpand `(,fun 64-byte-block-mixin 64) env) into forms
+                   collect (macroexpand `(,fun 32-byte-block-mixin 32) env) into forms
                    collect (macroexpand `(,fun 16-byte-block-mixin 16) env) into forms
                    collect (macroexpand `(,fun 8-byte-block-mixin 8) env) into forms
                    finally (return `(progn ,@forms))))

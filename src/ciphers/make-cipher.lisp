@@ -15,6 +15,15 @@
   (member mode '(:ecb :cbc :ofb :cfb :cfb8 :ctr
                  ecb cbc ofb cfb cfb8 ctr)))
 
+(defmethod valid-mode-for-cipher-p ((cipher 128-byte-block-mixin) mode)
+  (valid-mode-for-block-cipher-p mode))
+
+(defmethod valid-mode-for-cipher-p ((cipher 64-byte-block-mixin) mode)
+  (valid-mode-for-block-cipher-p mode))
+
+(defmethod valid-mode-for-cipher-p ((cipher 32-byte-block-mixin) mode)
+  (valid-mode-for-block-cipher-p mode))
+
 (defmethod valid-mode-for-cipher-p ((cipher 16-byte-block-mixin) mode)
   (valid-mode-for-block-cipher-p mode))
 
@@ -106,10 +115,10 @@
 
 (defmethod initialize-instance :after ((cipher cipher)
                                        &rest initargs
-                                       &key key mode padding
+                                       &key key mode padding tweak
                                        initialization-vector
                                        &allow-other-keys)
-  (declare (ignore key mode padding initialization-vector initargs))
+  (declare (ignore key mode padding initialization-vector initargs tweak))
   (setf (initialized-p cipher) t)
   cipher)
 
@@ -136,16 +145,18 @@
        (error "padding is not supported for stream ciphers"))))
   cipher-info)
 
-(defun make-cipher (name &key key mode initialization-vector padding)
+(defun make-cipher (name &key key mode initialization-vector padding tweak)
   "Return a cipher object using algorithm NAME with KEY in the
 specified MODE.  If MODE requires an initialization vector, it
 must be provided as INITIALIZATION-VECTOR; otherwise, the
-INITIALIZATION-VECTOR argument is ignored."
+INITIALIZATION-VECTOR argument is ignored.  If the cipher can
+can use a tweak, it can be provided with the TWEAK argument."
   (let ((cipher-info (find-cipher-or-lose name)))
     (validate-parameters-for-cipher-info cipher-info mode padding)
     (make-instance (%class-name cipher-info) :key key :mode mode
                    :initialization-vector initialization-vector
-                   :padding padding)))
+                   :padding padding
+                   :tweak tweak)))
 
 ;;; Many implementations can optimize MAKE-INSTANCE of a constant class
 ;;; name; try to enable that optimization by converting MAKE-CIPHER to
@@ -153,7 +164,7 @@ INITIALIZATION-VECTOR argument is ignored."
 (define-compiler-macro make-cipher (&whole form &environment env
                                            name
                                            &rest keys
-                                           &key key mode initialization-vector padding &allow-other-keys)
+                                           &key key mode initialization-vector padding tweak &allow-other-keys)
   (declare (ignore env keys))
   (cond
    ((or (keywordp name)
@@ -167,6 +178,7 @@ INITIALIZATION-VECTOR argument is ignored."
           `(make-instance ',(%class-name cipher-info)
                           :key ,key :mode ,mode
                           :initialization-vector ,initialization-vector
-                          :padding ,padding)
+                          :padding ,padding
+                          :tweak ,tweak)
           form)))
    (t form)))

@@ -8,7 +8,7 @@
    (mode-name :reader mode-name)
    (initialized-p :initform nil :accessor initialized-p)))
 
-;;; Block ciphers are denoted by the use of the {8,16}-byte-block-mixin.
+;;; Block ciphers are denoted by the use of the {8,16,32,64,128}-byte-block-mixin.
 (defclass stream-cipher (cipher)
   ())
 
@@ -126,6 +126,15 @@ PLAINTEXT."
   ())
 
 (defclass 16-byte-block-mixin ()
+  ())
+
+(defclass 32-byte-block-mixin ()
+  ())
+
+(defclass 64-byte-block-mixin ()
+  ())
+
+(defclass 128-byte-block-mixin ()
   ())
 
 
@@ -254,6 +263,15 @@ cipher or is not a cipher object."))
 
 (defmethod block-length ((cipher 16-byte-block-mixin))
   16)
+
+(defmethod block-length ((cipher 32-byte-block-mixin))
+  32)
+
+(defmethod block-length ((cipher 64-byte-block-mixin))
+  64)
+
+(defmethod block-length ((cipher 128-byte-block-mixin))
+  128)
 
 (defun list-all-ciphers ()
   (loop for symbol being each external-symbol of (find-package :ironclad)

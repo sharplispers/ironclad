@@ -68,6 +68,7 @@
                                    (:file "des" :depends-on ("cipher"))
                                    (:file "blowfish" :depends-on ("cipher"))
                                    (:file "twofish" :depends-on ("cipher"))
+                                   (:file "threefish" :depends-on ("cipher"))
                                    (:file "idea" :depends-on ("cipher"))
                                    (:file "misty1" :depends-on ("cipher"))
                                    (:file "square" :depends-on ("cipher"))
