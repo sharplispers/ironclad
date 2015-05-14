@@ -250,6 +250,7 @@
                                    (:test-vector-file "blowfish")
                                    (:test-vector-file "twofish")
                                    (:test-vector-file "threefish256")
+                                   (:test-vector-file "threefish512")
                                    (:test-vector-file "idea")
                                    (:test-vector-file "misty1")
                                    (:test-vector-file "square")
