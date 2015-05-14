@@ -63,6 +63,10 @@
 (defun ecb-mode-test (cipher-name hexkey hexinput hexoutput)
   (cipher-test-guts cipher-name :ecb hexkey hexinput hexoutput))
 
+(defun ecb-tweak-mode-test (cipher-name hexkey hextweak hexinput hexoutput)
+  (cipher-test-guts cipher-name :ecb hexkey hexinput hexoutput
+                    (list :tweak hextweak)))
+
 (defun stream-mode-test (cipher-name hexkey hexinput hexoutput)
   (cipher-test-guts cipher-name :stream hexkey hexinput hexoutput))
 
@@ -72,6 +76,7 @@
 
 (defparameter *cipher-tests*
   (list (cons :ecb-mode-test 'ecb-mode-test)
+        (cons :ecb-tweak-mode-test 'ecb-tweak-mode-test)
         (cons :stream-mode-test 'stream-mode-test)
         (cons :stream-nonce-mode-test 'stream-nonce-mode-test)))
 
