@@ -89,7 +89,7 @@
   ;; supported block ciphers
   (:export #:blowfish #:tea #:xtea #:square #:rc2 #:rc5 #:rc6 #:des #:3des
            #:aes #:twofish #:cast5 #:idea #:misty1 #:null
-           #:threefish256 #:threefish512)
+           #:threefish256 #:threefish512 #:threefish1024)
   ;; supported stream ciphers
   (:export #:arcfour #:salsa20 #:salsa20/12 #:salsa20/8
            #:chacha #:chacha/12 #:chacha/8))
