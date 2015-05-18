@@ -83,7 +83,7 @@
                                    (:file "salsa20" :depends-on ("cipher"))
                                    (:file "chacha" :depends-on ("cipher"))))
                          (:module "digests"
-                                  :depends-on ("common" "macro-utils" "sbcl-opt")
+                                  :depends-on ("common" "macro-utils" "sbcl-opt" "ciphers")
                                   :components
                                   ((:file "digest")
                                    (:file "crc24" :depends-on ("digest"))
@@ -100,7 +100,8 @@
                                    (:file "ripemd-160" :depends-on ("digest"))
                                    (:file "tiger" :depends-on ("digest"))
                                    (:file "whirlpool" :depends-on ("digest"))
-                                   (:file "tree-hash" :depends-on ("digest"))))
+                                   (:file "tree-hash" :depends-on ("digest"))
+                                   (:file "skein" :depends-on ("digest"))))
                          (:module "macs"
                                   :depends-on ("common" "digests")
                                   :components
@@ -242,6 +243,7 @@
                                    (:test-vector-file "hmac")
                                    (:test-vector-file "cmac")
                                    (:test-vector-file "tree-hash")
+                                   (:test-vector-file "skein256")
                                    ;; block ciphers of various kinds
                                    (:test-vector-file "null")
                                    (:test-vector-file "aes")
