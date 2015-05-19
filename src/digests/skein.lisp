@@ -160,7 +160,6 @@
   (when position-p
     (replace tweak
              (integer-to-octets position :n-bits 96 :big-endian nil)
-             :end1 12
              :end2 12))
   (when position-increment-p
     (skein-increment-counter tweak position-increment))
@@ -182,8 +181,10 @@
                          :element-type '(unsigned-byte 8)
                          :initial-element 0)))
     (setf (subseq cfg 0 4) #(83 72 65 51))
-    (setf (subseq cfg 4 6) (integer-to-octets 1 :n-bits 16 :big-endian nil))
-    (setf (subseq cfg 8 16) (integer-to-octets output-length :n-bits 64 :big-endian nil))
+    (setf (subseq cfg 4 6)
+          (integer-to-octets 1 :n-bits 16 :big-endian nil))
+    (setf (subseq cfg 8 16)
+          (integer-to-octets output-length :n-bits 64 :big-endian nil))
     cfg))
 
 
@@ -191,11 +192,14 @@
 
 (defgeneric skein-value (state))
 (defgeneric skein-tweak (state))
+(defgeneric skein-cfg (state))
 (defgeneric skein-buffer (state))
 (defgeneric skein-buffer-length (state))
+(defgeneric skein-cipher (state))
 
 (defun skein-ubi (state message &optional final)
-  (let* ((value (skein-value state))
+  (let* ((cipher-name (skein-cipher state))
+         (value (skein-value state))
          (block-length (length value))
          (tweak (skein-tweak state))
          (buffer (skein-buffer state))
@@ -205,20 +209,20 @@
                               message))
     (incf buffer-length (length message))
 
-    (do* ((ciphertext (make-array block-length
-                                  :element-type '(unsigned-byte 8)
-                                  :initial-element 0))
-          cipher
-          block)
-         ((if final
-              (< buffer-length block-length)
-              (<= buffer-length block-length)))
+    (do ((ciphertext (make-array block-length
+                                 :element-type '(unsigned-byte 8)
+                                 :initial-element 0))
+         cipher
+         block)
+        ((if final
+             (< buffer-length block-length)
+             (<= buffer-length block-length)))
       (setf block (subseq buffer 0 block-length))
       (setf buffer (subseq buffer block-length))
       (decf buffer-length block-length)
       (unless final
         (skein-update-tweak tweak :position-increment block-length))
-      (setf cipher (make-cipher :threefish256
+      (setf cipher (make-cipher cipher-name
                                 :key value
                                 :mode :ecb
                                 :tweak tweak))
@@ -228,9 +232,43 @@
 
     (replace (skein-value state) value)
     (replace (skein-tweak state) tweak)
-    (replace (skein-buffer state) buffer :end1 buffer-length :end2 buffer-length)
+    (replace (skein-buffer state) buffer :end2 buffer-length)
     (setf (skein-buffer-length state) buffer-length)
-    (values)))
+    state))
+
+(defun skein-finalize (state digest digest-start)
+  (let ((block-length (block-length state))
+        (digest-length (digest-length state))
+        padding)
+    ;; Process remaining data after padding it
+    (setf padding (make-array (- block-length (skein-buffer-length state))
+                              :element-type '(unsigned-byte 8)
+                              :initial-element 0))
+    (skein-update-tweak (skein-tweak state)
+                        :final t
+                        :position-increment (skein-buffer-length state))
+    (skein-ubi state padding t)
+
+    ;; Generate output
+    (skein-update-tweak (skein-tweak state)
+                        :first t
+                        :final t
+                        :type +skein-out+
+                        :position 8)
+    (skein-ubi state
+               (integer-to-octets 0 :n-bits (* 8 block-length) :big-endian nil)
+               t)
+
+    (let ((value (skein-value state)))
+      (etypecase digest
+        ((simple-array (unsigned-byte 8) (*))
+         (progn
+           (replace digest value :start1 digest-start :end2 digest-length)
+           digest))
+        (cl:null
+         (make-array digest-length
+                     :element-type '(unsigned-byte 8)
+                     :initial-contents (subseq value 0 digest-length)))))))
 
 
 ;;; Implementation for blocks of 256 bits
@@ -278,6 +316,9 @@
 (defmethod skein-tweak ((state skein256))
   (skein256-tweak state))
 
+(defmethod skein-cfg ((state skein256))
+  (skein256-cfg state))
+
 (defmethod skein-buffer ((state skein256))
   (skein256-buffer state))
 
@@ -287,36 +328,39 @@
 (defmethod (setf skein-buffer-length) (n (state skein256))
   (setf (skein256-buffer-length state) n))
 
+(defmethod skein-cipher ((state skein256))
+  :threefish256)
+
 (defmethod reinitialize-instance ((state skein256) &rest initargs)
   (declare (ignore initargs))
-  (replace (skein256-value state) +skein256-iv-256+)
-  (replace (skein256-tweak state) (skein-make-tweak t nil +skein-msg+ 0))
-  (replace (skein256-cfg state) (skein-make-configuration-string 256))
-  (setf (skein256-buffer-length state) 0)
+  (replace (skein-value state) +skein256-iv-256+)
+  (replace (skein-tweak state) (skein-make-tweak t nil +skein-msg+ 0))
+  (replace (skein-cfg state) (skein-make-configuration-string 256))
+  (setf (skein-buffer-length state) 0)
   state)
 
 (defmethod reinitialize-instance ((state skein256/128) &rest initargs)
   (declare (ignore initargs))
-  (replace (skein256-value state) +skein256-iv-128+)
-  (replace (skein256-tweak state) (skein-make-tweak t nil +skein-msg+ 0))
-  (replace (skein256-cfg state) (skein-make-configuration-string 128))
-  (setf (skein256-buffer-length state) 0)
+  (replace (skein-value state) +skein256-iv-128+)
+  (replace (skein-tweak state) (skein-make-tweak t nil +skein-msg+ 0))
+  (replace (skein-cfg state) (skein-make-configuration-string 128))
+  (setf (skein-buffer-length state) 0)
   state)
 
 (defmethod reinitialize-instance ((state skein256/160) &rest initargs)
   (declare (ignore initargs))
-  (replace (skein256-value state) +skein256-iv-160+)
-  (replace (skein256-tweak state) (skein-make-tweak t nil +skein-msg+ 0))
-  (replace (skein256-cfg state) (skein-make-configuration-string 160))
-  (setf (skein256-buffer-length state) 0)
+  (replace (skein-value state) +skein256-iv-160+)
+  (replace (skein-tweak state) (skein-make-tweak t nil +skein-msg+ 0))
+  (replace (skein-cfg state) (skein-make-configuration-string 160))
+  (setf (skein-buffer-length state) 0)
   state)
 
 (defmethod reinitialize-instance ((state skein256/224) &rest initargs)
   (declare (ignore initargs))
-  (replace (skein256-value state) +skein256-iv-224+)
-  (replace (skein256-tweak state) (skein-make-tweak t nil +skein-msg+ 0))
-  (replace (skein256-cfg state) (skein-make-configuration-string 224))
-  (setf (skein256-buffer-length state) 0)
+  (replace (skein-value state) +skein256-iv-224+)
+  (replace (skein-tweak state) (skein-make-tweak t nil +skein-msg+ 0))
+  (replace (skein-cfg state) (skein-make-configuration-string 224))
+  (setf (skein-buffer-length state) 0)
   state)
 
 (defmethod copy-digest ((state skein256) &optional copy)
@@ -329,53 +373,185 @@
                     (skein256/224 (%make-skein256/224-digest))
                     (skein256 (%make-skein256-digest))))))
     (declare (type skein256 copy))
-    (replace (skein256-value copy) (skein256-value state))
-    (replace (skein256-tweak copy) (skein256-tweak state))
-    (replace (skein256-cfg copy) (skein256-cfg state))
-    (replace (skein256-buffer copy) (skein256-buffer state))
-    (setf (skein256-buffer-length copy) (skein256-buffer-length state))
+    (replace (skein-value copy) (skein-value state))
+    (replace (skein-tweak copy) (skein-tweak state))
+    (replace (skein-cfg copy) (skein-cfg state))
+    (replace (skein-buffer copy) (skein-buffer state))
+    (setf (skein-buffer-length copy) (skein-buffer-length state))
     copy))
 
 (define-digest-updater skein256
-  (skein-ubi state (subseq sequence start end))
-  state)
+  (skein-ubi state (subseq sequence start end)))
 
 (define-digest-finalizer ((skein256 32)
                           (skein256/224 28)
                           (skein256/160 20)
                           (skein256/128 16))
-  (let ((block-length (block-length state))
-        (digest-length (digest-length state))
-        padding)
-    ;; Process remaining data after padding it
-    (setf padding (make-array (- block-length (skein256-buffer-length state))
-                              :element-type '(unsigned-byte 8)
-                              :initial-element 0))
-    (skein-update-tweak (skein256-tweak state)
-                        :final t
-                        :position-increment (skein256-buffer-length state))
-    (skein-ubi state padding t)
-
-    ;; Generate output
-    (skein-update-tweak (skein256-tweak state)
-                        :first t
-                        :final t
-                        :type +skein-out+
-                        :position 8)
-    (skein-ubi state (integer-to-octets 0 :n-bits 256 :big-endian nil) t)
-
-    (let ((value (skein256-value state)))
-      (etypecase digest
-        ((simple-array (unsigned-byte 8) (*))
-         (progn
-           (replace digest value :start1 digest-start :end2 digest-length)
-           digest))
-        (cl:null
-         (make-array digest-length
-                     :element-type '(unsigned-byte 8)
-                     :initial-contents (subseq value 0 digest-length)))))))
+  (skein-finalize state digest digest-start))
 
 (defdigest skein256 :digest-length 32 :block-length 32)
 (defdigest skein256/128 :digest-length 16 :block-length 32)
 (defdigest skein256/160 :digest-length 20 :block-length 32)
 (defdigest skein256/224 :digest-length 28 :block-length 32)
+
+
+;;; Implementation for blocks of 512 bits
+
+(defstruct (skein512
+             (:constructor %make-skein512-digest nil)
+             (:copier nil))
+  (value (coerce +skein512-iv-512+ '(simple-array (unsigned-byte 8) (64)))
+         :type (simple-array (unsigned-byte 8) (64)))
+  (tweak (skein-make-tweak t nil +skein-msg+ 0)
+         :type (simple-array (unsigned-byte 8) (16)))
+  (cfg (skein-make-configuration-string 512)
+       :type (simple-array (unsigned-byte 8) (32)))
+  (buffer (make-array 64 :element-type '(unsigned-byte 8))
+          :type (simple-array (unsigned-byte 8) (64)))
+  (buffer-length 0 :type integer))
+
+(defstruct (skein512/128
+             (:include skein512)
+             (:constructor %make-skein512/128-digest
+                           (&aux (value (coerce +skein512-iv-128+
+                                                '(simple-array (unsigned-byte 8) (64))))
+                                 (cfg (skein-make-configuration-string 128))))
+             (:copier nil)))
+
+(defstruct (skein512/160
+             (:include skein512)
+             (:constructor %make-skein512/160-digest
+                           (&aux (value (coerce +skein512-iv-160+
+                                                '(simple-array (unsigned-byte 8) (64))))
+                                 (cfg (skein-make-configuration-string 160))))
+             (:copier nil)))
+
+(defstruct (skein512/224
+             (:include skein512)
+             (:constructor %make-skein512/224-digest
+                           (&aux (value (coerce +skein512-iv-224+
+                                                '(simple-array (unsigned-byte 8) (64))))
+                                 (cfg (skein-make-configuration-string 224))))
+             (:copier nil)))
+
+(defstruct (skein512/256
+             (:include skein512)
+             (:constructor %make-skein512/256-digest
+                           (&aux (value (coerce +skein512-iv-256+
+                                                '(simple-array (unsigned-byte 8) (64))))
+                                 (cfg (skein-make-configuration-string 256))))
+             (:copier nil)))
+
+(defstruct (skein512/384
+             (:include skein512)
+             (:constructor %make-skein512/384-digest
+                           (&aux (value (coerce +skein512-iv-384+
+                                                '(simple-array (unsigned-byte 8) (64))))
+                                 (cfg (skein-make-configuration-string 384))))
+             (:copier nil)))
+
+(defmethod skein-value ((state skein512))
+  (skein512-value state))
+
+(defmethod skein-tweak ((state skein512))
+  (skein512-tweak state))
+
+(defmethod skein-cfg ((state skein512))
+  (skein512-cfg state))
+
+(defmethod skein-buffer ((state skein512))
+  (skein512-buffer state))
+
+(defmethod skein-buffer-length ((state skein512))
+  (skein512-buffer-length state))
+
+(defmethod (setf skein-buffer-length) (n (state skein512))
+  (setf (skein512-buffer-length state) n))
+
+(defmethod skein-cipher ((state skein512))
+  :threefish512)
+
+(defmethod reinitialize-instance ((state skein512) &rest initargs)
+  (declare (ignore initargs))
+  (replace (skein-value state) +skein512-iv-512+)
+  (replace (skein-tweak state) (skein-make-tweak t nil +skein-msg+ 0))
+  (replace (skein-cfg state) (skein-make-configuration-string 512))
+  (setf (skein-buffer-length state) 0)
+  state)
+
+(defmethod reinitialize-instance ((state skein512/128) &rest initargs)
+  (declare (ignore initargs))
+  (replace (skein-value state) +skein512-iv-128+)
+  (replace (skein-tweak state) (skein-make-tweak t nil +skein-msg+ 0))
+  (replace (skein-cfg state) (skein-make-configuration-string 128))
+  (setf (skein-buffer-length state) 0)
+  state)
+
+(defmethod reinitialize-instance ((state skein512/160) &rest initargs)
+  (declare (ignore initargs))
+  (replace (skein-value state) +skein512-iv-160+)
+  (replace (skein-tweak state) (skein-make-tweak t nil +skein-msg+ 0))
+  (replace (skein-cfg state) (skein-make-configuration-string 160))
+  (setf (skein-buffer-length state) 0)
+  state)
+
+(defmethod reinitialize-instance ((state skein512/224) &rest initargs)
+  (declare (ignore initargs))
+  (replace (skein-value state) +skein512-iv-224+)
+  (replace (skein-tweak state) (skein-make-tweak t nil +skein-msg+ 0))
+  (replace (skein-cfg state) (skein-make-configuration-string 224))
+  (setf (skein-buffer-length state) 0)
+  state)
+
+(defmethod reinitialize-instance ((state skein512/256) &rest initargs)
+  (declare (ignore initargs))
+  (replace (skein-value state) +skein512-iv-256+)
+  (replace (skein-tweak state) (skein-make-tweak t nil +skein-msg+ 0))
+  (replace (skein-cfg state) (skein-make-configuration-string 256))
+  (setf (skein-buffer-length state) 0)
+  state)
+
+(defmethod reinitialize-instance ((state skein512/384) &rest initargs)
+  (declare (ignore initargs))
+  (replace (skein-value state) +skein512-iv-384+)
+  (replace (skein-tweak state) (skein-make-tweak t nil +skein-msg+ 0))
+  (replace (skein-cfg state) (skein-make-configuration-string 384))
+  (setf (skein-buffer-length state) 0)
+  state)
+
+(defmethod copy-digest ((state skein512) &optional copy)
+  (declare (type (or cl:null skein512) copy))
+  (let ((copy (if copy
+                  copy
+                  (etypecase state
+                    (skein512/128 (%make-skein512/128-digest))
+                    (skein512/160 (%make-skein512/160-digest))
+                    (skein512/224 (%make-skein512/224-digest))
+                    (skein512/256 (%make-skein512/256-digest))
+                    (skein512/384 (%make-skein512/384-digest))
+                    (skein512 (%make-skein512-digest))))))
+    (declare (type skein512 copy))
+    (replace (skein-value copy) (skein-value state))
+    (replace (skein-tweak copy) (skein-tweak state))
+    (replace (skein-cfg copy) (skein-cfg state))
+    (replace (skein-buffer copy) (skein-buffer state))
+    (setf (skein-buffer-length copy) (skein-buffer-length state))
+    copy))
+
+(define-digest-updater skein512
+  (skein-ubi state (subseq sequence start end)))
+
+(define-digest-finalizer ((skein512 64)
+                          (skein512/128 16)
+                          (skein512/160 20)
+                          (skein512/224 28)
+                          (skein512/256 32)
+                          (skein512/384 48))
+  (skein-finalize state digest digest-start))
+
+(defdigest skein512 :digest-length 64 :block-length 64)
+(defdigest skein512/128 :digest-length 16 :block-length 64)
+(defdigest skein512/160 :digest-length 20 :block-length 64)
+(defdigest skein512/224 :digest-length 28 :block-length 64)
+(defdigest skein512/256 :digest-length 32 :block-length 64)
+(defdigest skein512/384 :digest-length 48 :block-length 64)

@@ -86,7 +86,9 @@
   (:export #:whirlpool #:md2 #:md4 #:md5 #:adler32 #:crc24 #:crc32
            #:tiger #:sha1 #:sha224 #:sha256 #:sha384 #:sha512
            #:tree-hash #:make-tiger-tree-hash #:ripemd-128 #:ripemd-160
-           #:skein256 #:skein256/128 #:skein256/160 #:skein256/224)
+           #:skein256 #:skein256/128 #:skein256/160 #:skein256/224
+           #:skein512 #:skein512/128 #:skein512/160 #:skein512/224
+           #:skein512/256 #:skein512/384)
   ;; supported block ciphers
   (:export #:blowfish #:tea #:xtea #:square #:rc2 #:rc5 #:rc6 #:des #:3des
            #:aes #:twofish #:cast5 #:idea #:misty1 #:null
