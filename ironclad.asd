@@ -253,6 +253,9 @@
                                    (:test-vector-file "skein512-224")
                                    (:test-vector-file "skein512-256")
                                    (:test-vector-file "skein512-384")
+                                   (:test-vector-file "skein1024")
+                                   (:test-vector-file "skein1024-384")
+                                   (:test-vector-file "skein1024-512")
                                    ;; block ciphers of various kinds
                                    (:test-vector-file "null")
                                    (:test-vector-file "aes")
