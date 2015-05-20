@@ -11,7 +11,7 @@
 
 ;;; Functions common to all the block sizes
 
-(defun threefish-key-schedule (cipher key-data)
+(defun threefish-set-key (cipher key-data)
   (let* ((key-words (/ (block-length cipher) 8))
          (key (make-array (1+ key-words)
                           :element-type '(unsigned-byte 64)
@@ -32,6 +32,32 @@
     (setf (aref tweak 0) (ub64ref/le tweak-data 0)
           (aref tweak 1) (ub64ref/le tweak-data 8)
           (aref tweak 2) (logxor (aref tweak  0) (aref tweak 1)))))
+
+(defun threefish-update-cipher (cipher key-data tweak-data)
+  (declare (type (simple-array (unsigned-byte 8) (*)) key-data)
+           (type (simple-array (unsigned-byte 8) (16)) tweak-data)
+           #.(burn-baby-burn))
+  (let ((key (threefish-key cipher))
+        (tweak (threefish-tweak cipher))
+        (key-words (/ (block-length cipher) 8))
+        (parity +threefish-key-schedule-constant+)
+        (n 0))
+    (declare (type (simple-array (unsigned-byte 64) (*)) key)
+             (type (simple-array (unsigned-byte 64) (3)) key)
+             (type (unsigned-byte 64) parity n key-words))
+
+    ;; Update key
+    (dotimes (i key-words)
+      (setf n (ub64ref/le key-data (* 8 i))
+            (aref key i) n
+            parity (logxor parity n)))
+    (setf (aref key key-words) parity)
+
+    ;; Update tweak
+    (setf (aref tweak 0) (ub64ref/le tweak-data 0)
+          (aref tweak 1) (ub64ref/le tweak-data 8)
+          (aref tweak 2) (logxor (aref tweak  0) (aref tweak 1)))
+    (values)))
 
 
 ;;; Implementation for blocks of 256 bits
@@ -54,7 +80,7 @@
   cipher)
 
 (defmethod schedule-key ((cipher threefish256) key)
-  (threefish-key-schedule cipher key)
+  (threefish-set-key cipher key)
   cipher)
 
 (define-block-encryptor threefish256 32
@@ -68,7 +94,9 @@
          (t0 (aref tweak 0))
          (t1 (aref tweak 1))
          (t2 (aref tweak 2)))
-    (declare (type (unsigned-byte 64) k0 k1 k2 k3 k4 t0 t1 t2))
+    (declare (type (simple-array (unsigned-byte 64) (5)) key)
+             (type (simple-array (unsigned-byte 64) (3)) tweak)
+             (type (unsigned-byte 64) k0 k1 k2 k3 k4 t0 t1 t2))
     (with-words ((b0 b1 b2 b3) plaintext plaintext-start :big-endian nil :size 8)
       (setf b1 (mod64+ b1 (mod64+ k1 t0))
             b0 (mod64+ b0 (mod64+ b1 k0))
@@ -421,7 +449,9 @@
          (t0 (aref tweak 0))
          (t1 (aref tweak 1))
          (t2 (aref tweak 2)))
-    (declare (type (unsigned-byte 64) k0 k1 k2 k3 k4 t0 t1 t2))
+    (declare (type (simple-array (unsigned-byte 64) (5)) key)
+             (type (simple-array (unsigned-byte 64) (3)) tweak)
+             (type (unsigned-byte 64) k0 k1 k2 k3 k4 t0 t1 t2))
     (with-words ((b0 b1 b2 b3) ciphertext ciphertext-start :big-endian nil :size 8)
       (setf b0 (mod64- b0 k3)
             b1 (mod64- b1 (mod64+ k4 t0))
@@ -791,7 +821,7 @@
   cipher)
 
 (defmethod schedule-key ((cipher threefish512) key)
-  (threefish-key-schedule cipher key)
+  (threefish-set-key cipher key)
   cipher)
 
 (define-block-encryptor threefish512 64
@@ -809,7 +839,9 @@
          (t0 (aref tweak 0))
          (t1 (aref tweak 1))
          (t2 (aref tweak 2)))
-    (declare (type (unsigned-byte 64) k0 k1 k2 k3 k4 k5 k6 k7 k8 t0 t1 t2))
+    (declare (type (simple-array (unsigned-byte 64) (9)) key)
+             (type (simple-array (unsigned-byte 64) (3)) tweak)
+             (type (unsigned-byte 64) k0 k1 k2 k3 k4 k5 k6 k7 k8 t0 t1 t2))
     (with-words ((b0 b1 b2 b3 b4 b5 b6 b7) plaintext plaintext-start :big-endian nil :size 8)
       (setf b1 (mod64+ b1 k1)
             b0 (mod64+ b0 (mod64+ b1 k0))
@@ -1494,7 +1526,9 @@
          (t0 (aref tweak 0))
          (t1 (aref tweak 1))
          (t2 (aref tweak 2)))
-    (declare (type (unsigned-byte 64) k0 k1 k2 k3 k4 k5 k6 k7 k8 t0 t1 t2))
+    (declare (type (simple-array (unsigned-byte 64) (9)) key)
+             (type (simple-array (unsigned-byte 64) (3)) tweak)
+             (type (unsigned-byte 64) k0 k1 k2 k3 k4 k5 k6 k7 k8 t0 t1 t2))
     (with-words ((b0 b1 b2 b3 b4 b5 b6 b7) ciphertext ciphertext-start :big-endian nil :size 8)
       (setf b0 (mod64- b0 k0)
             b1 (mod64- b1 k1)
@@ -2192,7 +2226,7 @@
   cipher)
 
 (defmethod schedule-key ((cipher threefish1024) key)
-  (threefish-key-schedule cipher key)
+  (threefish-set-key cipher key)
   cipher)
 
 (define-block-encryptor threefish1024 128
@@ -2218,7 +2252,9 @@
          (t0 (aref tweak 0))
          (t1 (aref tweak 1))
          (t2 (aref tweak 2)))
-    (declare (type (unsigned-byte 64) k0 k1 k2 k3 k4 k5 k6 k7 k8 k9 k10 k11 k12 k13 k14 k15 k16 t0 t1 t2))
+    (declare (type (simple-array (unsigned-byte 64) (17)) key)
+             (type (simple-array (unsigned-byte 64) (3)) tweak)
+             (type (unsigned-byte 64) k0 k1 k2 k3 k4 k5 k6 k7 k8 k9 k10 k11 k12 k13 k14 k15 k16 t0 t1 t2))
     (with-words ((b0 b1 b2 b3 b4 b5 b6 b7 b8 b9 b10 b11 b12 b13 b14 b15) plaintext plaintext-start :big-endian nil :size 8)
       (setf b1 (mod64+ b1 k1)
             b0 (mod64+ b0 (mod64+ b1 k0))
@@ -3712,7 +3748,9 @@
          (t0 (aref tweak 0))
          (t1 (aref tweak 1))
          (t2 (aref tweak 2)))
-    (declare (type (unsigned-byte 64) k0 k1 k2 k3 k4 k5 k6 k7 k8 k9 k10 k11 k12 k13 k14 k15 k16 t0 t1 t2))
+    (declare (type (simple-array (unsigned-byte 64) (17)) key)
+             (type (simple-array (unsigned-byte 64) (3)) tweak)
+             (type (unsigned-byte 64) k0 k1 k2 k3 k4 k5 k6 k7 k8 k9 k10 k11 k12 k13 k14 k15 k16 t0 t1 t2))
     (with-words ((b0 b1 b2 b3 b4 b5 b6 b7 b8 b9 b10 b11 b12 b13 b14 b15) ciphertext ciphertext-start :big-endian nil :size 8)
       (setf b0 (mod64- b0 k3)
             b1 (mod64- b1 k4)
