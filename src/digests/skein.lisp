@@ -164,20 +164,19 @@
 
 ;;; Functions to generate and update the tweak
 
+;;; This function is called a lot by skein-ubi,
+;;; so we try to optimize it for speed.
 (defun skein-increment-counter (tweak n)
   (declare (type (simple-array (unsigned-byte 8) (16)) tweak)
-           (type integer n)
+           (type (unsigned-byte 96) n)
            #.(burn-baby-burn))
-  (let ((carry n)
-        (sum 0))
-    (declare (type integer carry sum))
-    (loop
-       for i of-type fixnum from 0 below 12
-       until (zerop carry)
-       do (setf sum (+ (aref tweak i) carry)
-                (aref tweak i) (ldb (byte 8 0) sum)
-                carry (ash sum -8)))
-    (values)))
+  (setf n (+ (ub64ref/le tweak 0) n)
+        (ub64ref/le tweak 0) (ldb (byte 64 0) n)
+        n (ldb (byte 32 64) n))
+  (unless (zerop n)
+    (setf n (+ (ub32ref/le tweak 8) n)
+          (ub32ref/le tweak 8) (ldb (byte 32 0) n)))
+  (values))
 
 (defun skein-update-tweak (tweak &key
                                    (first nil first-p)
@@ -236,6 +235,8 @@
            (type integer start end)
            #.(burn-baby-burn))
   (let* ((cipher (skein-cipher state))
+         (cipher-key (threefish-key cipher))
+         (cipher-tweak (threefish-tweak cipher))
          (block-length (block-length state))
          (value (skein-value state))
          (tweak (skein-tweak state))
@@ -247,9 +248,12 @@
                                  :element-type '(unsigned-byte 8)
                                  :initial-element 0))
          (n 0))
-    (declare (type (simple-array (unsigned-byte 8) (*)) value buffer ciphertext)
+    (declare (type (simple-array (unsigned-byte 64) (*)) cipher-key)
+             (type (simple-array (unsigned-byte 64) (3)) cipher-tweak)
+             (type (simple-array (unsigned-byte 8) (*)) value buffer ciphertext)
              (type (simple-array (unsigned-byte 8) (16)) tweak)
-             (type integer block-length buffer-length message-start message-length n))
+             (type fixnum block-length buffer-length n)
+             (type integer message-start message-length))
 
     ;; Try to fill the buffer with the new data
     (setf n (min message-length (- block-length buffer-length)))
@@ -270,7 +274,7 @@
                (or final (plusp message-length)))
       (unless final
         (skein-increment-counter tweak block-length))
-      (threefish-update-cipher cipher value tweak)
+      (threefish-update-cipher block-length cipher-key cipher-tweak value tweak)
       (encrypt cipher buffer ciphertext)
       (skein-update-tweak tweak :first nil)
       (xor-block block-length ciphertext buffer 0 value 0)
@@ -278,10 +282,9 @@
 
     ;; Process data in message
     (unless final
-      (do ()
-          ((<= message-length block-length))
+      (loop until (<= message-length block-length) do
         (skein-increment-counter tweak block-length)
-        (threefish-update-cipher cipher value tweak)
+        (threefish-update-cipher block-length cipher-key cipher-tweak value tweak)
         (encrypt cipher message ciphertext
                  :plaintext-start message-start
                  :plaintext-end (+ message-start block-length))
