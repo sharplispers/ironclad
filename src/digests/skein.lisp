@@ -167,16 +167,21 @@
 ;;; This function is called a lot by skein-ubi,
 ;;; so we try to optimize it for speed.
 (defun skein-increment-counter (tweak n)
-  (declare (type (simple-array (unsigned-byte 8) (16)) tweak)
-           (type (unsigned-byte 96) n)
+  (declare (type (simple-array (unsigned-byte 64) (2)) tweak)
+           (type (unsigned-byte 64) n)
            #.(burn-baby-burn))
-  (setf n (+ (ub64ref/le tweak 0) n)
-        (ub64ref/le tweak 0) (ldb (byte 64 0) n)
-        n (ldb (byte 32 64) n))
-  (unless (zerop n)
-    (setf n (+ (ub32ref/le tweak 8) n)
-          (ub32ref/le tweak 8) (ldb (byte 32 0) n)))
-  (values))
+  (let ((x (ldb (byte 32 0) (aref tweak 0)))
+        (y (ldb (byte 32 32) (aref tweak 0)))
+        (z (ldb (byte 32 0) (aref tweak 1))))
+    (declare (type (unsigned-byte 64) x y z))
+    (setf x (mod64+ x n)
+          y (mod64+ y (ldb (byte 32 32) x))
+          z (mod64+ z (ldb (byte 32 32) y)))
+    (setf (ldb (byte 32 0) (aref tweak 0)) (ldb (byte 32 0) x)
+          (ldb (byte 32 32) (aref tweak 0)) (ldb (byte 32 0) y))
+    (setf (ldb (byte 0 32) (aref tweak 1)) (ldb (byte 32 0) z))
+    (values)))
+
 
 (defun skein-update-tweak (tweak &key
                                    (first nil first-p)
@@ -185,22 +190,21 @@
                                    (position nil position-p)
                                    (position-increment nil position-increment-p))
   (when first-p
-    (setf (ldb (byte 1 6) (aref tweak 15)) (if first 1 0)))
+    (setf (ldb (byte 1 62) (aref tweak 1)) (if first 1 0)))
   (when final-p
-    (setf (ldb (byte 1 7) (aref tweak 15)) (if final 1 0)))
+    (setf (ldb (byte 1 63) (aref tweak 1)) (if final 1 0)))
   (when type-p
-    (setf (ldb (byte 6 0) (aref tweak 15)) type))
+    (setf (ldb (byte 6 56) (aref tweak 1)) type))
   (when position-p
-    (replace tweak
-             (integer-to-octets position :n-bits 96 :big-endian nil)
-             :end2 12))
+    (setf (aref tweak 0) (ldb (byte 64 0) position))
+    (setf (ldb (byte 32 0) (aref tweak 1)) (ldb (byte 32 64) position)))
   (when position-increment-p
     (skein-increment-counter tweak position-increment))
   (values))
 
 (defun skein-make-tweak (first final type position)
-  (let ((tweak (make-array 16
-                           :element-type '(unsigned-byte 8)
+  (let ((tweak (make-array 2
+                           :element-type '(unsigned-byte 64)
                            :initial-element 0)))
     (skein-update-tweak tweak
                         :first first
@@ -230,6 +234,33 @@
 (defgeneric skein-buffer-length (state))
 (defgeneric skein-cipher (state))
 
+;;; This function is called a lot by skein-ubi,
+;;; so we try to optimize it for speed.
+(defun skein-update-cipher (block-length cipher-key cipher-tweak key tweak)
+  (declare (type fixnum block-length)
+           (type (simple-array (unsigned-byte 64) (*)) cipher-key)
+           (type (simple-array (unsigned-byte 64) (3)) cipher-tweak)
+           (type (simple-array (unsigned-byte 8) (*)) key)
+           (type (simple-array (unsigned-byte 64) (2)) tweak)
+           #.(burn-baby-burn))
+  (let ((key-words (ash block-length -3))
+        (parity +threefish-key-schedule-constant+)
+        (n 0))
+    (declare (type (unsigned-byte 64) parity n key-words))
+
+    ;; Update key
+    (loop for i of-type fixnum from 0 below key-words do
+      (setf n (ub64ref/le key (ash i 3))
+            (aref cipher-key i) n
+            parity (logxor parity n)))
+    (setf (aref cipher-key key-words) parity)
+
+    ;; Update tweak
+    (setf (aref cipher-tweak 0) (aref tweak 0)
+          (aref cipher-tweak 1) (aref tweak 1)
+          (aref cipher-tweak 2) (logxor (aref tweak 0) (aref tweak 1)))
+    (values)))
+
 (defun skein-ubi (state message start end &optional final)
   (declare (type (simple-array (unsigned-byte 8) (*)) message)
            (type integer start end)
@@ -251,7 +282,7 @@
     (declare (type (simple-array (unsigned-byte 64) (*)) cipher-key)
              (type (simple-array (unsigned-byte 64) (3)) cipher-tweak)
              (type (simple-array (unsigned-byte 8) (*)) value buffer ciphertext)
-             (type (simple-array (unsigned-byte 8) (16)) tweak)
+             (type (simple-array (unsigned-byte 64) (2)) tweak)
              (type fixnum block-length buffer-length n)
              (type integer message-start message-length))
 
@@ -274,7 +305,7 @@
                (or final (plusp message-length)))
       (unless final
         (skein-increment-counter tweak block-length))
-      (threefish-update-cipher block-length cipher-key cipher-tweak value tweak)
+      (skein-update-cipher block-length cipher-key cipher-tweak value tweak)
       (encrypt cipher buffer ciphertext)
       (skein-update-tweak tweak :first nil)
       (xor-block block-length ciphertext buffer 0 value 0)
@@ -284,7 +315,7 @@
     (unless final
       (loop until (<= message-length block-length) do
         (skein-increment-counter tweak block-length)
-        (threefish-update-cipher block-length cipher-key cipher-tweak value tweak)
+        (skein-update-cipher block-length cipher-key cipher-tweak value tweak)
         (encrypt cipher message ciphertext
                  :plaintext-start message-start
                  :plaintext-end (+ message-start block-length))
@@ -343,7 +374,7 @@
   (value (copy-seq (skein-get-iv 256 256))
          :type (simple-array (unsigned-byte 8) (32)))
   (tweak (skein-make-tweak t nil +skein-msg+ 0)
-         :type (simple-array (unsigned-byte 8) (16)))
+         :type (simple-array (unsigned-byte 64) (2)))
   (cfg (skein-make-configuration-string 256)
        :type (simple-array (unsigned-byte 8) (32)))
   (buffer (make-array 32 :element-type '(unsigned-byte 8))
@@ -492,7 +523,7 @@
   (value (copy-seq (skein-get-iv 512 512))
          :type (simple-array (unsigned-byte 8) (64)))
   (tweak (skein-make-tweak t nil +skein-msg+ 0)
-         :type (simple-array (unsigned-byte 8) (16)))
+         :type (simple-array (unsigned-byte 64) (2)))
   (cfg (skein-make-configuration-string 512)
        :type (simple-array (unsigned-byte 8) (32)))
   (buffer (make-array 64 :element-type '(unsigned-byte 8))
@@ -689,7 +720,7 @@
   (value (copy-seq (skein-get-iv 1024 1024))
          :type (simple-array (unsigned-byte 8) (128)))
   (tweak (skein-make-tweak t nil +skein-msg+ 0)
-         :type (simple-array (unsigned-byte 8) (16)))
+         :type (simple-array (unsigned-byte 64) (2)))
   (cfg (skein-make-configuration-string 1024)
        :type (simple-array (unsigned-byte 8) (32)))
   (buffer (make-array 128 :element-type '(unsigned-byte 8))

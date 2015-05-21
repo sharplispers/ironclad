@@ -33,33 +33,6 @@
           (aref tweak 1) (ub64ref/le tweak-data 8)
           (aref tweak 2) (logxor (aref tweak  0) (aref tweak 1)))))
 
-;;; This function is called a lot by skein-ubi,
-;;; so we try to optimize it for speed.
-(defun threefish-update-cipher (block-length key tweak key-data tweak-data)
-  (declare (type fixnum block-length)
-           (type (simple-array (unsigned-byte 64) (*)) key)
-           (type (simple-array (unsigned-byte 64) (3)) tweak)
-           (type (simple-array (unsigned-byte 8) (*)) key-data)
-           (type (simple-array (unsigned-byte 8) (16)) tweak-data)
-           #.(burn-baby-burn))
-  (let ((key-words (ash block-length -3))
-        (parity +threefish-key-schedule-constant+)
-        (n 0))
-    (declare (type (unsigned-byte 64) parity n key-words))
-
-    ;; Update key
-    (loop for i of-type fixnum from 0 below key-words do
-      (setf n (ub64ref/le key-data (ash i 3))
-            (aref key i) n
-            parity (logxor parity n)))
-    (setf (aref key key-words) parity)
-
-    ;; Update tweak
-    (setf (aref tweak 0) (ub64ref/le tweak-data 0)
-          (aref tweak 1) (ub64ref/le tweak-data 8)
-          (aref tweak 2) (logxor (aref tweak 0) (aref tweak 1)))
-    (values)))
-
 
 ;;; Implementation for blocks of 256 bits
 
