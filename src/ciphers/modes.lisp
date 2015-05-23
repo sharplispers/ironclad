@@ -74,13 +74,16 @@ from OUT.  Note that for some cipher modes, IN and OUT may be different."))
     encrypted-message))
 
 (defun increment-counter-block (block)
+  (declare (type simple-octet-vector block))
   (let ((length (length block))
         (carry 1))
-    (loop for i from (1- length) downto 0
+    (declare (type fixnum length)
+             (type (unsigned-byte 16) carry))
+    (loop for i of-type fixnum from (1- length) downto 0
+          for sum of-type (unsigned-byte 16) = (+ (aref block i) carry)
           until (zerop carry) do
-          (let ((sum (+ (aref block i) carry)))
-            (setf (aref block i) (ldb (byte 8 0) sum)
-                  carry (ldb (byte 1 8) sum))))
+          (setf (aref block i) (ldb (byte 8 0) sum)
+                carry (ldb (byte 1 8) sum)))
     (values)))
 
 ;;; Only really works on big-endian processors...
