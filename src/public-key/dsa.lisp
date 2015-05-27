@@ -57,7 +57,7 @@
                   ((<= num-bits 7680) 384)
                   ((<= num-bits 15360) 512)
                   (t (error "This DSA key is too big"))))
-         (q (generate-prime n prng))
+         (q (generate-safe-prime n prng))
          (p (loop
                for z = (logior (ash 1 (- num-bits n 1))
                                (random-bits (- num-bits n) prng))

@@ -36,8 +36,8 @@
          (l (floor num-bits 2))
          p q n)
     (loop
-       for a = (generate-prime (- num-bits l) prng)
-       for b = (generate-prime l prng)
+       for a = (generate-safe-prime (- num-bits l) prng)
+       for b = (generate-safe-prime l prng)
        for c = (* a b)
        until (and (/= a b) (= num-bits (integer-length c)))
        finally (setf p a
