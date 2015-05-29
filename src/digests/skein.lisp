@@ -346,24 +346,43 @@
     (skein-ubi state padding 0 padding-length t)
 
     ;; Generate output
-    (skein-update-tweak tweak :first t :final t :type +skein-out+ :position 8)
-    (skein-ubi state (make-array block-length
-                                 :element-type '(unsigned-byte 8)
-                                 :initial-element 0)
-               0
-               block-length
-               t)
+    (do* ((value (copy-seq (skein-value state)))
+          (noutputs (ceiling digest-length block-length))
+          (output (make-array (* noutputs block-length)
+                              :element-type '(unsigned-byte 8)))
+          (i 0 (1+ i))
+          (msg (make-array block-length
+                           :element-type '(unsigned-byte 8)
+                           :initial-element 0)))
+         ((= i noutputs)
+          (etypecase digest
+            ((simple-array (unsigned-byte 8) (*))
+             (progn
+               (replace digest output :start1 digest-start :end2 digest-length)
+               digest))
+            (cl:null
+             (make-array digest-length
+                         :element-type '(unsigned-byte 8)
+                         :initial-contents (subseq output 0 digest-length)))))
+      (replace msg (integer-to-octets i :n-bits 64 :big-endian nil) :end2 8)
+      (replace (skein-value state) value)
+      (skein-update-tweak tweak :first t :final t :type +skein-out+ :position 8)
+      (skein-ubi state msg 0 block-length t)
+      (replace output (skein-value state) :start1 (* i block-length) :end2 block-length))))
 
-    (let ((value (skein-value state)))
-      (etypecase digest
-        ((simple-array (unsigned-byte 8) (*))
-         (progn
-           (replace digest value :start1 digest-start :end2 digest-length)
-           digest))
-        (cl:null
-         (make-array digest-length
-                     :element-type '(unsigned-byte 8)
-                     :initial-contents (subseq value 0 digest-length)))))))
+(defun skein-copy-cipher (cipher &optional copy)
+  (let* ((tmp-key (make-array (block-length cipher)
+                              :element-type '(unsigned-byte 8)))
+         (cipher-name (ecase (block-length cipher)
+                        (32 :threefish256)
+                        (64 :threefish512)
+                        (128 :threefish1024)))
+         (copy (if copy copy (make-cipher cipher-name
+                                          :key tmp-key
+                                          :mode :ecb))))
+    (setf (threefish-key copy) (copy-seq (threefish-key cipher)))
+    (setf (threefish-tweak copy) (copy-seq (threefish-tweak cipher)))
+    copy))
 
 
 ;;; Implementation for blocks of 256 bits
@@ -497,7 +516,7 @@
     (replace (skein-cfg copy) (skein-cfg state))
     (replace (skein-buffer copy) (skein-buffer state))
     (setf (skein-buffer-length copy) (skein-buffer-length state))
-    (setf (skein-cipher copy) (skein-cipher state))
+    (setf (skein-cipher copy) (skein-copy-cipher (skein-cipher state)))
     copy))
 
 (define-digest-updater skein256
@@ -690,7 +709,7 @@
     (replace (skein-cfg copy) (skein-cfg state))
     (replace (skein-buffer copy) (skein-buffer state))
     (setf (skein-buffer-length copy) (skein-buffer-length state))
-    (setf (skein-cipher copy) (skein-cipher state))
+    (setf (skein-cipher copy) (skein-copy-cipher (skein-cipher state)))
     copy))
 
 (define-digest-updater skein512
@@ -821,7 +840,7 @@
     (replace (skein-cfg copy) (skein-cfg state))
     (replace (skein-buffer copy) (skein-buffer state))
     (setf (skein-buffer-length copy) (skein-buffer-length state))
-    (setf (skein-cipher copy) (skein-cipher state))
+    (setf (skein-cipher copy) (skein-copy-cipher (skein-cipher state)))
     copy))
 
 (define-digest-updater skein1024

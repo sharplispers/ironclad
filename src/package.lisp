@@ -19,6 +19,8 @@
    #:make-hmac #:update-hmac #:hmac-digest
    ;; CMACs
    #:make-cmac #:update-cmac #:cmac-digest
+   ;; Skein-MAC
+   #:make-skein-mac #:update-skein-mac #:skein-mac-digest
 
    ;; introspection
    #:cipher-supported-p #:list-all-ciphers

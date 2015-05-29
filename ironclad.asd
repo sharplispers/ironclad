@@ -106,7 +106,8 @@
                                   :depends-on ("common" "digests")
                                   :components
                                   ((:file "hmac")
-                                   (:file "cmac")))
+                                   (:file "cmac")
+                                   (:file "skein-mac")))
                          (:module "public-key"
                                   :depends-on ("package")
                                   :components
@@ -256,6 +257,7 @@
                                    (:test-vector-file "skein1024")
                                    (:test-vector-file "skein1024-384")
                                    (:test-vector-file "skein1024-512")
+                                   (:test-vector-file "skein-mac")
                                    ;; block ciphers of various kinds
                                    (:test-vector-file "null")
                                    (:test-vector-file "aes")

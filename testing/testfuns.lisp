@@ -231,9 +231,29 @@
       (error "CMAC/~A failed on key ~A, input ~A, output ~A"
              cipher-name key data expected-digest))))
 
+(defun skein-mac-test (name block-length digest-length key data expected-digest)
+  (declare (ignore name))
+  (let ((mac (ironclad:make-skein-mac key
+                                      :block-length block-length
+                                      :digest-length digest-length)))
+    (ironclad:update-skein-mac mac data)
+    (when (mismatch expected-digest (ironclad:skein-mac-digest mac))
+      (error "SKEIN-MAC(~A/~A) failed on key ~A, input ~A, output ~A"
+             block-length digest-length key data expected-digest))
+    (loop
+       initially (reinitialize-instance mac :key key)
+       for i from 0 below (length data)
+       do (progn
+            (ironclad:update-skein-mac mac data :start i :end (1+ i))
+            (ironclad:skein-mac-digest mac))
+       finally (when (mismatch expected-digest (ironclad:skein-mac-digest mac))
+                 (error "progressive SKEIN-MAC(~A/~A) failed on key ~A, input ~A, output ~A"
+                        block-length digest-length key data expected-digest)))))
+
 (defparameter *mac-tests*
   (list (cons :hmac-test 'hmac-test)
-        (cons :cmac-test 'cmac-test)))
+        (cons :cmac-test 'cmac-test)
+        (cons :skein-mac-test 'skein-mac-test)))
 
 
 ;;; PRNG testing routines
