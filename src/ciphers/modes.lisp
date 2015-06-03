@@ -98,7 +98,7 @@ from OUT.  Note that for some cipher modes, IN and OUT may be different."))
               (sb-bignum:%add-with-carry word 0 carry))
             (setf (sb-kernel:%vector-raw-bits block i) word)))
     (values)))
-          
+
 ;;; This way is kind of ugly, but I don't know a better way.
 (macrolet ((define-mode-function (&rest mode-definition-funs &environment env)
              (loop for fun in mode-definition-funs
@@ -337,17 +337,49 @@ from OUT.  Note that for some cipher modes, IN and OUT may be different."))
                   (flet ((ctr-crypt-function (function)
                            (declare (type function function))
                            (mode-lambda
-                            (loop for i of-type index from in-start below in-end
-                                  for j of-type index from out-start
-                                  do (when (zerop iv-position)
-                                       (funcall function cipher iv 0 encrypted-iv 0)
-                                       (increment-counter-block iv))
-                                     (setf (aref out j) (logxor (aref in i)
-                                                                (aref encrypted-iv iv-position)))
-                                     (setf iv-position (mod (1+ iv-position) ,block-length-expr))
-                                  finally (return
-                                            (let ((n-bytes-processed (- in-end in-start)))
-                                              (values n-bytes-processed n-bytes-processed)))))))
+                            (let ((remaining (- in-end in-start))
+                                  (processed 0))
+                              (declare (type index remaining processed))
+
+                              ;; Use remaining bytes in encrypted-iv
+                              (loop until (or (zerop remaining) (zerop iv-position))
+                                    do (setf (aref out (+ out-start processed))
+                                             (logxor (aref in (+ in-start processed))
+                                                     (aref encrypted-iv iv-position)))
+                                       (if (= iv-position (1- ,block-length-expr))
+                                           (setf iv-position 0)
+                                           (incf iv-position))
+                                       (incf processed)
+                                       (decf remaining))
+
+                              ;; Process data by block
+                              (loop until (< remaining ,block-length-expr)
+                                    do (funcall function cipher iv 0 encrypted-iv 0)
+                                       (increment-counter-block iv)
+                                       (xor-block ,block-length-expr
+                                                  encrypted-iv
+                                                  in
+                                                  (+ in-start processed)
+                                                  out
+                                                  (+ out-start processed))
+                                       (incf processed ,block-length-expr)
+                                       (decf remaining ,block-length-expr))
+
+                              ;; Process remaing bytes of data
+                              (loop until (zerop remaining)
+                                    do (when (zerop iv-position)
+                                         (funcall function cipher iv 0 encrypted-iv 0)
+                                         (increment-counter-block iv))
+                                       (setf (aref out (+ out-start processed))
+                                             (logxor (aref in (+ in-start processed))
+                                                     (aref encrypted-iv iv-position)))
+                                       (if (= iv-position (1- ,block-length-expr))
+                                           (setf iv-position 0)
+                                           (incf iv-position))
+                                       (incf processed)
+                                       (decf remaining))
+
+                              (values processed processed)))))
                     (let ((f (ctr-crypt-function (encrypt-function cipher))))
                       (values f f))))))
            (message-length (cipher-specializer block-length-expr)
