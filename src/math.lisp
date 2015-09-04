@@ -45,16 +45,53 @@ denominator."
                            0
                            inverse)))))
 
-;;; direct from CLiki
 (defun expt-mod (n exponent modulus)
-  "As (mod (expt n exponent) modulus), but more efficient."
+  "As (mod (expt n exponent) modulus), but more efficient (2^k-ary method)."
   (declare (optimize (speed 3) (safety 0) (space 0) (debug 0)))
-  (loop with result = 1
-        for i of-type fixnum from 0 below (integer-length exponent)
-        for sqr = n then (mod (* sqr sqr) modulus)
-        when (logbitp i exponent) do
-        (setf result (mod (* result sqr) modulus))
-        finally (return result)))
+  (assert (>= exponent 0))
+  (assert (> modulus 1))
+  (let* ((result 1)
+
+         ;; Choose the optimal value for k
+         (l (integer-length exponent))
+         (k (cond ((< l 9) 1)
+                  ((< l 25) 2)
+                  ((< l 70) 3)
+                  ((< l 197) 4)
+                  ((< l 539) 5)
+                  ((< l 1434) 6)
+                  ((< l 3715) 7)
+                  ((< l 9400) 8)
+                  ((< l 23291) 9)
+                  ((< l 56652) 10)
+                  ((< l 135599) 11)
+                  ((< l 320035) 12)
+                  ((< l 746156) 13)
+                  ((< l 1721161) 14)
+                  ((< l 3933181) 15)
+                  (t 16)))
+
+         ;; Compute the digits of the exponent in base 2^k
+         (base (expt 2 k))
+         (digits (do ((q exponent)
+                      r
+                      digits)
+                     ((zerop q) digits)
+                   (multiple-value-setq (q r) (floor q base))
+                   (push r digits)))
+
+         (powers (make-array base :element-type 'integer :initial-element 1)))
+
+    ;; Precompute the powers of n
+    (dotimes (i (1- base))
+      (setf (aref powers (1+ i)) (mod (* (aref powers i) n) modulus)))
+
+    ;; Compute the result
+    (dolist (digit digits result)
+      (dotimes (i k)
+        (setf result (mod (* result result) modulus)))
+      (unless (zerop digit)
+        (setf result (mod (* result (aref powers digit)) modulus))))))
 
 
 ;;; prime numbers utilities
