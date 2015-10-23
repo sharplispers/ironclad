@@ -38,12 +38,12 @@
 
 (defclass threefish256 (cipher 32-byte-block-mixin)
   ((key :accessor threefish-key
-        :type '(simple-array (unsigned-byte 64) (5)))
+        :type (simple-array (unsigned-byte 64) (5)))
    (tweak :accessor threefish-tweak
           :initform (make-array 3
                                 :element-type '(unsigned-byte 64)
                                 :initial-contents '(0 0 0))
-          :type '(simple-array (unsigned-byte 64) (3)))))
+          :type (simple-array (unsigned-byte 64) (3)))))
 
 (defmethod shared-initialize :after ((cipher threefish256) slot-names
                                      &rest initargs
@@ -779,12 +779,12 @@
 
 (defclass threefish512 (cipher 64-byte-block-mixin)
   ((key :accessor threefish-key
-        :type '(simple-array (unsigned-byte 64) (9)))
+        :type (simple-array (unsigned-byte 64) (9)))
    (tweak :accessor threefish-tweak
           :initform (make-array 3
                                 :element-type '(unsigned-byte 64)
                                 :initial-contents '(0 0 0))
-          :type '(simple-array (unsigned-byte 64) (3)))))
+          :type (simple-array (unsigned-byte 64) (3)))))
 
 (defmethod shared-initialize :after ((cipher threefish512) slot-names
                                      &rest initargs
@@ -2184,12 +2184,12 @@
 
 (defclass threefish1024 (cipher 128-byte-block-mixin)
   ((key :accessor threefish-key
-        :type '(simple-array (unsigned-byte 64) (17)))
+        :type (simple-array (unsigned-byte 64) (17)))
    (tweak :accessor threefish-tweak
           :initform (make-array 3
                                 :element-type '(unsigned-byte 64)
                                 :initial-contents '(0 0 0))
-          :type '(simple-array (unsigned-byte 64) (3)))))
+          :type (simple-array (unsigned-byte 64) (3)))))
 
 (defmethod shared-initialize :after ((cipher threefish1024) slot-names
                                      &rest initargs
