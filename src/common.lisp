@@ -319,7 +319,8 @@ OFFSET into the given (UNSIGNED-BYTE 32) BLOCK."
         for j of-type (integer 0 #.array-dimension-limit)
         from offset to (+ offset 63) by 4
         do
-        (setf (aref block i) (nibbles:ub32ref/le buffer j))))
+        (setf (aref block i) (nibbles:ub32ref/le buffer j)))
+  (values))
 
 (defun fill-block-ub8-be (block buffer offset)
   "Convert a complete 64 (unsigned-byte 8) input vector segment
@@ -366,7 +367,8 @@ behavior."
   (loop for i of-type (integer 0 8) from 0
         for j of-type (integer 0 #.array-dimension-limit)
         from offset to (+ offset 63) by 8
-        do (setf (aref block i) (nibbles:ub64ref/le buffer j))))
+        do (setf (aref block i) (nibbles:ub64ref/le buffer j)))
+  (values))
 
 (defun fill-block-ub8-be/64 (block buffer offset)
   "Convert a complete 128 (unsigned-byte 8) input vector segment
@@ -390,7 +392,8 @@ behavior."
   (loop for i of-type (integer 0 16) from 0
         for j of-type (integer 0 #.array-dimension-limit)
         from offset to (+ offset 127) by 8
-        do (setf (aref block i) (nibbles:ub64ref/be buffer j))))
+        do (setf (aref block i) (nibbles:ub64ref/be buffer j)))
+  (values))
 
 (declaim (notinline xor-block))
 (defun xor-block (block-length input-block1 input-block2 input-block2-start
