@@ -115,7 +115,8 @@
                                    (:file "dsa" :depends-on ("public-key"))
                                    (:file "elgamal" :depends-on ("public-key"))
                                    (:file "rsa" :depends-on ("public-key"))
-                                   (:file "oaep" :depends-on ("public-key"))))
+                                   (:file "oaep" :depends-on ("public-key"))
+                                   (:file "ed25519" :depends-on ("public-key"))))
                          (:module "prng"
                                   :depends-on ("digests" "ciphers")
                                   :components
