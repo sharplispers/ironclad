@@ -22,9 +22,10 @@ the specified keyword arguments."))
   (:documentation "Return a private key of KIND, initialized according to
 the specified keyword arguments."))
 
-(defgeneric generate-new-key-pair (kind num-bits &key &allow-other-keys)
-  (:documentation "Generate a new NUM-BITS-bit key pair. The first returned
-value is the secret key, the second value is the public key."))
+(defgeneric generate-key-pair (kind &key num-bits &allow-other-keys)
+  (:documentation "Generate a new key pair. The first returned
+value is the secret key, the second value is the public key.
+If KIND is :RSA, :ELGAMAL or :DSA, NUM-BITS must be specified."))
 
 (defgeneric sign-message (key message &key start end)
   (:documentation "Produce a key-specific signature of MESSAGE; MESSAGE is a
@@ -53,7 +54,7 @@ of the message.  Returns a fresh octet vector."))
         (if n-bits
             (truncate n-bits 8)
             (values (- end start) 0))
-      (declare (ignorable complete-bytes extra-bits))
+      (declare (ignorable complete-bytes extra-bits)) ;; TODO: don't ignore the n-bits parameter
       (if big-endian
           (do ((j start (1+ j))
                (sum 0))

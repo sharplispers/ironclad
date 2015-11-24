@@ -20,9 +20,9 @@
   ((c1 :initarg :c1 :reader elgamal-ciphertext-c1)
    (c2 :initarg :c2 :reader elgamal-ciphertext-c2)))
 
-(defclass elgamal-signature ()
-  ((r :initarg :r :reader elgamal-signature-r)
-   (s :initarg :s :reader elgamal-signature-s)))
+;; (defclass elgamal-signature ()
+;;   ((r :initarg :r :reader elgamal-signature-r)
+;;    (s :initarg :s :reader elgamal-signature-s)))
 
 (defun elgamal-key-p (elgamal-key)
   (group-pval (group elgamal-key)))
@@ -49,8 +49,7 @@
   (let ((group (make-instance 'discrete-logarithm-group :p p :g g)))
     (make-instance 'elgamal-private-key :group group :y y :x x)))
 
-(defmethod generate-new-key-pair ((kind (eql :elgamal)) num-bits
-                                  &key &allow-other-keys)
+(defmethod generate-key-pair ((kind (eql :elgamal)) &key num-bits &allow-other-keys)
   (let* ((prng (or *prng* (make-prng :fortuna :seed :random)))
          (p (generate-safe-prime num-bits prng))
          (g (find-generator p prng))
@@ -64,10 +63,10 @@
                  :c1 (maybe-integerize c1)
                  :c2 (maybe-integerize c2)))
 
-(defun make-elgamal-signature (r s)
-  (make-instance 'elgamal-signature
-                 :r (maybe-integerize r)
-                 :s (maybe-integerize s)))
+;; (defun make-elgamal-signature (r s)
+;;   (make-instance 'elgamal-signature
+;;                  :r (maybe-integerize r)
+;;                  :s (maybe-integerize s)))
 
 (defun elgamal-generate-k (p)
   "Generate a random number K so that 0 < K < P - 1, and K is relatively prime to P - 1."
@@ -102,6 +101,7 @@
                                      :y (elgamal-key-y key))))
     (encrypt-message public-key msg :start start :end end)))
 
+;; TODO: integer-to-octets as big endian or little endian?
 (defmethod encrypt-message ((key elgamal-public-key) msg &key (start 0) end)
   (let ((m (octets-to-integer msg :start start :end end))
         (p (elgamal-key-p key)))
@@ -140,11 +140,12 @@
            (r (expt-mod g k p))
            (s (mod (* (- m (* r x)) (modular-inverse k (- p 1))) (- p 1))))
       (if (not (zerop s))
-          (make-elgamal-signature r s)
+          (concatenate '(simple-array (unsigned-byte 8) (*))
+                       (integer-to-octets r :n-bits (integer-length p))
+                       (integer-to-octets s :n-bits (integer-length p)))
           (sign-message key msg :start start :end end)))))
 
-(defmethod verify-signature ((key elgamal-public-key) msg (signature elgamal-signature)
-                             &key (start 0) end)
+(defmethod verify-signature ((key elgamal-public-key) msg signature &key (start 0) end)
   (let* ((m (octets-to-integer msg :start start :end end))
          (p (elgamal-key-p key)))
     (unless (< m (- p 1))
@@ -152,8 +153,8 @@
       (error "Message can't be bigger than the order of the DL group minus 1"))
     (let* ((g (elgamal-key-g key))
            (y (elgamal-key-y key))
-           (r (maybe-integerize (elgamal-signature-r signature)))
-           (s (maybe-integerize (elgamal-signature-s signature))))
+           (r (octets-to-integer (subseq signature 0 (/ (integer-length p) 8))))
+           (s (octets-to-integer (subseq  signature (/ (integer-length p) 8) (/ (integer-length p) 4)))))
       (and (< 0 r p)
            (< 0 s (- p 1))
            (= (expt-mod g m p)
