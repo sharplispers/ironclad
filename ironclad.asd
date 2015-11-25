@@ -228,6 +228,7 @@
                                    (:file "scrypt")
                                    (:file "ironclad")
                                    (:file "prng-tests")
+                                   (:file "public-key")
                                    ;; test vectors
                                    (:test-vector-file "crc24")
                                    (:test-vector-file "crc32")
@@ -295,7 +296,12 @@
                                    (:test-vector-file "chacha-12")
                                    (:test-vector-file "chacha-8")
                                    ;; prng
-                                   (:test-vector-file "prng")))))))
+                                   (:test-vector-file "prng")
+                                   ;; public key
+                                   (:test-vector-file "rsa")
+                                   (:test-vector-file "elgamal")
+                                   (:test-vector-file "dsa")
+                                   (:test-vector-file "ed25519")))))))
 
 (defmethod asdf:perform ((op asdf:test-op)
                          (c (eql (asdf:find-system :ironclad-tests))))

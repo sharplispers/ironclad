@@ -282,3 +282,52 @@
 (defparameter *prng-tests*
   `((:fortuna-test . ,'fortuna-test)
     (:generator-test . ,'generator-test)))
+
+
+;;; Public key testing routines
+
+(defun rsa-encryption-test (name skey pkey input output)
+  ;; check E(input, skey) = output
+  ;; check D(output, pkey) = input
+  )
+
+(defun elgamal-encryption-test (name skey pkey input output)
+  ;; check E(input, skey) = output
+  ;; check D(output, pkey) = input
+  )
+
+(defun rsa-signature-test (name skey pkey input signature)
+  ;; check S(input, skey) = signature
+  ;; check V(input,signature, pkey) = OK
+  )
+
+(defun elgamal-signature-test (name skey pkey input signature)
+  ;; check S(input, skey) = signature
+  ;; check V(input,signature, pkey) = OK
+  )
+
+(defun dsa-signature-test (name skey pkey input signature)
+  ;; check S(input, skey) = signature
+  ;; check V(input,signature, pkey) = OK
+  )
+
+(defun ed25519-signature-test (name skey pkey input signature)
+  (let* ((sk (ironclad:make-private-key :ed25519 :x skey :y pkey))
+         (pk (ironclad:make-public-key :ed25519 :y pkey))
+         (s (ironclad:sign-message sk input)))
+    (when (mismatch s signature)
+      (error "signature failed for ~A on skey ~A, input ~A, signature ~A"
+             name skey input signature))
+    (unless (ironclad:verify-signature pk input signature)
+      (error "signature verification failed for ~A on pkey ~A, input ~A, signature ~A"
+             name pkey input signature))))
+
+(defparameter *public-key-encryption-tests*
+  (list (cons :rsa-encryption-test 'rsa-encryption-test)
+        (cons :elgamal-encryption-test 'elgamal-encryption-test)))
+
+(defparameter *public-key-signature-tests*
+  (list (cons :rsa-signature-test 'rsa-signature-test)
+        (cons :elgamal-signature-test 'elgamal-signature-test)
+        (cons :dsa-signature-test 'dsa-signature-test)
+        (cons :ed25519-signature-test 'ed25519-signature-test)))
