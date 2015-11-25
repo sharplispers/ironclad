@@ -314,10 +314,22 @@
       (error "decryption failed for ~A on skey (~A ~A), input ~A, output ~A"
              name n d input output))))
 
-(defun elgamal-encryption-test (name skey pkey input output)
-  ;; check E(input, skey) = output
-  ;; check D(output, pkey) = input
-  )
+(defun elgamal-encryption-test (name p g x y input k output)
+  ;; Redefine elgamal-generate-k to use a defined K for the test instead of a random one
+  (defun ironclad::elgamal-generate-k (p)
+    (declare (ignore p))
+    k)
+
+  (let* ((pk (ironclad:make-public-key :elgamal :p p :g g :y y))
+         (sk (ironclad:make-private-key :elgamal :p p :g g :x x :y y))
+         (c (ironclad:encrypt-message pk input))
+         (m (ironclad:decrypt-message sk output)))
+    (when (mismatch c output)
+      (error "encryption failed for ~A on pkey (~A ~A ~A), input ~A, output ~A"
+             name p g y input output))
+    (when (mismatch m input)
+      (error "decryption failed for ~A on skey (~A ~A ~A ~A), input ~A, output ~A"
+             name p g x y input output))))
 
 (defun rsa-pss-signature-test (name n e d input salt signature)
   ;; Redefine pss-encode to use a defined salt for the test instead of a random one
@@ -346,10 +358,21 @@
       (error "signature verification failed for ~A on pkey (~A ~A), input ~A, signature ~A"
              name n e input signature))))
 
-(defun elgamal-signature-test (name skey pkey input signature)
-  ;; check S(input, skey) = signature
-  ;; check V(input,signature, pkey) = OK
-  )
+(defun elgamal-signature-test (name p g x y input k signature)
+  ;; Redefine elgamal-generate-k to use a defined K for the test instead of a random one
+  (defun ironclad::elgamal-generate-k (p)
+    (declare (ignore p))
+    k)
+
+  (let* ((pk (ironclad:make-public-key :elgamal :p p :g g :y y))
+         (sk (ironclad:make-private-key :elgamal :p p :g g :x x :y y))
+         (s (ironclad:sign-message sk input)))
+    (when (mismatch s signature)
+      (error "signature failed for ~A on skey (~A ~A ~A ~A), input ~A, signature ~A"
+             name p g x y input signature))
+    (unless (ironclad:verify-signature pk input signature)
+      (error "signature verification failed for ~A on pkey (~A ~A ~A), input ~A, signature ~A"
+             name p g y input signature))))
 
 (defun dsa-signature-test (name p q g x y input k signature)
   ;; Redefine dsa-generate-k to use a defined K for the test instead of a random one

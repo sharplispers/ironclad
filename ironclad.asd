@@ -300,7 +300,8 @@
                                    ;; public key
                                    (:test-vector-file "rsa-enc")
                                    (:test-vector-file "rsa-sig")
-                                   (:test-vector-file "elgamal")
+                                   (:test-vector-file "elgamal-enc")
+                                   (:test-vector-file "elgamal-sig")
                                    (:test-vector-file "dsa")
                                    (:test-vector-file "ed25519")))))))
 

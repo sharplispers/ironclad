@@ -57,7 +57,6 @@
        until (= 1 (gcd k (- p 1)))
        finally (return k))))
 
-;; TODO: integer-to-octets as big endian or little endian?
 (defun elgamal-encrypt (msg key)
   (let* ((m (octets-to-integer msg))
          (p (elgamal-key-p key))
@@ -124,7 +123,6 @@
     (unless (= (* 4 (length signature)) pbits)
       (error "Bad signature length"))
     (unless (< m (- p 1))
-      ;; FIXME: "real" ironclad error needed here
       (error "Message can't be bigger than the order of the DL group minus 1"))
     (let* ((g (elgamal-key-g key))
            (y (elgamal-key-y key))
