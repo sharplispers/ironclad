@@ -8,9 +8,9 @@
 (defun mgf (digest-name seed num-bytes)
   "Expand the SEED to a NUM-BYTES bytes vector using the DIGEST-NAME digest."
   (loop
-     with digest-len = (digest-length digest-name)
-     with digest = (make-digest digest-name)
      with result = #()
+     with digest-len = (digest-length digest-name)
+     for digest = (make-digest digest-name) then (reinitialize-instance digest)
      for counter from 0 to (floor num-bytes digest-len)
      for counter-bytes = (integer-to-octets counter :n-bits 32)
      for tmp = (digest-sequence digest (concatenate '(vector (unsigned-byte 8))
