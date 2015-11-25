@@ -306,10 +306,20 @@
   ;; check V(input,signature, pkey) = OK
   )
 
-(defun dsa-signature-test (name skey pkey input signature)
-  ;; check S(input, skey) = signature
-  ;; check V(input,signature, pkey) = OK
-  )
+(defun dsa-signature-test (name p q g x y input k signature)
+  ;; Use a defined K for the test instead of a random one
+  (defun ironclad::dsa-generate-k (q)
+    (declare (ignore q))
+    k)
+  (let* ((sk (ironclad:make-private-key :dsa :p p :q q :g g :x x :y y))
+         (pk (ironclad:make-public-key :dsa :p p :q q :g g :y y))
+         (s (ironclad:sign-message sk input)))
+    (when (mismatch s signature)
+      (error "signature failed for ~A on skey (~A ~A ~A ~A ~A), input ~A, signature ~A"
+             name p q g x y input signature))
+    (unless (ironclad:verify-signature pk input signature)
+      (error "signature verification failed for ~A on pkey (~A ~A ~A ~A), input ~A, signature ~A"
+             name p q g y input signature))))
 
 (defun ed25519-signature-test (name skey pkey input signature)
   (let* ((sk (ironclad:make-private-key :ed25519 :x skey :y pkey))

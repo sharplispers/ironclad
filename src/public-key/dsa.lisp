@@ -67,20 +67,15 @@
   (let ((prng (or *prng* (make-prng :fortuna :seed :random))))
     (1+ (strong-random (1- q) prng))))
 
-(defun dsa-normalize-hash (hash num-bits)
-  "Keep only NUM-BITS bits from HASH."
-  (assert (>= (integer-length hash) num-bits))
-  (ldb (byte num-bits 0) hash))
-
 ;;; Note that hashing is not performed here.
-;; TODO: integer-to-octets as big endian or little endian?
 (defmethod sign-message ((key dsa-private-key) message &key (start 0) end)
   (let* ((end (or end (length message)))
          (q (dsa-key-q key))
          (qbits (integer-length q)))
-    (when (< (* 8 (- end start)) qbits)
-      (warn "The message to sign with DSA is short"))
-    (let* ((m (dsa-normalize-hash (octets-to-integer message :start start :end end) qbits))
+    (when (> (* 8 (- end start)) qbits)
+      ;; Only keep the required number of bits of message
+      (setf end (+ start (/ qbits 8))))
+    (let* ((m (octets-to-integer message :start start :end end))
            (p (dsa-key-p key))
            (g (dsa-key-g key))
            (x (dsa-key-x key))
@@ -101,7 +96,10 @@
          (qbits (integer-length q)))
     (unless (= (* 4 (length signature)) qbits)
       (error "Bad signature length"))
-    (let* ((m (dsa-normalize-hash (octets-to-integer message :start start :end end) qbits))
+    (when (> (* 8 (- end start)) qbits)
+      ;; Only keep the required number of bits of message
+      (setf end (+ start (/ qbits 8))))
+    (let* ((m (octets-to-integer message :start start :end end))
            (p (dsa-key-p key))
            (g (dsa-key-g key))
            (y (dsa-key-y key))
