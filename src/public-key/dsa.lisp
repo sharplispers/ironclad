@@ -68,7 +68,7 @@
     (1+ (strong-random (1- q) prng))))
 
 ;;; Note that hashing is not performed here.
-(defmethod sign-message ((key dsa-private-key) message &key (start 0) end)
+(defmethod sign-message ((key dsa-private-key) message &key (start 0) end &allow-other-keys)
   (let* ((end (or end (length message)))
          (q (dsa-key-q key))
          (qbits (integer-length q)))
@@ -90,7 +90,7 @@
                        (integer-to-octets s :n-bits qbits))
           (sign-message key message :start start :end end)))))
 
-(defmethod verify-signature ((key dsa-public-key) message signature &key (start 0) end)
+(defmethod verify-signature ((key dsa-public-key) message signature &key (start 0) end &allow-other-keys)
   (let* ((end (or end (length message)))
          (q (dsa-key-q key))
          (qbits (integer-length q)))

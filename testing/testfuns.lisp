@@ -286,20 +286,65 @@
 
 ;;; Public key testing routines
 
-(defun rsa-encryption-test (name skey pkey input output)
-  ;; check E(input, skey) = output
-  ;; check D(output, pkey) = input
-  )
+(defun rsa-oaep-encryption-test (name n e d input seed output)
+  ;; Redefine oaep-encode to use a defined seed for the test instead of a random one
+  (defun ironclad:oaep-encode (digest-name message num-bytes &optional label)
+    (let ((digest-len (ironclad:digest-length digest-name)))
+      (assert (<= (length message) (- num-bytes (* 2 digest-len) 2)))
+      (let* ((digest (ironclad:make-digest digest-name))
+             (label (or label (coerce #() '(vector (unsigned-byte 8)))))
+             (padding-len (- num-bytes (length message) (* 2 digest-len) 2))
+             (padding (make-array padding-len :element-type '(unsigned-byte 8) :initial-element 0))
+             (l-hash (ironclad:digest-sequence digest label))
+             (db (concatenate '(vector (unsigned-byte 8)) l-hash padding #(1) message))
+             (db-mask (ironclad::mgf digest-name seed (- num-bytes digest-len 1)))
+             (masked-db (map '(vector (unsigned-byte 8)) #'logxor db db-mask))
+             (seed-mask (ironclad::mgf digest-name masked-db digest-len))
+             (masked-seed (map '(vector (unsigned-byte 8)) #'logxor seed seed-mask)))
+        (concatenate '(vector (unsigned-byte 8)) #(0) masked-seed masked-db))))
+
+  (let* ((pk (ironclad:make-public-key :rsa :n n :e e))
+         (sk (ironclad:make-private-key :rsa :n n :d d))
+         (c (ironclad:encrypt-message pk input :oaep t))
+         (m (ironclad:decrypt-message sk output :oaep t)))
+    (when (mismatch c output)
+      (error "encryption failed for ~A on pkey (~A ~A), input ~A, output ~A"
+             name n e input output))
+    (when (mismatch m input)
+      (error "decryption failed for ~A on skey (~A ~A), input ~A, output ~A"
+             name n d input output))))
 
 (defun elgamal-encryption-test (name skey pkey input output)
   ;; check E(input, skey) = output
   ;; check D(output, pkey) = input
   )
 
-(defun rsa-signature-test (name skey pkey input signature)
-  ;; check S(input, skey) = signature
-  ;; check V(input,signature, pkey) = OK
-  )
+(defun rsa-pss-signature-test (name n e d input salt signature)
+  ;; Redefine pss-encode to use a defined salt for the test instead of a random one
+  (defun ironclad:pss-encode (digest-name message num-bytes)
+    (let ((digest-len (ironclad:digest-length digest-name)))
+      (assert (>= num-bytes (+ (* 2 digest-len) 2)))
+      (let* ((m-hash (ironclad:digest-sequence digest-name message))
+             (m1 (concatenate '(vector (unsigned-byte 8)) #(0 0 0 0 0 0 0 0) m-hash salt))
+             (h (ironclad:digest-sequence digest-name m1))
+             (ps (make-array (- num-bytes (* 2 digest-len) 2)
+                             :element-type '(unsigned-byte 8)
+                             :initial-element 0))
+             (db (concatenate '(vector (unsigned-byte 8)) ps #(1) salt))
+             (db-mask (ironclad::mgf digest-name h (- num-bytes digest-len 1)))
+             (masked-db (map '(vector (unsigned-byte 8)) #'logxor db db-mask)))
+        (setf (ldb (byte 1 7) (elt masked-db 0)) 0)
+        (concatenate '(vector (unsigned-byte 8)) masked-db h #(188)))))
+
+  (let* ((pk (ironclad:make-public-key :rsa :n n :e e))
+         (sk (ironclad:make-private-key :rsa :n n :d d))
+         (s (ironclad:sign-message sk input :pss t)))
+    (when (mismatch s signature)
+      (error "signature failed for ~A on skey (~A ~A), input ~A, signature ~A"
+             name n d input signature))
+    (unless (ironclad:verify-signature pk input signature :pss t)
+      (error "signature verification failed for ~A on pkey (~A ~A), input ~A, signature ~A"
+             name n e input signature))))
 
 (defun elgamal-signature-test (name skey pkey input signature)
   ;; check S(input, skey) = signature
@@ -307,10 +352,11 @@
   )
 
 (defun dsa-signature-test (name p q g x y input k signature)
-  ;; Use a defined K for the test instead of a random one
+  ;; Redefine dsa-generate-k to use a defined K for the test instead of a random one
   (defun ironclad::dsa-generate-k (q)
     (declare (ignore q))
     k)
+
   (let* ((sk (ironclad:make-private-key :dsa :p p :q q :g g :x x :y y))
          (pk (ironclad:make-public-key :dsa :p p :q q :g g :y y))
          (s (ironclad:sign-message sk input)))
@@ -333,11 +379,11 @@
              name pkey input signature))))
 
 (defparameter *public-key-encryption-tests*
-  (list (cons :rsa-encryption-test 'rsa-encryption-test)
+  (list (cons :rsa-oaep-encryption-test 'rsa-oaep-encryption-test)
         (cons :elgamal-encryption-test 'elgamal-encryption-test)))
 
 (defparameter *public-key-signature-tests*
-  (list (cons :rsa-signature-test 'rsa-signature-test)
+  (list (cons :rsa-pss-signature-test 'rsa-pss-signature-test)
         (cons :elgamal-signature-test 'elgamal-signature-test)
         (cons :dsa-signature-test 'dsa-signature-test)
         (cons :ed25519-signature-test 'ed25519-signature-test)))

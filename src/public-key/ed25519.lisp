@@ -147,13 +147,13 @@
 (defmethod make-private-key ((kind (eql :ed25519)) &key x y &allow-other-keys)
   (make-instance 'ed25519-private-key :x x :y y))
 
-(defmethod sign-message ((key ed25519-private-key) message &key (start 0) end)
+(defmethod sign-message ((key ed25519-private-key) message &key (start 0) end &allow-other-keys)
   (let ((end (or end (length message)))
         (sk (ed25519-key-x key))
         (pk (ed25519-key-y key)))
     (ed25519-sign (subseq message start end) sk pk)))
 
-(defmethod verify-signature ((key ed25519-public-key) message signature &key (start 0) end)
+(defmethod verify-signature ((key ed25519-public-key) message signature &key (start 0) end &allow-other-keys)
   (let ((end (or end (length message)))
         (pk (ed25519-key-y key)))
     (ed25519-verify signature (subseq message start end) pk)))

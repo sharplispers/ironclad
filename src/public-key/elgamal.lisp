@@ -83,24 +83,24 @@
          (m (mod (* c2 (modular-inverse (expt-mod c1 x p) p)) p)))
     (integer-to-octets m)))
 
-(defmethod encrypt-message ((key elgamal-private-key) msg &key (start 0) end)
+(defmethod encrypt-message ((key elgamal-private-key) msg &key (start 0) end &allow-other-keys)
   (let ((public-key (make-public-key :elgamal
                                      :p (elgamal-key-p key)
                                      :g (elgamal-key-g key)
                                      :y (elgamal-key-y key))))
     (encrypt-message public-key msg :start start :end end)))
 
-(defmethod encrypt-message ((key elgamal-public-key) msg &key (start 0) end)
+(defmethod encrypt-message ((key elgamal-public-key) msg &key (start 0) end &allow-other-keys)
   (elgamal-encrypt (subseq msg start end) key))
 
-(defmethod decrypt-message ((key elgamal-private-key) msg &key (start 0) end)
+(defmethod decrypt-message ((key elgamal-private-key) msg &key (start 0) end &allow-other-keys)
   (let* ((p (elgamal-key-p key))
          (end (or end (length msg))))
     (unless (= (* 4 (- end start)) (integer-length p))
       (error "Bad ciphertext length"))
     (elgamal-decrypt (subseq msg start end) key)))
 
-(defmethod sign-message ((key elgamal-private-key) msg &key (start 0) end)
+(defmethod sign-message ((key elgamal-private-key) msg &key (start 0) end &allow-other-keys)
   (let* ((m (octets-to-integer msg :start start :end end))
          (p (elgamal-key-p key))
          (pbits (integer-length p)))
@@ -117,7 +117,7 @@
                        (integer-to-octets s :n-bits pbits))
           (sign-message key msg :start start :end end)))))
 
-(defmethod verify-signature ((key elgamal-public-key) msg signature &key (start 0) end)
+(defmethod verify-signature ((key elgamal-public-key) msg signature &key (start 0) end &allow-other-keys)
   (let* ((m (octets-to-integer msg :start start :end end))
          (p (elgamal-key-p key))
          (pbits (integer-length p)))

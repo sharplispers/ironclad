@@ -115,7 +115,7 @@
                                    (:file "dsa" :depends-on ("public-key"))
                                    (:file "elgamal" :depends-on ("public-key"))
                                    (:file "rsa" :depends-on ("public-key"))
-                                   (:file "oaep" :depends-on ("public-key"))
+                                   (:file "pkcs1" :depends-on ("public-key"))
                                    (:file "ed25519" :depends-on ("public-key"))))
                          (:module "prng"
                                   :depends-on ("digests" "ciphers")
@@ -298,7 +298,8 @@
                                    ;; prng
                                    (:test-vector-file "prng")
                                    ;; public key
-                                   (:test-vector-file "rsa")
+                                   (:test-vector-file "rsa-enc")
+                                   (:test-vector-file "rsa-sig")
                                    (:test-vector-file "elgamal")
                                    (:test-vector-file "dsa")
                                    (:test-vector-file "ed25519")))))))

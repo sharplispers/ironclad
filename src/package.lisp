@@ -48,8 +48,8 @@
    #:sign-message #:verify-signature
    #:encrypt-message #:decrypt-message
 
-   ;; public-key encryption padding
-   #:oaep-encode #:oaep-decode
+   ;; public-key encryption/signature padding
+   #:oaep-encode #:oaep-decode #:pss-encode #:pss-verify
 
    ;; public-key slot readers
    #:dsa-key-p #:dsa-key-q #:dsa-key-g #:dsa-key-y #:dsa-key-x

@@ -1,5 +1,5 @@
 ;;;; -*- mode: lisp; indent-tabs-mode: nil -*-
-;;;; oaep.lisp -- implementation of the optimal asymmetric encryption padding scheme
+;;;; pkcs1.lisp -- implementation of OAEP and PSS schemes
 
 (in-package :crypto)
 
@@ -63,3 +63,40 @@ using the DIGEST-NAME digest (and the optional LABEL octet vector)."
         ;; FIXME: "real" ironclad error needed here
         (error "OAEP decoding error"))
       (subseq db (+ digest-len padding-len 1)))))
+
+(defun pss-encode (digest-name message num-bytes)
+  (let ((digest-len (digest-length digest-name)))
+    (assert (>= num-bytes (+ (* 2 digest-len) 2)))
+    (let* ((prng (or *prng* (make-prng :fortuna :seed :random)))
+           (m-hash (digest-sequence digest-name message))
+           (salt (random-data digest-len prng))
+           (m1 (concatenate '(vector (unsigned-byte 8)) #(0 0 0 0 0 0 0 0) m-hash salt))
+           (h (digest-sequence digest-name m1))
+           (ps (make-array (- num-bytes (* 2 digest-len) 2)
+                           :element-type '(unsigned-byte 8)
+                           :initial-element 0))
+           (db (concatenate '(vector (unsigned-byte 8)) ps #(1) salt))
+           (db-mask (mgf digest-name h (- num-bytes digest-len 1)))
+           (masked-db (map '(vector (unsigned-byte 8)) #'logxor db db-mask)))
+      (setf (ldb (byte 1 7) (elt masked-db 0)) 0)
+      (concatenate '(vector (unsigned-byte 8)) masked-db h #(188)))))
+
+(defun pss-verify (digest-name message encoded-message)
+  (let ((digest-len (digest-length digest-name))
+        (em-len (length encoded-message)))
+    (assert (>= em-len (+ (* 2 digest-len) 2)))
+    (assert (= (elt encoded-message (- em-len 1)) 188))
+    (let* ((m-hash (digest-sequence digest-name message))
+           (masked-db (subseq encoded-message 0 (- em-len digest-len 1)))
+           (h (subseq encoded-message (- em-len digest-len 1) (- em-len 1)))
+           (db-mask (mgf digest-name h (- em-len digest-len 1)))
+           (db (map '(vector (unsigned-byte 8)) #'logxor masked-db db-mask)))
+      (setf (ldb (byte 1 7) (elt db 0)) 0)
+      (let* ((ps (subseq db 0 (- em-len (* 2 digest-len) 2)))
+             (one-byte (elt db (- em-len (* 2 digest-len) 2)))
+             (salt (subseq db (- (length db) digest-len)))
+             (m1 (concatenate '(vector (unsigned-byte 8)) #(0 0 0 0 0 0 0 0) m-hash salt))
+             (h1 (digest-sequence digest-name m1)))
+        (and (= 1 one-byte)
+             (loop for i across ps always (zerop i))
+             (equalp h h1))))))

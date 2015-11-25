@@ -30,8 +30,7 @@
     (error "Must specify private exponent and modulus"))
   (make-instance 'rsa-private-key :d d :n n))
 
-(defmethod generate-new-key-pair ((kind (eql :rsa)) num-bits
-                                  &key &allow-other-keys)
+(defmethod generate-key-pair ((kind (eql :rsa)) &key num-bits &allow-other-keys)
   (let* ((prng (or *prng* (make-prng :fortuna :seed :random)))
          (l (floor num-bits 2))
          p q n)
@@ -56,22 +55,45 @@
   (assert (< msg modulus))
   (expt-mod msg exponent modulus))
 
-(defmethod encrypt-message ((key rsa-private-key) msg &key (start 0) end)
-  (integer-to-octets
-   (rsa-core (octets-to-integer msg :start start :end end)
-             (rsa-key-exponent key) (rsa-key-modulus key))))
+(defmethod encrypt-message ((key rsa-public-key) msg &key (start 0) end oaep &allow-other-keys)
+  (let ((nbits (integer-length (rsa-key-modulus key)))
+        (m (subseq msg start end)))
+    (when oaep
+      (setf m (oaep-encode :sha1 m (/ nbits 8))))
+    (setf m (octets-to-integer m))
+    (integer-to-octets
+     (rsa-core m (rsa-key-exponent key) (rsa-key-modulus key))
+     :n-bits nbits)))
 
-(defmethod encrypt-message ((key rsa-public-key) msg &key (start 0) end)
-  (integer-to-octets
-   (rsa-core (octets-to-integer msg :start start :end end)
-             (rsa-key-exponent key) (rsa-key-modulus key))))
+(defmethod decrypt-message ((key rsa-private-key) msg &key (start 0) end oaep &allow-other-keys)
+  (let ((nbits (integer-length (rsa-key-modulus key)))
+        (m (octets-to-integer msg :start start :end end)))
+    (if oaep
+        (oaep-decode :sha1 (integer-to-octets
+                            (rsa-core m (rsa-key-exponent key) (rsa-key-modulus key))
+                            :n-bits nbits))
+        (integer-to-octets
+         (rsa-core m (rsa-key-exponent key) (rsa-key-modulus key))))))
 
-(defmethod decrypt-message ((key rsa-private-key) msg &key (start 0) end)
+(defmethod sign-message ((key rsa-private-key) msg &key (start 0) end pss &allow-other-keys)
+  (let ((nbits (integer-length (rsa-key-modulus key)))
+        (m (subseq msg start end)))
+    (when pss
+      (setf m (pss-encode :sha1 m (/ nbits 8))))
+    (setf m (octets-to-integer m))
   (integer-to-octets
-   (rsa-core (octets-to-integer msg :start start :end end)
-             (rsa-key-exponent key) (rsa-key-modulus key))))
+   (rsa-core m (rsa-key-exponent key) (rsa-key-modulus key))
+   :n-bits nbits)))
 
-(defmethod decrypt-message ((key rsa-public-key) msg &key (start 0) end)
-  (integer-to-octets
-   (rsa-core (octets-to-integer msg :start start :end end)
-             (rsa-key-exponent key) (rsa-key-modulus key))))
+(defmethod verify-signature ((key rsa-public-key) msg signature &key (start 0) end pss &allow-other-keys)
+  (let ((nbits (integer-length (rsa-key-modulus key))))
+    (unless (= (* 8 (length signature)) nbits)
+      (error "Bad signature length"))
+    (if pss
+        (let ((s (integer-to-octets (rsa-core (octets-to-integer signature)
+                                              (rsa-key-exponent key) (rsa-key-modulus key))
+                                    :n-bits nbits)))
+          (pss-verify :sha1 (subseq msg start end) s))
+        (let ((s (integer-to-octets (rsa-core (octets-to-integer signature)
+                                              (rsa-key-exponent key) (rsa-key-modulus key)))))
+          (equalp s (subseq msg start end))))))

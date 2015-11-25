@@ -27,20 +27,20 @@ the specified keyword arguments."))
 value is the secret key, the second value is the public key.
 If KIND is :RSA, :ELGAMAL or :DSA, NUM-BITS must be specified."))
 
-(defgeneric sign-message (key message &key start end)
+(defgeneric sign-message (key message &key start end &allow-other-keys)
   (:documentation "Produce a key-specific signature of MESSAGE; MESSAGE is a
 (VECTOR (UNSIGNED-BYTE 8)).  START and END bound the extent of the
 message."))
 
-(defgeneric verify-signature (key message signature &key start end)
+(defgeneric verify-signature (key message signature &key start end &allow-other-keys)
   (:documentation "Verify that SIGNATURE is the signature of MESSAGE using
 KEY.  START and END bound the extent of the message."))
 
-(defgeneric encrypt-message (key message &key start end)
+(defgeneric encrypt-message (key message &key start end &allow-other-keys)
   (:documentation "Encrypt MESSAGE with KEY.  START and END bound the extent
 of the message.  Returns a fresh octet vector."))
 
-(defgeneric decrypt-message (key message &key start end)
+(defgeneric decrypt-message (key message &key start end &allow-other-keys)
   (:documentation "Decrypt MESSAGE with KEY.  START and END bound the extent
 of the message.  Returns a fresh octet vector."))
 
