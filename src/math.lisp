@@ -26,21 +26,26 @@ denominator."
   "Returns M such that N * M mod MODULUS = 1"
   (declare (type (integer 1 *) modulus))
   (declare (type (integer 0 *) n))
+  (declare (optimize (speed 3) (safety 0) (space 0) (debug 0)))
   (when (or (zerop n) (and (evenp n) (evenp modulus)))
     (return-from modular-inverse 0))
-  (loop with remainder = (list n modulus)
-     and auxiliary = '(1 0)
-     for i from 2
-     while (> (first remainder) 1)
-     do (multiple-value-bind (quotient new-remainder)
-            (floor (second remainder) (first remainder))
-          (push new-remainder remainder)
-          (push (+ (* (- quotient) (first auxiliary)) (second auxiliary))
-                auxiliary))
-     finally (return (let ((inverse (first auxiliary)))
-                       (when (< inverse 0)
+  (loop
+     with r1 of-type integer = n
+     and r2 of-type integer = modulus
+     and u1 of-type integer = 1
+     and u2 of-type integer = 0
+     and q of-type integer = 0
+     and r of-type integer = 0
+     until (zerop r2)
+     do (progn
+          (multiple-value-setq (q r) (floor r1 r2))
+          (setf r1 r2
+                r2 r)
+          (decf u1 (* q u2))
+          (rotatef u1 u2))
+     finally (return (let ((inverse u1))
+                       (when (minusp inverse)
                          (setf inverse (mod inverse modulus)))
-                       ;; check to see if the inverse is zero
                        (if (zerop (mod (* n inverse) modulus))
                            0
                            inverse)))))

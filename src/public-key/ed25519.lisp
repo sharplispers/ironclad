@@ -27,7 +27,7 @@
 
 (defun ed25519-inv (x)
   (declare (optimize (speed 3) (safety 0) (space 0) (debug 0)))
-  (expt-mod x (- +ed25519-q+ 2) +ed25519-q+))
+  (modular-inverse (mod x +ed25519-q+) +ed25519-q+))
 
 (defun ed25519-recover-x (y)
   (declare (optimize (speed 3) (safety 0) (space 0) (debug 0)))
