@@ -164,5 +164,5 @@
     (setf (ldb (byte 3 0) (elt sk 0)) 0)
     (setf (ldb (byte 2 6) (elt sk (- (/ +ed25519-bits+ 8) 1))) 1)
     (let ((pk (ed25519-public-key sk)))
-      (values (make-private-key :x sk :y pk)
-              (make-public-key :y pk)))))
+      (values (make-private-key :ed25519 :x sk :y pk)
+              (make-public-key :ed25519 :y pk)))))

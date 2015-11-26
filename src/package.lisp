@@ -55,6 +55,7 @@
    #:dsa-key-p #:dsa-key-q #:dsa-key-g #:dsa-key-y #:dsa-key-x
    #:elgamal-key-p #:elgamal-key-g #:elgamal-key-y #:elgamal-key-x
    #:rsa-key-modulus #:rsa-key-exponent
+   #:ed25519-key-x #:ed25519-key-y
 
    ;; pseudo-random number generators
    #:pseudo-random-number-generator #:list-all-prngs #:make-prng #:random-data
