@@ -17,32 +17,28 @@
 ;;; constant and function definitions
 
 (defconstant +ed25519-bits+ 256)
-(defconstant +ed25519-q+ (- (expt 2 255) 19))
-(defconstant +ed25519-l+ (+ (expt 2 252) 27742317777372353535851937790883648493))
+(defconstant +ed25519-q+ 57896044618658097711785492504343953926634992332820282019728792003956564819949)
+(defconstant +ed25519-l+ 7237005577332262213973186563042994240857116359379907606001950938285454250989)
+(defconstant +ed25519-d+ 37095705934669439343138083508754565189542113879843219016388785533085940283555)
+(defconstant +ed25519-i+ 19681161376707505956807079304988542015446066515923890162744021073123829784752)
+(defconst +ed25519-b+
+  (cons 15112221349535400772501151409588531511454012693041857206046113283949847762202
+        46316835694926478169428394003475163141307993866256225615783033603165251855960))
 
-(eval-when (:compile-toplevel :load-toplevel :execute)
-  (defun ed25519-inv (x)
-    (declare (optimize (speed 3) (safety 0) (space 0) (debug 0)))
-    (expt-mod x (- +ed25519-q+ 2) +ed25519-q+)))
+(defun ed25519-inv (x)
+  (declare (optimize (speed 3) (safety 0) (space 0) (debug 0)))
+  (expt-mod x (- +ed25519-q+ 2) +ed25519-q+))
 
-(defconstant +ed25519-d+ (mod (* -121665 (ed25519-inv 121666)) +ed25519-q+))
-(defconstant +ed25519-i+ (expt-mod 2 (/ (- +ed25519-q+ 1) 4) +ed25519-q+))
-
-(eval-when (:compile-toplevel :load-toplevel :execute)
-  (defun ed25519-recover-x (y)
-    (declare (optimize (speed 3) (safety 0) (space 0) (debug 0)))
-    (let* ((yy (mod (* y y) +ed25519-q+))
-           (xx (mod (* (- yy 1) (ed25519-inv (+ (* +ed25519-d+ yy) 1))) +ed25519-q+))
-           (x (expt-mod xx (/ (+ +ed25519-q+ 3) 8) +ed25519-q+)))
-      (unless (zerop (mod (- (* x x) xx) +ed25519-q+))
-        (setf x (mod (* x +ed25519-i+) +ed25519-q+)))
-      (unless (evenp x)
-        (setf x (- +ed25519-q+ x)))
-      x)))
-
-(defconstant +ed25519-by+ (mod (* 4 (ed25519-inv 5)) +ed25519-q+))
-(defconstant +ed25519-bx+ (mod (ed25519-recover-x +ed25519-by+) +ed25519-q+))
-(defconst +ed25519-b+ (cons +ed25519-bx+ +ed25519-by+))
+(defun ed25519-recover-x (y)
+  (declare (optimize (speed 3) (safety 0) (space 0) (debug 0)))
+  (let* ((yy (mod (* y y) +ed25519-q+))
+         (xx (mod (* (- yy 1) (ed25519-inv (+ (* +ed25519-d+ yy) 1))) +ed25519-q+))
+         (x (expt-mod xx (/ (+ +ed25519-q+ 3) 8) +ed25519-q+)))
+    (unless (zerop (mod (- (* x x) xx) +ed25519-q+))
+      (setf x (mod (* x +ed25519-i+) +ed25519-q+)))
+    (unless (evenp x)
+      (setf x (- +ed25519-q+ x)))
+    x))
 
 (defun ed25519-edwards (p q)
   (declare (optimize (speed 3) (safety 0) (space 0) (debug 0)))
