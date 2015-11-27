@@ -48,7 +48,7 @@
                          (:file "kdf-common" :depends-on ("package"))
                          (:file "pkcs5" :depends-on ("common" "kdf-common"))
                          (:file "scrypt" :depends-on ("kdf-common" "pkcs5"))
-                         (:file "password-hash" :depends-on ("pkcs5"))
+                         (:file "password-hash" :depends-on ("pkcs5" "prng"))
                          (:file "math" :depends-on ("prng" "public-key"))
                          (:module "sbcl-opt"
                                   :depends-on ("package" "common")

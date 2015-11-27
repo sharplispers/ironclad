@@ -4,10 +4,8 @@
 (defun make-random-salt (&optional (size 16))
   "Generate a byte vector of SIZE (default 16) random bytes, suitable
 for use as a password salt."
-  (let ((salt (make-array size :element-type '(unsigned-byte 8))))
-    (dotimes (i size)
-      (setf (aref salt i) (random 256)))
-    salt))
+  (let ((prng (or *prng* (make-prng :fortuna :seed :random))))
+    (random-data size prng)))
 
 (defun pbkdf2-hash-password (password &key (salt (make-random-salt))
                                            (digest 'sha256)
