@@ -40,7 +40,19 @@
       (setf x (- +ed25519-q+ x)))
     x))
 
-(defun ed25519-edwards (p q)
+(defun ed25519-edwards-double (p)
+  (declare (optimize (speed 3) (safety 0) (space 0) (debug 0)))
+  (let* ((x (car p))
+         (y (cdr p))
+         (xx (mod (* x x) +ed25519-q+))
+         (xy (mod (* x y) +ed25519-q+))
+         (yy (mod (* y y) +ed25519-q+))
+         (dxxyy (mod (* +ed25519-d+ xx yy) +ed25519-q+))
+         (x2 (* 2 xy (ed25519-inv (+ 1 dxxyy))))
+         (y2 (* (+ yy xx) (ed25519-inv (- 1 dxxyy)))))
+    (cons (mod x2 +ed25519-q+) (mod y2 +ed25519-q+))))
+
+(defun ed25519-edwards-add (p q)
   (declare (optimize (speed 3) (safety 0) (space 0) (debug 0)))
   (let* ((x1 (car p))
          (y1 (cdr p))
@@ -51,20 +63,36 @@
          (x2y1 (mod (* x2 y1) +ed25519-q+))
          (y1y2 (mod (* y1 y2) +ed25519-q+))
          (dx1x2y1y2 (mod (* +ed25519-d+ x1x2 y1y2) +ed25519-q+))
-         (x3 (* (+ x1y2 x2y1)
-                (ed25519-inv (+ 1 dx1x2y1y2))))
-         (y3 (* (+ y1y2 x1x2)
-                (ed25519-inv (- 1 dx1x2y1y2)))))
+         (x3 (* (+ x1y2 x2y1) (ed25519-inv (+ 1 dx1x2y1y2))))
+         (y3 (* (+ y1y2 x1x2) (ed25519-inv (- 1 dx1x2y1y2)))))
     (cons (mod x3 +ed25519-q+) (mod y3 +ed25519-q+))))
 
 (defun ed25519-scalar-mult (point e)
+  "Point multiplication using the windowed method."
   (declare (optimize (speed 3) (safety 0) (space 0) (debug 0)))
-  (let ((p point)
-        (q (cons 0 1)))
-    (dotimes (i (integer-length e) q)
-      (when (logbitp i e)
-        (setf q (ed25519-edwards q p)))
-      (setf p (ed25519-edwards p p)))))
+  (let* ((result (cons 0 1))
+         (k 5)
+         (base (expt 2 k))
+
+         ;; Compute the digits of the exponent in base 2^k
+         (digits (do ((q e)
+                      r
+                      digits)
+                     ((zerop q) digits)
+                   (multiple-value-setq (q r) (floor q base))
+                   (push r digits)))
+         (multiples (make-array base :initial-element (cons 0 1))))
+
+    ;; Precompute the multiples of point
+    (dotimes (i (1- base))
+      (setf (aref multiples (1+ i)) (ed25519-edwards-add (aref multiples i) point)))
+
+    ;; Compute the result
+    (dolist (digit digits result)
+      (dotimes (i k)
+        (setf result (ed25519-edwards-double result)))
+      (unless (zerop digit)
+        (setf result (ed25519-edwards-add result (aref multiples digit)))))))
 
 (defun ed25519-on-curve-p (p)
   (declare (optimize (speed 3) (safety 0) (space 0) (debug 0)))
@@ -134,7 +162,7 @@
          (a (ed25519-decode-point pk))
          (h (ed25519-decode-int (ed25519-hash (ed25519-encode-point r) pk m)))
          (res1 (ed25519-scalar-mult +ed25519-b+ s))
-         (res2 (ed25519-edwards r (ed25519-scalar-mult a h))))
+         (res2 (ed25519-edwards-add r (ed25519-scalar-mult a h))))
     (equal res1 res2)))
 
 (defmethod make-public-key ((kind (eql :ed25519)) &key y &allow-other-keys)
