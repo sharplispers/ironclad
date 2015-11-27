@@ -30,6 +30,7 @@
   (modular-inverse (mod x +ed25519-q+) +ed25519-q+))
 
 (defun ed25519-recover-x (y)
+  "Recover the X coordinate of a point on curve25519 from the Y coordinate."
   (declare (optimize (speed 3) (safety 0) (space 0) (debug 0)))
   (let* ((yy (mod (* y y) +ed25519-q+))
          (xx (mod (* (- yy 1) (ed25519-inv (+ (* +ed25519-d+ yy) 1))) +ed25519-q+))
@@ -41,6 +42,7 @@
     x))
 
 (defun ed25519-edwards-double (p)
+  "Point doubling on curve25519."
   (declare (optimize (speed 3) (safety 0) (space 0) (debug 0)))
   (let* ((x (car p))
          (y (cdr p))
@@ -53,6 +55,7 @@
     (cons (mod x2 +ed25519-q+) (mod y2 +ed25519-q+))))
 
 (defun ed25519-edwards-add (p q)
+  "Point addition on curve25519."
   (declare (optimize (speed 3) (safety 0) (space 0) (debug 0)))
   (let* ((x1 (car p))
          (y1 (cdr p))
@@ -68,7 +71,7 @@
     (cons (mod x3 +ed25519-q+) (mod y3 +ed25519-q+))))
 
 (defun ed25519-scalar-mult (point e)
-  "Point multiplication using the windowed method."
+  "Point multiplication on curve25519 using the windowed method."
   (declare (optimize (speed 3) (safety 0) (space 0) (debug 0)))
   (let* ((result (cons 0 1))
          (k 5)
@@ -95,6 +98,7 @@
         (setf result (ed25519-edwards-add result (aref multiples digit)))))))
 
 (defun ed25519-on-curve-p (p)
+  "Check if the point P is on curve25519."
   (declare (optimize (speed 3) (safety 0) (space 0) (debug 0)))
   (let* ((x (car p))
          (y (cdr p))
@@ -103,18 +107,22 @@
     (zerop (mod (- yy xx 1 (* +ed25519-d+ xx yy)) +ed25519-q+))))
 
 (defun ed25519-encode-int (y)
+  "Encode an integer as a byte array (little-endian)."
   (integer-to-octets y :n-bits +ed25519-bits+ :big-endian nil))
 
 (defun ed25519-decode-int (octets)
+  "Decode a byte array to an integer (little-endian)."
   (octets-to-integer octets :big-endian nil))
 
 (defun ed25519-encode-point (p)
+  "Encode a point on curve25519 as a byte array."
   (let ((x (car p))
         (y (cdr p)))
     (setf (ldb (byte 1 (- +ed25519-bits+ 1)) y) (ldb (byte 1 0) x))
     (ed25519-encode-int y)))
 
 (defun ed25519-decode-point (octets)
+  "Decode a byte array to a point on curve25519."
   (let* ((y (ed25519-decode-int octets))
          (b (ldb (byte 1 (- +ed25519-bits+ 1)) y)))
     (setf (ldb (byte 1 (- +ed25519-bits+ 1)) y) 0)
@@ -133,6 +141,7 @@
     (produce-digest digest)))
 
 (defun ed25519-public-key (sk)
+  "Compute the public key associated to the private key SK."
   (let ((h (ed25519-hash sk)))
     (setf h (subseq h 0 (/ +ed25519-bits+ 8)))
     (setf (ldb (byte 3 0) (elt h 0)) 0)
@@ -183,8 +192,8 @@
     (ed25519-verify signature (subseq message start end) pk)))
 
 (defmethod generate-key-pair ((kind (eql :ed25519)) &key &allow-other-keys)
-  (let* ((prng (or *prng* (ironclad:make-prng :fortuna :seed :random)))
-         (sk (ironclad:random-data (/ +ed25519-bits+ 8) prng)))
+  (let* ((prng (or *prng* (make-prng :fortuna :seed :random)))
+         (sk (random-data (/ +ed25519-bits+ 8) prng)))
     (setf (ldb (byte 3 0) (elt sk 0)) 0)
     (setf (ldb (byte 2 6) (elt sk (- (/ +ed25519-bits+ 8) 1))) 1)
     (let ((pk (ed25519-public-key sk)))
