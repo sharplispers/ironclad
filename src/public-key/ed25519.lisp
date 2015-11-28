@@ -1,5 +1,5 @@
 ;;;; -*- mode: lisp; indent-tabs-mode: nil -*-
-;;;; ed25519.lisp -- implementation of the eddsa signature algorithm on curve25519
+;;;; ed25519.lisp -- implementation of the ed25519 signature algorithm
 
 (in-package :crypto)
 
@@ -30,7 +30,7 @@
   (modular-inverse (mod x +ed25519-q+) +ed25519-q+))
 
 (defun ed25519-recover-x (y)
-  "Recover the X coordinate of a point on curve25519 from the Y coordinate."
+  "Recover the X coordinate of a point on ed25519 curve from the Y coordinate."
   (declare (optimize (speed 3) (safety 0) (space 0) (debug 0)))
   (let* ((yy (mod (* y y) +ed25519-q+))
          (xx (mod (* (- yy 1) (ed25519-inv (+ (* +ed25519-d+ yy) 1))) +ed25519-q+))
@@ -42,7 +42,7 @@
     x))
 
 (defun ed25519-edwards-double (p)
-  "Point doubling on curve25519."
+  "Point doubling on ed25519 curve."
   (declare (optimize (speed 3) (safety 0) (space 0) (debug 0)))
   (let* ((x (car p))
          (y (cdr p))
@@ -55,7 +55,7 @@
     (cons (mod x2 +ed25519-q+) (mod y2 +ed25519-q+))))
 
 (defun ed25519-edwards-add (p q)
-  "Point addition on curve25519."
+  "Point addition on ed25519 curve."
   (declare (optimize (speed 3) (safety 0) (space 0) (debug 0)))
   (let* ((x1 (car p))
          (y1 (cdr p))
@@ -71,7 +71,7 @@
     (cons (mod x3 +ed25519-q+) (mod y3 +ed25519-q+))))
 
 (defun ed25519-scalar-mult (point e)
-  "Point multiplication on curve25519 using the windowed method."
+  "Point multiplication on ed25519 curve using the windowed method."
   (declare (optimize (speed 3) (safety 0) (space 0) (debug 0)))
   (let* ((result (cons 0 1))
          (k 5)
@@ -98,7 +98,7 @@
         (setf result (ed25519-edwards-add result (aref multiples digit)))))))
 
 (defun ed25519-on-curve-p (p)
-  "Check if the point P is on curve25519."
+  "Check if the point P is on ed25519 curve."
   (declare (optimize (speed 3) (safety 0) (space 0) (debug 0)))
   (let* ((x (car p))
          (y (cdr p))
@@ -115,14 +115,14 @@
   (octets-to-integer octets :big-endian nil))
 
 (defun ed25519-encode-point (p)
-  "Encode a point on curve25519 as a byte array."
+  "Encode a point on ed25519 curve as a byte array."
   (let ((x (car p))
         (y (cdr p)))
     (setf (ldb (byte 1 (- +ed25519-bits+ 1)) y) (ldb (byte 1 0) x))
     (ed25519-encode-int y)))
 
 (defun ed25519-decode-point (octets)
-  "Decode a byte array to a point on curve25519."
+  "Decode a byte array to a point on ed25519 curve."
   (let* ((y (ed25519-decode-int octets))
          (b (ldb (byte 1 (- +ed25519-bits+ 1)) y)))
     (setf (ldb (byte 1 (- +ed25519-bits+ 1)) y) 0)
