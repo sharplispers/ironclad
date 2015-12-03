@@ -435,6 +435,20 @@
       (error "signature verification failed for ~A on pkey ~A, input ~A, signature ~A"
              name pkey input signature))))
 
+(defun curve25519-dh-test (name skey1 pkey1 skey2 pkey2 shared-secret)
+  (let* ((sk1 (ironclad:make-private-key :curve25519 :x skey1 :y pkey1))
+         (pk1 (ironclad:make-public-key :curve25519 :y pkey1))
+         (sk2 (ironclad:make-private-key :curve25519 :x skey2 :y pkey2))
+         (pk2 (ironclad:make-public-key :curve25519 :y pkey2))
+         (ss1 (ironclad:diffie-hellman sk1 pk2))
+         (ss2 (ironclad:diffie-hellman sk2 pk1)))
+    (when (mismatch ss1 shared-secret)
+      (error "shared secret computation failed for ~A on skey ~A, pkey ~A, secret ~A"
+             name skey1 pkey2 shared-secret))
+    (when (mismatch ss2 shared-secret)
+      (error "shared secret computation failed for ~A on skey ~A, pkey ~A, secret ~A"
+             name skey2 pkey1 shared-secret))))
+
 (defparameter *public-key-encryption-tests*
   (list (cons :rsa-oaep-encryption-test 'rsa-oaep-encryption-test)
         (cons :elgamal-encryption-test 'elgamal-encryption-test)))
@@ -444,3 +458,6 @@
         (cons :elgamal-signature-test 'elgamal-signature-test)
         (cons :dsa-signature-test 'dsa-signature-test)
         (cons :ed25519-signature-test 'ed25519-signature-test)))
+
+(defparameter *public-key-diffie-hellman-tests*
+  (list (cons :curve25519-dh-test 'curve25519-dh-test)))

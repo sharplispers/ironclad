@@ -44,6 +44,9 @@ of the message.  Returns a fresh octet vector."))
   (:documentation "Decrypt MESSAGE with KEY.  START and END bound the extent
 of the message.  Returns a fresh octet vector."))
 
+(defgeneric diffie-hellman (private-key public-key)
+  (:documentation "Compute a shared secret using Alice's PRIVATE-KEY and Bob's PUBLIC-KEY"))
+
 
 ;;; converting from integers to octet vectors
 
