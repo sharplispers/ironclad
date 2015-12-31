@@ -81,7 +81,9 @@
                 "#0 + #1"
                 :one-liner t
                 :side-effects nil)
-  #-ecl
+  #+(and ccl x86-64)
+  (ccl::mod32+ a b)
+  #-(or ecl (and ccl x86-64))
   (ldb (byte 32 0) (+ a b)))
 
 #+cmu
@@ -105,7 +107,9 @@
                 "#0 - #1"
                 :one-liner t
                 :side-effects nil)
-  #-ecl
+  #+(and ccl x86-64)
+  (ccl::mod32- a b)
+  #-(or ecl (and ccl x86-64))
   (ldb (byte 32 0) (- a b)))
 
 #+cmu
@@ -129,7 +133,9 @@
                 "#0 * #1"
                 :one-liner t
                 :side-effects nil)
-  #-ecl
+  #+(and ccl x86-64)
+  (ccl::mod32* a b)
+  #-(or ecl (and ccl x86-64))
   (ldb (byte 32 0) (* a b)))
 
 #+cmu
@@ -153,7 +159,9 @@
                 "(#1 > 0) ? (#0 << #1) : (#0 >> -#1)"
                 :one-liner t
                 :side-effects nil)
-  #-ecl
+  #+(and ccl x86-64)
+  (ccl::mod32ash num count)
+  #-(or ecl (and ccl x86-64))
   (ldb (byte 32 0) (ash num count)))
 
 #+sbcl
@@ -174,7 +182,9 @@
                 "~#0"
                 :one-liner t
                 :side-effects nil)
-  #-ecl
+  #+(and ccl x86-64)
+  (ccl::mod32lognot num)
+  #-(or ecl (and ccl x86-64))
   (ldb (byte 32 0) (lognot num)))
 
 #+sbcl
@@ -186,6 +196,8 @@
 
 (defun rol32 (a s)
   (declare (type (unsigned-byte 32) a) (type (integer 0 32) s))
+  #+(and ccl x86-64)
+  (ccl::rol32 a s)
   #+cmu
   (kernel:32bit-logical-or #+little-endian (kernel:shift-towards-end a s)
                            #+big-endian (kernel:shift-towards-start a s)
@@ -199,11 +211,13 @@
                 :side-effects nil)
   #+sbcl
   (sb-rotate-byte:rotate-byte s (byte 32 0) a)
-  #-(or cmu ecl sbcl)
+  #-(or (and ccl x86-64) cmu ecl sbcl)
   (logior (ldb (byte 32 0) (ash a s)) (ash a (- s 32))))
 
 (defun ror32 (a s)
   (declare (type (unsigned-byte 32) a) (type (integer 0 32) s))
+  #+(and ccl x86-64)
+  (ccl::ror32 a s)
   #+ecl
   (ffi:c-inline (a s)
                 (:uint32-t :uint8-t)
@@ -213,11 +227,12 @@
                 :side-effects nil)
   #+sbcl
   (sb-rotate-byte:rotate-byte (- s) (byte 32 0) a)
-  #-(or ecl sbcl)
+  #-(or (and ccl x86-64) ecl sbcl)
   (rol32 a (- 32 s)))
 
 (declaim #+ironclad-fast-mod64-arithmetic (inline mod64+ mod64- mod64*)
          (ftype (function ((unsigned-byte 64) (unsigned-byte 64)) (unsigned-byte 64)) mod64+))
+
 (defun mod64+ (a b)
   (declare (type (unsigned-byte 64) a b))
   #+ecl
@@ -227,7 +242,9 @@
                 "#0 + #1"
                 :one-liner t
                 :side-effects nil)
-  #-ecl
+  #+(and ccl ironclad-fast-mod64-arithmetic)
+  (ccl::mod64+ a b)
+  #-(or ecl (and ccl ironclad-fast-mod64-arithmetic))
   (ldb (byte 64 0) (+ a b)))
 
 #+sbcl
@@ -243,7 +260,9 @@
                 "#0 - #1"
                 :one-liner t
                 :side-effects nil)
-  #-ecl
+  #+(and ccl ironclad-fast-mod64-arithmetic)
+  (ccl::mod64- a b)
+  #-(or ecl (and ccl ironclad-fast-mod64-arithmetic))
   (ldb (byte 64 0) (- a b)))
 
 #+sbcl
@@ -259,15 +278,14 @@
                 "#0 * #1"
                 :one-liner t
                 :side-effects nil)
-  #-ecl
+  #+(and ccl ironclad-fast-mod64-arithmetic)
+  (ccl::mod64* a b)
+  #-(or ecl (and ccl ironclad-fast-mod64-arithmetic))
   (ldb (byte 64 0) (* a b)))
 
 #+sbcl
 (define-compiler-macro mod64* (a b)
   `(ldb (byte 64 0) (* ,a ,b)))
-
-(declaim #+ironclad-fast-mod64-arithmetic (inline rol64 ror64)
-         (ftype (function ((unsigned-byte 64) (unsigned-byte 6)) (unsigned-byte 64)) rol64 ror64))
 
 (declaim #+ironclad-fast-mod64-arithmetic (inline mod64ash)
          (ftype (function ((unsigned-byte 64) (integer -63 63)) (unsigned-byte 64)) mod64ash))
@@ -282,7 +300,9 @@
                 "(#1 > 0) ? (#0 << #1) : (#0 >> -#1)"
                 :one-liner t
                 :side-effects nil)
-  #-ecl
+  #+(and ccl ironclad-fast-mod64-arithmetic)
+  (ccl::mod64ash num count)
+  #-(or ecl (and ccl ironclad-fast-mod64-arithmetic))
   (ldb (byte 64 0) (ash num count)))
 
 #+sbcl
@@ -303,7 +323,9 @@
                 "~#0"
                 :one-liner t
                 :side-effects nil)
-  #-ecl
+  #+(and ccl ironclad-fast-mod64-arithmetic)
+  (ccl::mod64lognot num)
+  #-(or ecl (and ccl ironclad-fast-mod64-arithmetic))
   (ldb (byte 64 0) (lognot num)))
 
 #+sbcl
@@ -324,7 +346,11 @@
                 :side-effects nil)
   #+(and sbcl ironclad-fast-mod64-arithmetic)
   (sb-rotate-byte:rotate-byte s (byte 64 0) a)
-  #-(or ecl (and sbcl ironclad-fast-mod64-arithmetic))
+  #+(and ccl ironclad-fast-mod64-arithmetic)
+  (ccl::rol64 a s)
+  #-(or ecl
+        (and sbcl ironclad-fast-mod64-arithmetic)
+        (and ccl ironclad-fast-mod64-arithmetic))
   (logior (ldb (byte 64 0) (ash a s)) (ash a (- s 64))))
 
 (defun ror64 (a s)
@@ -338,7 +364,11 @@
                 :side-effects nil)
   #+(and sbcl ironclad-fast-mod64-arithmetic)
   (sb-rotate-byte:rotate-byte (- s) (byte 64 0) a)
-  #-(or ecl (and sbcl ironclad-fast-mod64-arithmetic))
+  #+(and ccl ironclad-fast-mod64-arithmetic)
+  (ccl::ror64 a s)
+  #-(or ecl
+        (and sbcl ironclad-fast-mod64-arithmetic)
+        (and ccl ironclad-fast-mod64-arithmetic))
   (rol64 a (- 64 s)))
 
 

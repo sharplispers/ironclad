@@ -38,7 +38,7 @@
                          (:file "conditions" :depends-on ("package"))
                          (:file "util" :depends-on ("package"))
                          (:file "macro-utils" :depends-on ("package"))
-                         (:file "common" :depends-on ("package"))
+                         (:file "common" :depends-on ("package" "ccl-opt"))
                          ;; FIXME: make this depend on :FEATURE :IRONCLAD-GRAY-STREAMS
                          #+(or lispworks sbcl openmcl cmu allegro)
                          (:file "octet-stream" :depends-on ("common"))
@@ -53,6 +53,10 @@
                                   :components
                                   ((:file "fndb")
                                    (:file "x86oid-vm" :depends-on ("fndb"))))
+                         (:module "ccl-opt"
+                                  :depends-on ("package")
+                                  :components
+                                  ((:file "x86oid-vm")))
                          (:module "ciphers"
                                   :depends-on ("common" "macro-utils" "sbcl-opt")
                                   :components
@@ -165,7 +169,9 @@
         (when (not (member :lispworks4 *features*))
           '(:ironclad-md5-lispworks-int32)))
   #+openmcl
-  (list :ironclad-gray-streams)
+  (list* :ironclad-gray-streams
+         (when (member :x86-64 *features*)
+           '(:ironclad-fast-mod64-arithmetic)))
   #-(or sbcl cmu allegro lispworks openmcl)
   nil)
 
