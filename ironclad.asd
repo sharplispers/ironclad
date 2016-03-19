@@ -102,7 +102,8 @@
                                    (:file "tiger" :depends-on ("digest"))
                                    (:file "whirlpool" :depends-on ("digest"))
                                    (:file "tree-hash" :depends-on ("digest"))
-                                   (:file "skein" :depends-on ("digest"))))
+                                   (:file "skein" :depends-on ("digest"))
+                                   (:file "sha3" :depends-on ("digest"))))
                          (:module "macs"
                                   :depends-on ("common" "digests")
                                   :components
@@ -258,6 +259,10 @@
                                    (:test-vector-file "skein1024-512")
                                    (:test-vector-file "skein-mac")
                                    (:test-vector-file "poly1305")
+                                   (:test-vector-file "sha3")
+                                   (:test-vector-file "sha3-224")
+                                   (:test-vector-file "sha3-256")
+                                   (:test-vector-file "sha3-384")
                                    ;; block ciphers of various kinds
                                    (:test-vector-file "null")
                                    (:test-vector-file "aes")

@@ -96,7 +96,8 @@
            #:skein256 #:skein256/128 #:skein256/160 #:skein256/224
            #:skein512 #:skein512/128 #:skein512/160 #:skein512/224
            #:skein512/256 #:skein512/384
-           #:skein1024 #:skein1024/384 #:skein1024/512)
+           #:skein1024 #:skein1024/384 #:skein1024/512
+           #:sha3 #:sha3/384 #:sha3/256 #:sha3/224)
   ;; supported block ciphers
   (:export #:blowfish #:tea #:xtea #:square #:rc2 #:rc5 #:rc6 #:des #:3des
            #:aes #:twofish #:cast5 #:idea #:misty1 #:null
