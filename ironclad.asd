@@ -164,12 +164,6 @@
   #-(or sbcl cmu allegro lispworks openmcl)
   nil)
 
-;;; Borrowed from iolib.
-(defun defknown-redefinition-error-p (error)
-  (and (typep error 'simple-error)
-       (search "overwriting old FUN-INFO"
-               (simple-condition-format-control error))))
-
 (macrolet ((do-silently (&body body)
              `(handler-bind ((style-warning #'muffle-warning)
                              ;; It's about as fast as we can make it,
@@ -177,8 +171,7 @@
                              ;; that we're running at compile time,
                              ;; which we don't care about the speed of
                              ;; anyway...
-                             #+sbcl (sb-ext:compiler-note #'muffle-warning)
-                             ((satisfies defknown-redefinition-error-p) #'continue))
+                             #+sbcl (sb-ext:compiler-note #'muffle-warning))
                 ,@body)))
 (defmethod asdf:perform :around ((op asdf:compile-op) (c ironclad-source-file))
   (let ((*readtable* *ironclad-readtable*)
