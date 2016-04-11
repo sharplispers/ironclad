@@ -5,30 +5,6 @@
 
 
 ;;;
-;;; Partial Evaluation Helpers
-;;;
-
-(eval-when (:compile-toplevel :load-toplevel :execute)
-  (defun trivial-macroexpand-all (form env)
-    "Trivial and very restricted code-walker used in partial evaluation macros.
-Only supports atoms and function forms, no special forms."
-    (let ((real-form (macroexpand form env)))
-      (cond
-        ((atom real-form)
-         real-form)
-        (t
-         (list* (car real-form)
-                (mapcar #'(lambda (x) (trivial-macroexpand-all x env))
-                        (cdr real-form))))))))
-
-(defmacro dotimes-unrolled ((var limit) &body body &environment env)
-  "Unroll the loop body at compile-time."
-  (loop for x from 0 below (eval (trivial-macroexpand-all limit env))
-        collect `(symbol-macrolet ((,var ,x)) ,@body) into forms
-        finally (return `(progn ,@forms))))
-
-
-;;;
 ;;; Keccak state and parameters
 ;;;
 
