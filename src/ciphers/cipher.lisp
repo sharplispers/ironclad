@@ -276,7 +276,8 @@ cipher or is not a cipher object."))
 (defun list-all-ciphers ()
   (loop for symbol being each external-symbol of (find-package :ironclad)
      if (%find-cipher symbol)
-     collect symbol))
+     collect symbol into ciphers
+     finally (return (sort ciphers #'string<))))
 
 (defun cipher-supported-p (name)
   "Return T if the cipher NAME is supported as an argument to MAKE-CIPHER."

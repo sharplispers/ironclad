@@ -380,7 +380,8 @@ An error will be signaled if there is insufficient room in DIGEST."))
 (defun list-all-digests ()
   (loop for symbol being each external-symbol of (find-package :ironclad)
      if (digestp symbol)
-     collect symbol))
+     collect symbol into digests
+     finally (return (sort digests #'string<))))
 
 (defun digest-supported-p (name)
   "Return T if the digest NAME is a valid digest name."
