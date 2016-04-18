@@ -61,6 +61,10 @@
     (values (make-private-key :dsa :p p :q q :g g :y y :x x)
             (make-public-key :dsa :p p :q q :g g :y y))))
 
+(declaim (notinline dsa-generate-k))
+;; In the tests, this function is redefined to use a constant value
+;; instead of a random one. Therefore it must not be inlined or the tests
+;; will fail.
 (defun dsa-generate-k (q)
   "Generate a random number K so that 0 < K < Q."
   (assert (> q 3))

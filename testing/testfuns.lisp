@@ -317,7 +317,7 @@
 
 (defun rsa-oaep-encryption-test (name n e d input seed output)
   ;; Redefine oaep-encode to use a defined seed for the test instead of a random one
-  (setf (symbol-function 'ironclad:oaep-encode)
+  (setf (symbol-function 'ironclad::oaep-encode)
         (lambda (digest-name message num-bytes &optional label)
           (let ((digest-len (ironclad:digest-length digest-name)))
             (assert (<= (length message) (- num-bytes (* 2 digest-len) 2)))
@@ -364,7 +364,7 @@
 
 (defun rsa-pss-signature-test (name n e d input salt signature)
   ;; Redefine pss-encode to use a defined salt for the test instead of a random one
-  (setf (symbol-function 'ironclad:pss-encode)
+  (setf (symbol-function 'ironclad::pss-encode)
         (lambda (digest-name message num-bytes)
           (let ((digest-len (ironclad:digest-length digest-name)))
             (assert (>= num-bytes (+ (* 2 digest-len) 2)))

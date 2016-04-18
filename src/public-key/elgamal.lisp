@@ -48,6 +48,10 @@
     (values (make-private-key :elgamal :p p :g g :y y :x x)
             (make-public-key :elgamal :p p :g g :y y))))
 
+(declaim (notinline elgamal-generate-k))
+;; In the tests, this function is redefined to use a constant value
+;; instead of a random one. Therefore it must not be inlined or the tests
+;; will fail.
 (defun elgamal-generate-k (p)
   "Generate a random number K so that 0 < K < P - 1, and K is relatively prime to P - 1."
   (assert (> p 3))

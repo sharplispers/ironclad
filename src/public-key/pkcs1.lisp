@@ -19,6 +19,10 @@
      do (setf result (concatenate '(vector (unsigned-byte 8)) result tmp))
      finally (return (subseq result 0 num-bytes))))
 
+(declaim (notinline oaep-encode))
+;; In the tests, this function is redefined to use a constant value
+;; instead of a random one. Therefore it must not be inlined or the tests
+;; will fail.
 (defun oaep-encode (digest-name message num-bytes &optional label)
   "Return a NUM-BYTES bytes vector containing the OAEP encoding of the MESSAGE
 using the DIGEST-NAME digest (and the optional LABEL octet vector)."
@@ -64,6 +68,10 @@ using the DIGEST-NAME digest (and the optional LABEL octet vector)."
         (error "OAEP decoding error"))
       (subseq db (+ digest-len padding-len 1)))))
 
+(declaim (notinline pss-encode))
+;; In the tests, this function is redefined to use a constant value
+;; instead of a random one. Therefore it must not be inlined or the tests
+;; will fail.
 (defun pss-encode (digest-name message num-bytes)
   (let ((digest-len (digest-length digest-name)))
     (assert (>= num-bytes (+ (* 2 digest-len) 2)))
