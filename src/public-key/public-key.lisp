@@ -48,7 +48,8 @@ of the message.  Returns a fresh octet vector."))
 ;;; converting from integers to octet vectors
 
 (defun octets-to-integer (octet-vec &key (start 0) end (big-endian t) n-bits)
-  (declare (type (simple-array (unsigned-byte 8) (*)) octet-vec))
+  (declare (type (simple-array (unsigned-byte 8) (*)) octet-vec)
+           (optimize (speed 3) (space 0) (safety 1) (debug 0)))
   (let ((end (or end (length octet-vec))))
     (multiple-value-bind (complete-bytes extra-bits)
         (if n-bits
@@ -65,7 +66,8 @@ of the message.  Returns a fresh octet vector."))
                 sum (ash (aref octet-vec j) (* i 8)))))))
 
 (defun integer-to-octets (bignum &key (n-bits (integer-length bignum))
-                                (big-endian t))
+                                   (big-endian t))
+  (declare (optimize (speed 3) (space 0) (safety 1) (debug 0)))
   (let* ((n-bytes (ceiling n-bits 8))
          (octet-vec (make-array n-bytes :element-type '(unsigned-byte 8))))
     (declare (type (simple-array (unsigned-byte 8) (*)) octet-vec))
