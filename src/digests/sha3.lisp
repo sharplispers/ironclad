@@ -240,14 +240,14 @@ the content on normal form exit."
 ;;; Message Padding for last block
 ;;;
 
-(defun pad-message-to-width (message bit-width)
+(defun pad-message-to-width (message bit-width is-xof)
   (let* ((message-byte-length (length message))
          (width-bytes (truncate bit-width 8))
          (padding-bytes (- width-bytes (mod message-byte-length width-bytes)))
          (padded-message-byte-length (+ message-byte-length padding-bytes))
          (padded-message (make-array padded-message-byte-length :element-type '(unsigned-byte 8))))
     (replace padded-message message :end2 message-byte-length)
-    (setf (aref padded-message message-byte-length) #x06)
+    (setf (aref padded-message message-byte-length) (if is-xof #x1f #x06))
     (loop for index from (1+ message-byte-length) below padded-message-byte-length
           do (setf (aref padded-message index) #x00))
     (setf (aref padded-message (1- padded-message-byte-length))
@@ -266,34 +266,61 @@ the content on normal form exit."
   (bit-rate 576 :type (integer 0 1600))
   (buffer (make-array 200 :element-type '(unsigned-byte 8))
           :type (simple-array (unsigned-byte 8) (200)))
-  (buffer-index 0 :type (integer 0 199)))
+  (buffer-index 0 :type (integer 0 199))
+  (output-length 64))
 
 (defstruct (sha3/384
              (:include sha3)
              (:constructor %make-sha3/384-digest
-                           (&aux (bit-rate 832)))
+                           (&aux (bit-rate 832)
+                                 (output-length 48)))
              (:copier nil)))
 
 (defstruct (sha3/256
              (:include sha3)
              (:constructor %make-sha3/256-digest
-                           (&aux (bit-rate 1088)))
+                           (&aux (bit-rate 1088)
+                                 (output-length 32)))
              (:copier nil)))
 
 (defstruct (sha3/224
              (:include sha3)
              (:constructor %make-sha3/224-digest
-                           (&aux (bit-rate 1152)))
+                           (&aux (bit-rate 1152)
+                                 (output-length 28)))
              (:copier nil)))
+
+(defstruct (shake256
+             (:include sha3)
+             (:constructor %make-shake256 (bit-rate output-length))
+             (:copier nil)))
+
+(defstruct (shake128
+             (:include sha3)
+             (:constructor %make-shake128 (bit-rate output-length))
+             (:copier nil)))
+
+(defun %make-shake256-digest (&key (output-length 32))
+  (%make-shake256 1088 output-length))
+
+(defun %make-shake128-digest (&key (output-length 16))
+  (%make-shake128 1344 output-length))
+
+(defmethod block-length ((state shake256))
+  136)
+
+(defmethod block-length ((state shake128))
+  168)
+
+(defmethod digest-length ((state shake256))
+  (sha3-output-length state))
+
+(defmethod digest-length ((state shake128))
+  (sha3-output-length state))
 
 (defmethod reinitialize-instance ((state sha3) &rest initargs)
   (declare (ignore initargs))
   (setf (sha3-state state) (make-keccak-state))
-  (setf (sha3-bit-rate state) (etypecase state
-                                (sha3/224 1152)
-                                (sha3/256 1088)
-                                (sha3/384 832)
-                                (sha3 576)))
   (setf (sha3-buffer-index state) 0)
   state)
 
@@ -302,6 +329,8 @@ the content on normal form exit."
   (let ((copy (if copy
                   copy
                   (etypecase state
+                    (shake128 (%make-shake128-digest))
+                    (shake256 (%make-shake256-digest))
                     (sha3/224 (%make-sha3/224-digest))
                     (sha3/256 (%make-sha3/256-digest))
                     (sha3/384 (%make-sha3/384-digest))
@@ -311,6 +340,7 @@ the content on normal form exit."
     (setf (sha3-bit-rate copy) (sha3-bit-rate state))
     (replace (sha3-buffer copy) (sha3-buffer state))
     (setf (sha3-buffer-index copy) (sha3-buffer-index state))
+    (setf (sha3-output-length copy) (sha3-output-length state))
     copy))
 
 (defun sha3-update (state vector start end)
@@ -363,7 +393,14 @@ the content on normal form exit."
            (type (simple-array (unsigned-byte 8) (*)) digest)
            (type integer digest-start)
            (optimize (speed 3) (safety 0) (space 0) (debug 0)))
-  (let ((keccak-state (sha3-state state))
+  (let ((is-xof (etypecase state
+                  (shake128 t)
+                  (shake256 t)
+                  (sha3/224 nil)
+                  (sha3/256 nil)
+                  (sha3/384 nil)
+                  (sha3 nil)))
+        (keccak-state (sha3-state state))
         (buffer (sha3-buffer state))
         (buffer-index (sha3-buffer-index state))
         (bit-rate (sha3-bit-rate state))
@@ -378,7 +415,7 @@ the content on normal form exit."
     ;; Process remaining data after padding it
     (keccak-state-merge-input keccak-state
                               bit-rate
-                              (pad-message-to-width (subseq buffer 0 buffer-index) bit-rate)
+                              (pad-message-to-width (subseq buffer 0 buffer-index) bit-rate is-xof)
                               0)
     (keccak-rounds keccak-state)
     (setf (sha3-buffer-index state) 0)
@@ -405,3 +442,34 @@ the content on normal form exit."
 (defdigest sha3/384 :digest-length 48 :block-length 104)
 (defdigest sha3/256 :digest-length 32 :block-length 136)
 (defdigest sha3/224 :digest-length 28 :block-length 144)
+
+(defmethod produce-digest ((state shake256) &key digest (digest-start 0))
+  (let ((digest-size (digest-length state))
+        (state-copy (copy-digest state)))
+    (if digest
+        (if (> digest-size (- (length digest) digest-start))
+            (error 'insufficient-buffer-space
+                   :buffer digest :start digest-start
+                   :length digest-size)
+            (sha3-finalize state-copy digest digest-start))
+        (sha3-finalize state-copy
+                       (make-array digest-size :element-type '(unsigned-byte 8))
+                       0))))
+
+(defmethod produce-digest ((state shake128) &key digest (digest-start 0))
+  (let ((digest-size (digest-length state))
+        (state-copy (copy-digest state)))
+    (if digest
+        (if (> digest-size (- (length digest) digest-start))
+            (error 'insufficient-buffer-space
+                   :buffer digest :start digest-start
+                   :length digest-size)
+            (sha3-finalize state-copy digest digest-start))
+        (sha3-finalize state-copy
+                       (make-array digest-size :element-type '(unsigned-byte 8))
+                       0))))
+
+(setf (get 'shake256 '%digest-length) 32)
+(setf (get 'shake256 '%make-digest) (symbol-function '%make-shake256-digest))
+(setf (get 'shake128 '%digest-length) 16)
+(setf (get 'shake128 '%make-digest) (symbol-function '%make-shake128-digest))

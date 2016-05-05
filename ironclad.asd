@@ -264,6 +264,8 @@
                                    (:test-vector-file "sha3-224")
                                    (:test-vector-file "sha3-256")
                                    (:test-vector-file "sha3-384")
+                                   (:test-vector-file "shake128")
+                                   (:test-vector-file "shake256")
                                    (:test-vector-file "blake2")
                                    (:test-vector-file "blake2-160")
                                    (:test-vector-file "blake2-256")

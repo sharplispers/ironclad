@@ -178,9 +178,16 @@
       (error "individual bit test ~A digest of (~D #x~2,'0X ~D) failed"
              digest-name leading byte trailing))))
 
+(defun xof-digest-test (digest-name output-length input expected-digest)
+  (let* ((digest (crypto:make-digest digest-name :output-length output-length))
+         (result (crypto:digest-sequence digest input)))
+    (when (mismatch result expected-digest)
+      (error "one-shot ~A xof digest of ~S failed" digest-name input))))
+
 (defparameter *digest-tests*
   (list (cons :digest-test 'digest-test/base)
-        (cons :digest-bit-test 'digest-bit-test)))
+        (cons :digest-bit-test 'digest-bit-test)
+        (cons :xof-digest-test 'xof-digest-test)))
 
 (defun ignore-test (&rest args)
   (declare (ignore args))
@@ -188,21 +195,25 @@
 
 (defparameter *digest-incremental-tests*
   (list (cons :digest-test 'digest-test/incremental)
-        (cons :digest-bit-test 'ignore-test)))
+        (cons :digest-bit-test 'ignore-test)
+        (cons :xof-digest-test 'ignore-test)))
 
 #+(or sbcl cmucl)
 (defparameter *digest-fill-pointer-tests*
   (list (cons :digest-test 'digest-test/fill-pointer)
-        (cons :digest-bit-test 'ignore-test)))
+        (cons :digest-bit-test 'ignore-test)
+        (cons :xof-digest-test 'ignore-test)))
 
 #+(or lispworks sbcl cmucl openmcl allegro)
 (defparameter *digest-stream-tests*
   (list (cons :digest-test 'digest-test/stream)
-        (cons :digest-bit-test 'ignore-test)))
+        (cons :digest-bit-test 'ignore-test)
+        (cons :xof-digest-test 'ignore-test)))
 
 (defparameter *digest-reinitialize-instance-tests*
   (list (cons :digest-test 'digest-test/reinitialize-instance)
-        (cons :digest-bit-test 'ignore-test)))
+        (cons :digest-bit-test 'ignore-test)
+        (cons :xof-digest-test 'ignore-test)))
 
 
 ;;; mac testing routines
