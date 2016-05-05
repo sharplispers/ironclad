@@ -59,6 +59,7 @@
    #:elgamal-key-p #:elgamal-key-g #:elgamal-key-y #:elgamal-key-x
    #:rsa-key-modulus #:rsa-key-exponent
    #:ed25519-key-x #:ed25519-key-y
+   #:ed448-key-x #:ed448-key-y
    #:curve25519-key-x #:curve25519-key-y
    #:curve448-key-x #:curve448-key-y
 
