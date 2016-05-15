@@ -14,7 +14,7 @@
    (y :initarg :y :reader ed25519-key-y :type (simple-array (unsigned-byte 8) (*)))))
 
 ;; Internally, a point (x, y) is represented in extended homogeneous
-;; coordinates (X, Y, Z, W), with x = X / Z, y = Y / Z and x * y = T / Z.
+;; coordinates (X, Y, Z, W), with x = X / Z, y = Y / Z and x * y = W / Z.
 (deftype ed25519-point () '(vector integer 4))
 
 
@@ -79,9 +79,9 @@
          (x3 (mod (* e f) +ed25519-q+))
          (y3 (mod (* g h) +ed25519-q+))
          (z3 (mod (* f g) +ed25519-q+))
-         (t3 (mod (* e h) +ed25519-q+)))
-    (declare (type integer x1 y1 z1 w1 x2 y2 z2 w2 a b c d e f g h x3 y3 z3 t3))
-    (vector x3 y3 z3 t3)))
+         (w3 (mod (* e h) +ed25519-q+)))
+    (declare (type integer x1 y1 z1 w1 x2 y2 z2 w2 a b c d e f g h x3 y3 z3 w3))
+    (vector x3 y3 z3 w3)))
 
 (defun ed25519-scalar-mult (p e)
   "Point multiplication on ed25519 curve using the Montgomery ladder."
