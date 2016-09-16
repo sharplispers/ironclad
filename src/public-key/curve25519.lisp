@@ -57,6 +57,7 @@
     (values x4 z4 x5 z5)))
 
 (defun curve25519-scalar-mult (p n)
+  "Point multiplication on curve22519 curve using the Montgomery ladder."
   (declare (optimize (speed 3) (safety 0) (space 0) (debug 0))
            (type curve25519-point p)
            (type integer n))
@@ -85,7 +86,10 @@
   "Decode a byte array to an integer (little-endian)."
   (declare (type (simple-array (unsigned-byte 8) (*)) octets)
            (optimize (speed 3) (safety 0) (space 0) (debug 0)))
-  (octets-to-integer octets :big-endian nil))
+  (let ((x (ldb (byte (1- +curve25519-bits+) 0) (octets-to-integer octets :big-endian nil))))
+    (setf (ldb (byte 3 0) x) 0)
+    (setf (ldb (byte 1 (- +curve25519-bits+ 2)) x) 1)
+    x))
 
 (defun curve25519-encode-point (p)
   "Encode a point on curve25519 curve as a byte array."
@@ -101,7 +105,7 @@
   "Decode a byte array to a point on curve25519 curve."
   (declare (type (simple-array (unsigned-byte 8) (*)) octets)
            (optimize (speed 3) (safety 0) (space 0) (debug 0)))
-  (let ((x (curve25519-decode-int octets)))
+  (let ((x (ldb (byte (1- +curve25519-bits+) 0) (octets-to-integer octets :big-endian nil))))
     (declare (type integer x))
     (vector x 1)))
 
