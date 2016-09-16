@@ -233,10 +233,14 @@
     (ed25519-point-equal res1 res2)))
 
 (defmethod make-public-key ((kind (eql :ed25519)) &key y &allow-other-keys)
-  (make-instance 'ed25519-public-key :y y))
+  (cond
+    (y (make-instance 'ed25519-public-key :y y))
+    (t (make-instance 'ed25519-public-key))))
 
 (defmethod make-private-key ((kind (eql :ed25519)) &key x y &allow-other-keys)
-  (make-instance 'ed25519-private-key :x x :y y))
+  (cond
+    (x (make-instance 'ed25519-private-key :x x :y (or y (ed25519-public-key x))))
+    (t (make-instance 'ed25519-private-key))))
 
 (defmethod sign-message ((key ed25519-private-key) message &key (start 0) end &allow-other-keys)
   (let ((end (or end (length message)))
