@@ -60,6 +60,7 @@
    #:rsa-key-modulus #:rsa-key-exponent
    #:ed25519-key-x #:ed25519-key-y
    #:curve25519-key-x #:curve25519-key-y
+   #:curve448-key-x #:curve448-key-y
 
    ;; pseudo-random number generators
    #:pseudo-random-number-generator #:list-all-prngs #:make-prng #:random-data

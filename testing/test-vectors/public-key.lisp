@@ -9,3 +9,4 @@
 (rtest:deftest :dsa-signature (run-test-vector-file :dsa *public-key-signature-tests*) t)
 (rtest:deftest :ed25519-signature (run-test-vector-file :ed25519 *public-key-signature-tests*) t)
 (rtest:deftest :curve25519-dh (run-test-vector-file :curve25519 *public-key-diffie-hellman-tests*) t)
+(rtest:deftest :curve448-dh (run-test-vector-file :curve448 *public-key-diffie-hellman-tests*) t)
