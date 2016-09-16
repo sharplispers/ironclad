@@ -118,14 +118,14 @@
     (curve448-encode-point p)))
 
 (defmethod make-public-key ((kind (eql :curve448)) &key y &allow-other-keys)
-  (cond
-    (y (make-instance 'curve448-public-key :y y))
-    (t (make-instance 'curve448-public-key))))
+  (unless y
+    (error "The public key must be specify with the :Y keyword."))
+  (make-instance 'curve448-public-key :y y))
 
 (defmethod make-private-key ((kind (eql :curve448)) &key x y &allow-other-keys)
-  (cond
-    (x (make-instance 'curve448-private-key :x x :y (or y (curve448-public-key x))))
-    (t (make-instance 'curve448-private-key))))
+  (unless x
+    (error "The private key must be specify with the :X keyword."))
+  (make-instance 'curve448-private-key :x x :y (or y (curve448-public-key x))))
 
 (defmethod generate-key-pair ((kind (eql :curve448)) &key &allow-other-keys)
   (let* ((prng (or *prng* (make-prng :fortuna :seed :random)))
