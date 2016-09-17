@@ -318,6 +318,7 @@
                                    (:test-vector-file "rsa-sig")
                                    (:test-vector-file "elgamal-enc")
                                    (:test-vector-file "elgamal-sig")
+                                   (:test-vector-file "elgamal-dh")
                                    (:test-vector-file "dsa")
                                    (:test-vector-file "ed25519")
                                    (:test-vector-file "curve25519")
