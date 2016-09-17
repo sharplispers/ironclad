@@ -29,7 +29,7 @@
 
 
 (defmacro curve448-inv (x)
-  `(expt-mod ,x (/ (- +curve448-p+ 3) 2) +curve448-p+))
+  `(expt-mod ,x (- +curve448-p+ 2) +curve448-p+))
 
 (defun curve448-double-and-add (x1 z1 x2 z2 x3)
   "Point doubling and addition on curve448 curve."
