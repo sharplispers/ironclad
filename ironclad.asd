@@ -78,6 +78,7 @@
                                    (:file "tea" :depends-on ("cipher"))
                                    (:file "xtea" :depends-on ("cipher"))
                                    (:file "cast5" :depends-on ("cipher"))
+                                   (:file "serpent" :depends-on ("cipher"))
                                    ;; stream ciphers
                                    (:file "arcfour" :depends-on ("cipher"))
                                    (:file "salsa20" :depends-on ("cipher"))
@@ -283,6 +284,7 @@
                                    (:test-vector-file "tea")
                                    (:test-vector-file "xtea")
                                    (:test-vector-file "cast5")
+                                   (:test-vector-file "serpent")
                                    ;; modes
                                    (:test-vector-file "cbc")
                                    (:test-vector-file "ctr")
