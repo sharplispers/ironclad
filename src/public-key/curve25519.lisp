@@ -28,8 +28,9 @@
 (defconst +curve25519-g+ (vector 9 1))
 
 
-(defmacro curve25519-inv (x)
-  `(expt-mod ,x (- +curve25519-p+ 2) +curve25519-p+))
+(declaim (inline curve25519-inv))
+(defun curve25519-inv (x)
+  (expt-mod x (- +curve25519-p+ 2) +curve25519-p+))
 
 (defun curve25519-double-and-add (x1 z1 x2 z2 x3)
   "Point doubling and addition on curve25519 curve."

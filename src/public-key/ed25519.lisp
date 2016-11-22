@@ -36,8 +36,9 @@
 (defparameter *ed25519-digest* (make-digest :sha512))
 
 
-(defmacro ed25519-inv (x)
-  `(expt-mod ,x (- +ed25519-q+ 2) +ed25519-q+))
+(declaim (inline ed25519-inv))
+(defun ed25519-inv (x)
+  (expt-mod x (- +ed25519-q+ 2) +ed25519-q+))
 
 (defun ed25519-recover-x (y)
   "Recover the X coordinate of a point on ed25519 curve from the Y coordinate."
