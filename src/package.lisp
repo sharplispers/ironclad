@@ -79,7 +79,7 @@
    ;; utilities
    #:byte-array-to-hex-string #:hex-string-to-byte-array
    #:ascii-string-to-byte-array
-   #:octets-to-integer #:integer-to-octets #:expt-mod #:expt-mod-fast
+   #:octets-to-integer #:integer-to-octets #:expt-mod #:expt-mod/unsafe
 
    ;; streams
    #:make-octet-input-stream #:make-octet-output-stream

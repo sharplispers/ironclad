@@ -68,8 +68,10 @@ denominator."
         (setf r1 (mod (* r0 r1) modulus)
               r0 (mod (* r0 r0) modulus)))))
 
-(defun expt-mod-fast (n exponent modulus)
-  "As (mod (expt n exponent) modulus), but more efficient (2^k-ary method)."
+(defun expt-mod/unsafe (n exponent modulus)
+  "As (mod (expt n exponent) modulus), but more efficient (2^k-ary method).
+This function is faster than expt-mod, but it is not safe against
+side channel timing attacks."
   (declare (optimize (speed 3) (safety 0) (space 0) (debug 0)))
   (assert (>= exponent 0))
   (assert (> modulus 1))
@@ -183,14 +185,14 @@ using this test."
      finally (return
                (loop for k from 0 to 128 by 2
                   for a = (+ 2 (strong-random (- n 2) prng))
-                  for v = (expt-mod-fast a s n)
+                  for v = (expt-mod/unsafe a s n)
                   if (not (= v 1))
                   do (loop for i = 0 then (1+ i)
                         while (not (= v (1- n)))
                         if (= i (1- tt))
                         do (return-from rabin-miller)
                         else
-                        do (setf v (expt-mod-fast v 2 n)))
+                        do (setf v (expt-mod/unsafe v 2 n)))
                   finally (return t)))))
 
 (defun generate-prime-in-range (lower-limit upper-limit &optional (prng *prng*))
@@ -225,7 +227,7 @@ where p is a safe prime number."
      for g = (strong-random p prng)
      until (loop
               for d in factors
-              never (= 1 (expt-mod-fast g (/ (1- p) d) p)))
+              never (= 1 (expt-mod/unsafe g (/ (1- p) d) p)))
      finally (return g)))
 
 (defun find-subgroup-generator (p q &optional (prng *prng*))
@@ -235,6 +237,6 @@ group (Z/pZ)* where p is a prime number."
     (assert (integerp f))
     (loop
        for h = (+ 2 (strong-random (- p 3) prng))
-       for g = (expt-mod-fast h f p)
+       for g = (expt-mod/unsafe h f p)
        while (= 1 g)
        finally (return g))))
