@@ -250,10 +250,28 @@
                  (error "progressive SKEIN-MAC(~A/~A) failed on key ~A, input ~A, output ~A"
                         block-length digest-length key data expected-digest)))))
 
+(defun poly1305-test (name key data expected-digest)
+  (declare (ignore name))
+  (let ((mac (ironclad:make-poly1305 key)))
+    (ironclad:update-poly1305 mac data)
+    (when (mismatch expected-digest (ironclad:poly1305-digest mac))
+      (error "POLY1305 failed on key ~A, input ~A, output ~A"
+             key data expected-digest))
+    (loop
+       initially (reinitialize-instance mac :key key)
+       for i from 0 below (length data)
+       do (progn
+            (ironclad:update-poly1305 mac data :start i :end (1+ i))
+            (ironclad:poly1305-digest mac))
+       finally (when (mismatch expected-digest (ironclad:poly1305-digest mac))
+                 (error "progressive POLY1305 failed on key ~A, input ~A, output ~A"
+                        key data expected-digest)))))
+
 (defparameter *mac-tests*
   (list (cons :hmac-test 'hmac-test)
         (cons :cmac-test 'cmac-test)
-        (cons :skein-mac-test 'skein-mac-test)))
+        (cons :skein-mac-test 'skein-mac-test)
+        (cons :poly1305-test 'poly1305-test)))
 
 
 ;;; PRNG testing routines

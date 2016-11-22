@@ -21,6 +21,8 @@
    #:make-cmac #:update-cmac #:cmac-digest
    ;; Skein-MAC
    #:make-skein-mac #:update-skein-mac #:skein-mac-digest
+   ;; Poly1305
+   #:make-poly1305 #:update-poly1305 #:poly1305-digest
 
    ;; introspection
    #:cipher-supported-p #:list-all-ciphers

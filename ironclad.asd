@@ -107,7 +107,8 @@
                                   :components
                                   ((:file "hmac")
                                    (:file "cmac")
-                                   (:file "skein-mac")))
+                                   (:file "skein-mac")
+                                   (:file "poly1305")))
                          (:module "public-key"
                                   :depends-on ("digests" "math")
                                   :components
@@ -262,6 +263,7 @@
                                    (:test-vector-file "skein1024-384")
                                    (:test-vector-file "skein1024-512")
                                    (:test-vector-file "skein-mac")
+                                   (:test-vector-file "poly1305")
                                    ;; block ciphers of various kinds
                                    (:test-vector-file "null")
                                    (:test-vector-file "aes")
