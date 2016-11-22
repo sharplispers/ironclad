@@ -50,7 +50,7 @@
       ;; Otherwise, we have a bignum.
       (t
        (locally (declare (optimize (safety 0))
-                         (type sb-bignum:bignum-type length))
+                         (type bignum length))
          (cond
            ((= (sb-bignum:%bignum-length length) 1)
             (setf (aref block lo) (sb-bignum:%bignum-ref length 0)))
