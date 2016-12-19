@@ -168,7 +168,7 @@
 ;;; so we try to optimize it for speed.
 (defun skein-increment-counter (tweak n)
   (declare (type (simple-array (unsigned-byte 64) (2)) tweak)
-           (type (unsigned-byte 64) n)
+           (type (unsigned-byte 32) n)
            #.(burn-baby-burn))
   (let ((x (ldb (byte 32 0) (aref tweak 0)))
         (y (ldb (byte 32 32) (aref tweak 0)))
@@ -179,7 +179,7 @@
           z (mod64+ z (ldb (byte 32 32) y)))
     (setf (ldb (byte 32 0) (aref tweak 0)) (ldb (byte 32 0) x)
           (ldb (byte 32 32) (aref tweak 0)) (ldb (byte 32 0) y))
-    (setf (ldb (byte 0 32) (aref tweak 1)) (ldb (byte 32 0) z))
+    (setf (ldb (byte 32 0) (aref tweak 1)) (ldb (byte 32 0) z))
     (values)))
 
 
