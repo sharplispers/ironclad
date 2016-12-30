@@ -459,7 +459,7 @@
 
 (defmethod reinitialize-instance ((state skein256) &rest initargs)
   (declare (ignore initargs))
-  (replace (skein-value state) (copy-seq (skein-get-iv 256 256)))
+  (replace (skein-value state) (skein-get-iv 256 256))
   (replace (skein-tweak state) (skein-make-tweak t nil +skein-msg+ 0))
   (replace (skein-cfg state) (skein-make-configuration-string 256))
   (setf (skein-buffer-length state) 0)
@@ -470,7 +470,7 @@
 
 (defmethod reinitialize-instance ((state skein256/128) &rest initargs)
   (declare (ignore initargs))
-  (replace (skein-value state) (copy-seq (skein-get-iv 256 128)))
+  (replace (skein-value state) (skein-get-iv 256 128))
   (replace (skein-tweak state) (skein-make-tweak t nil +skein-msg+ 0))
   (replace (skein-cfg state) (skein-make-configuration-string 128))
   (setf (skein-buffer-length state) 0)
@@ -481,7 +481,7 @@
 
 (defmethod reinitialize-instance ((state skein256/160) &rest initargs)
   (declare (ignore initargs))
-  (replace (skein-value state) (copy-seq (skein-get-iv 256 160)))
+  (replace (skein-value state) (skein-get-iv 256 160))
   (replace (skein-tweak state) (skein-make-tweak t nil +skein-msg+ 0))
   (replace (skein-cfg state) (skein-make-configuration-string 160))
   (setf (skein-buffer-length state) 0)
@@ -492,7 +492,7 @@
 
 (defmethod reinitialize-instance ((state skein256/224) &rest initargs)
   (declare (ignore initargs))
-  (replace (skein-value state) (copy-seq (skein-get-iv 256 224)))
+  (replace (skein-value state) (skein-get-iv 256 224))
   (replace (skein-tweak state) (skein-make-tweak t nil +skein-msg+ 0))
   (replace (skein-cfg state) (skein-make-configuration-string 224))
   (setf (skein-buffer-length state) 0)
@@ -628,7 +628,7 @@
 
 (defmethod reinitialize-instance ((state skein512) &rest initargs)
   (declare (ignore initargs))
-  (replace (skein-value state) (copy-seq (skein-get-iv 512 512)))
+  (replace (skein-value state) (skein-get-iv 512 512))
   (replace (skein-tweak state) (skein-make-tweak t nil +skein-msg+ 0))
   (replace (skein-cfg state) (skein-make-configuration-string 512))
   (setf (skein-buffer-length state) 0)
@@ -639,7 +639,7 @@
 
 (defmethod reinitialize-instance ((state skein512/128) &rest initargs)
   (declare (ignore initargs))
-  (replace (skein-value state) (copy-seq (skein-get-iv 512 128)))
+  (replace (skein-value state) (skein-get-iv 512 128))
   (replace (skein-tweak state) (skein-make-tweak t nil +skein-msg+ 0))
   (replace (skein-cfg state) (skein-make-configuration-string 128))
   (setf (skein-buffer-length state) 0)
@@ -650,7 +650,7 @@
 
 (defmethod reinitialize-instance ((state skein512/160) &rest initargs)
   (declare (ignore initargs))
-  (replace (skein-value state) (copy-seq (skein-get-iv 512 160)))
+  (replace (skein-value state) (skein-get-iv 512 160))
   (replace (skein-tweak state) (skein-make-tweak t nil +skein-msg+ 0))
   (replace (skein-cfg state) (skein-make-configuration-string 160))
   (setf (skein-buffer-length state) 0)
@@ -661,7 +661,7 @@
 
 (defmethod reinitialize-instance ((state skein512/224) &rest initargs)
   (declare (ignore initargs))
-  (replace (skein-value state) (copy-seq (skein-get-iv 512 224)))
+  (replace (skein-value state) (skein-get-iv 512 224))
   (replace (skein-tweak state) (skein-make-tweak t nil +skein-msg+ 0))
   (replace (skein-cfg state) (skein-make-configuration-string 224))
   (setf (skein-buffer-length state) 0)
@@ -672,7 +672,7 @@
 
 (defmethod reinitialize-instance ((state skein512/256) &rest initargs)
   (declare (ignore initargs))
-  (replace (skein-value state) (copy-seq (skein-get-iv 512 256)))
+  (replace (skein-value state) (skein-get-iv 512 256))
   (replace (skein-tweak state) (skein-make-tweak t nil +skein-msg+ 0))
   (replace (skein-cfg state) (skein-make-configuration-string 256))
   (setf (skein-buffer-length state) 0)
@@ -683,7 +683,7 @@
 
 (defmethod reinitialize-instance ((state skein512/384) &rest initargs)
   (declare (ignore initargs))
-  (replace (skein-value state) (copy-seq (skein-get-iv 512 384)))
+  (replace (skein-value state) (skein-get-iv 512 384))
   (replace (skein-tweak state) (skein-make-tweak t nil +skein-msg+ 0))
   (replace (skein-cfg state) (skein-make-configuration-string 384))
   (setf (skein-buffer-length state) 0)
@@ -795,7 +795,7 @@
 
 (defmethod reinitialize-instance ((state skein1024) &rest initargs)
   (declare (ignore initargs))
-  (replace (skein-value state) (copy-seq (skein-get-iv 1024 1024)))
+  (replace (skein-value state) (skein-get-iv 1024 1024))
   (replace (skein-tweak state) (skein-make-tweak t nil +skein-msg+ 0))
   (replace (skein-cfg state) (skein-make-configuration-string 1024))
   (setf (skein-buffer-length state) 0)
@@ -806,7 +806,7 @@
 
 (defmethod reinitialize-instance ((state skein1024/384) &rest initargs)
   (declare (ignore initargs))
-  (replace (skein-value state) (copy-seq (skein-get-iv 1024 384)))
+  (replace (skein-value state) (skein-get-iv 1024 384))
   (replace (skein-tweak state) (skein-make-tweak t nil +skein-msg+ 0))
   (replace (skein-cfg state) (skein-make-configuration-string 384))
   (setf (skein-buffer-length state) 0)
@@ -817,7 +817,7 @@
 
 (defmethod reinitialize-instance ((state skein1024/512) &rest initargs)
   (declare (ignore initargs))
-  (replace (skein-value state) (copy-seq (skein-get-iv 1024 512)))
+  (replace (skein-value state) (skein-get-iv 1024 512))
   (replace (skein-tweak state) (skein-make-tweak t nil +skein-msg+ 0))
   (replace (skein-cfg state) (skein-make-configuration-string 512))
   (setf (skein-buffer-length state) 0)
