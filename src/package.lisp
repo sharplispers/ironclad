@@ -3,7 +3,7 @@
   (:use :cl)
   (:nicknames :crypto)
   (:shadow null)
-  (:import-from #:nibbles 
+  (:import-from #:nibbles
                 #:ub16ref/le #:ub16ref/be
                 #:ub32ref/le #:ub32ref/be
                 #:ub64ref/le #:ub64ref/be)
@@ -68,9 +68,12 @@
    #:curve448-key-x #:curve448-key-y
 
    ;; pseudo-random number generators
-   #:pseudo-random-number-generator #:list-all-prngs #:make-prng #:random-data
-   #:read-os-random-seed #:read-seed #:write-seed #:fortuna-prng
-   #:add-random-event #:fortuna #:strong-random #:random-bits #:*prng*
+   #:pseudo-random-number-generator #:list-all-prngs #:make-prng
+   #:random-data :read-os-random-seed #:read-seed #:write-seed
+   #:random-bits #:prng #:strong-random
+
+   ;; Fortuna PRNG
+   #:fortuna-prng #:add-random-event #:fortuna
 
    ;; cryptographic math
    #:generate-prime #:prime-p #:generate-prime-in-range #:egcd
