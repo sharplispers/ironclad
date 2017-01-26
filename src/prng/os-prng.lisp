@@ -3,7 +3,7 @@
 
 (in-package :crypto)
 
-(defclass os-prng (pseudo-random-number-generator)
+(defclass os-prng ()
   (#+unix source))
 
 (defmethod prng-random-data (num-bytes (prng os-prng))

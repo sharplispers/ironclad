@@ -59,7 +59,7 @@
       (prng-random-data num-bytes generator))))
 
 (defun add-random-event (source pool-id event &optional (prng *prng*))
-  (declare (type prng fortuna-prng))
+  (declare (type fortuna-prng prng))
   (assert (and (<= 1 (length event) 32)
                (<= 0 source 255)
                (<= 0 pool-id 31)))
@@ -73,7 +73,7 @@
     (incf (slot-value pool 'length) (length event))))
 
 (defmethod prng-reseed (seed (prng fortuna-prng))
-  (declare (type seed simple-octet-vector))
+  (declare (type simple-octet-vector seed))
   (assert (= (length seed) +fortuna-seed-length+))
   (prng-reseed seed (slot-value prng 'generator))
   (incf (slot-value prng 'reseed-count)))
