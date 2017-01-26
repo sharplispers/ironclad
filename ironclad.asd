@@ -13,7 +13,7 @@
     ;; FIXME: need to make this work for multi-dimensional arrays
     `(make-array ,(length array-data) :element-type ',array-element-type
                 :initial-contents ',array-data)))
-    
+
 (defparameter *ironclad-readtable*
   (let ((readtable (copy-readtable nil)))
     (set-dispatch-macro-character #\# #\@ #'array-reader readtable)
@@ -133,9 +133,10 @@
                                   :depends-on ("digests" "ciphers")
                                   :components
                                   ((:file "prng")
+                                   (:file "os-prng" :depends-on ("prng"))
                                    (:file "fortuna" :depends-on ("prng"
                                                                  "generator"))
-                                   (:file "generator")))))
+                                   (:file "generator" :depends-on ("prng"))))))
                (:module "doc"
                         :components
                         ((:html-file "ironclad")

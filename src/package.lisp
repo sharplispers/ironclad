@@ -68,12 +68,17 @@
    #:curve448-key-x #:curve448-key-y
 
    ;; pseudo-random number generators
-   #:pseudo-random-number-generator #:list-all-prngs #:make-prng
-   #:random-data :read-os-random-seed #:read-seed #:write-seed
-   #:random-bits #:prng #:strong-random
+   #:list-all-prngs #:make-prng #:random-data #:read-os-random-seed
+   #:read-seed #:write-seed #:random-bits #:prng #:strong-random
+
+   ;; default OS PRNG
+   #:os-prng
 
    ;; Fortuna PRNG
-   #:fortuna-prng #:add-random-event #:fortuna
+   #:fortuna-prng #:add-random-event
+
+   #: Fortuna generator
+   #:fortuna-generator
 
    ;; cryptographic math
    #:generate-prime #:prime-p #:generate-prime-in-range #:egcd

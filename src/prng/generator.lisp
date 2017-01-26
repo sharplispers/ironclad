@@ -8,26 +8,25 @@
 (defvar +fortuna-cipher-block-size+ 16
   "Fortuna is only defined for 128-bit (16-byte) cyphers")
 
-(defclass generator ()
+(defclass fortuna-generator ()
   ((key
     :initform (make-array 32
                           :element-type '(unsigned-byte 8)
                           :initial-element 0))
    (counter :initform 0)
    (digest :initform (make-digest :sha256))
-   (cipher :initform nil))
+   (cipher :initform :aes))
   (:documentation "Fortuna generator.  KEY is the key used to initialise
   CIPHER as an instance of CIPHER-NAME (which must be a valid NAME
   recognised by MAKE-CIPHER)."))
 
-(defmethod initialize-instance :after ((generator generator) &key (cipher :aes))
-  (assert (= (block-length cipher) +fortuna-cipher-block-size+))
-  (assert (find 32 (key-lengths cipher)))
-  (with-slots (key (cipher-slot cipher)) generator
-    (setf cipher-slot
-          (make-cipher cipher :key key :mode :ecb))))
+(defmethod initialize-instance :after ((generator fortuna-generator) &key)
+  (with-slots (key cipher) generator
+    (assert (= (block-length cipher) +fortuna-cipher-block-size+))
+    (assert (find 32 (key-lengths cipher)))
+    (setf cipher (make-cipher cipher :key key :mode :ecb))))
 
-(defun reseed (generator seed)
+(defmethod prng-reseed (seed (generator fortuna-generator))
   (with-slots (key counter cipher digest) generator
     (reinitialize-instance digest)
     (update-digest digest key)
@@ -38,8 +37,7 @@
     (incf counter)
     (reinitialize-instance cipher :key key)))
 
-(defun generate-blocks (generator num-blocks)
-  "Internal use only"
+(defun %generate-blocks (generator num-blocks)
   (with-slots (cipher key counter) generator
     (assert (and cipher
                  (plusp counter)))
@@ -53,11 +51,11 @@
        do (incf counter)
        finally (return (apply #'concatenate 'simple-octet-vector blocks)))))
 
-(defun pseudo-random-data (generator num-bytes)
+(defmethod prng-random-data (num-bytes (generator fortuna-generator))
   (assert (< 0 num-bytes (expt 2 20)))
-  (let* ((output (subseq (generate-blocks generator (ceiling num-bytes 16))
+  (let* ((output (subseq (%generate-blocks generator (ceiling num-bytes 16))
                          0
                          num-bytes))
-         (key (generate-blocks generator 2)))
+         (key (%generate-blocks generator 2)))
     (setf (slot-value generator 'key) key)
     output))

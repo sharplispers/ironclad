@@ -6,16 +6,9 @@
 
 (defvar *prng* nil
   "Default pseudo-random-number generator for use by all crypto
-  functions; the user must initialize it, e.g. with (setf
-  crypto:*prng* (crypto:make-prng :fortuna)).")
+  functions.  Defaults to a sensible OS-specific value.")
 
-(defclass pseudo-random-number-generator ()
-  ()
-  (:documentation "A pseudo random number generator.  Base class for
-  other PRNGs; not intended to be instantiated."))
-
-(defun list-all-prngs ()
-  '(fortuna))
+(defun list-all-prngs () (copy-list '(:os :fortuna :fortuna-generator)))
 
 (defgeneric make-prng (name &key seed)
   (:documentation "Create a new NAME-type random number generator,
@@ -32,22 +25,36 @@
       ((find seed '(:random :urandom)) (read-os-random-seed seed prng))
       ((or (pathnamep seed) (stringp seed)) (read-seed seed prng))
       ((typep seed 'simple-octet-vector)
-       (reseed (slot-value prng 'generator) seed)
+       (prng-reseed (slot-value prng 'generator) seed)
        (incf (slot-value prng 'reseed-count)))
       (t (error "SEED must be an octet vector, pathname indicator, :random or :urandom")))
     prng))
 
-(defun random-data (num-bytes &optional (pseudo-random-number-generator *prng*))
-  (internal-random-data num-bytes pseudo-random-number-generator))
+(defgeneric prng-random-data (num-bytes prng)
+  (:documentation "Generate NUM-BYTES bytes using PRNG"))
 
-(defgeneric internal-random-data (num-bytes pseudo-random-number-generator)
-  (:documentation "Generate NUM-BYTES bytes using
-  PSEUDO-RANDOM-NUMBER-GENERATOR"))
+(defun random-data (num-bytes &optional (prng *prng*))
+  (prng-random-data num-bytes prng))
 
-(defun random-bits (num-bits &optional (pseudo-random-number-generator *prng*))
+(defgeneric prng-reseed (seed prng)
+  (:documentation "Reseed PRNG with SEED; SEED must
+  be (PRNG-SEED-LENGTH PRNG) bytes long.")
+  (:method (seed prng) (declare (ignorable seed prng))))
+
+(defgeneric prng-seed-length (prng)
+  (:documentation "Length of seed required by PRNG-RESEED.")
+  (:method (prng) (declare (ignorable prng)) 0))
+
+(defun read-os-random-seed (source &optional (prng *prng))
+  (let* ((seed-length (prng-seed-length prng))
+         (seed (os-random-seed source seed-length)))
+    (assert (= (length seed) seed-length))
+    (prng-reseed seed prng)))
+
+(defun random-bits (num-bits &optional (prng *prng*))
   (logand (1- (expt 2 num-bits))
           (octets-to-integer
-           (internal-random-data (ceiling num-bits 8) pseudo-random-number-generator))))
+           (prng-random-data (ceiling num-bits 8) prng))))
 
 (defun strong-random (limit &optional (prng *prng*))
   "Return a strong random number from 0 to limit-1 inclusive.  A drop-in
@@ -60,7 +67,7 @@ replacement for COMMON-LISP:RANDOM."
             (num-bytes (ceiling log-limit 8))
             (mask (1- (expt 2 (ceiling log-limit)))))
        (loop for random = (logand (ironclad:octets-to-integer
-                                   (internal-random-data num-bytes prng))
+                                   (prng-random-data num-bytes prng))
                                   mask)
           until (< random limit)
           finally (return random))))
@@ -83,33 +90,40 @@ replacement for COMMON-LISP:RANDOM."
   #+(and win32 sb-dynamic-core)(sb-win32:crypt-gen-random num-bytes)
   #-(or unix (and win32 sb-dynamic-core))(error "OS-RANDOM-SEED is not supported on your platform."))
 
-(defun read-os-random-seed (source &optional (prng *prng*))
-  (internal-read-os-random-seed source prng)
-  t)
-
-(defgeneric internal-read-os-random-seed (source prng)
-  (:documentation "(Re)seed PRNG from SOURCE.  SOURCE may be :random
-  or :urandom"))
-
-(defun read-seed (path &optional (pseudo-random-number-generator *prng*))
-  "Reseed PSEUDO-RANDOM-NUMBER-GENERATOR from PATH.  If PATH doesn't
+(defun read-seed (path &optional (prng *prng*))
+  "Reseed PRNG from PATH.  If PATH doesn't
 exist, reseed from /dev/random and then write that seed to PATH."
-  (if (probe-file path)
-      (internal-read-seed path pseudo-random-number-generator)
-      (progn
-        (read-os-random-seed pseudo-random-number-generator)
-        (write-seed path pseudo-random-number-generator)
-        ;; FIXME: this only works under SBCL.  It's important, though,
-        ;; as it sets the proper permissions for reading a seedfile.
-        #+sbcl(sb-posix:chmod path (logior sb-posix:S-IRUSR sb-posix:S-IWUSR))))
-  t)
-
-(defgeneric internal-read-seed (path prng)
-  (:documentation "Reseed PRNG from PATH."))
+  (let ((seed-length (prng-seed-length prng))
+        seed)
+    (if (probe-file path)
+        (with-open-file (seed-file path :element-type 'simple-octet-vector)
+          (setf seed (make-array seed-length))
+          (assert (>= (read-sequence seed seed-file) seed-length)))
+        (setf seed (os-random-seed :random seed-length)))
+    (prng-reseed seed prng)
+    (write-seed path prng))
+  (values))
 
 (defun write-seed (path &optional (prng *prng*))
-  (internal-write-seed path prng))
+  (with-open-file (seed-file path
+                             :direction :output
+                             :if-exists :supersede
+                             :if-does-not-exist :create
+                             :element-type 'simple-octet-vector)
+    (write-sequence (random-data (seed-length prng)) seed-file))
+  ;; FIXME: this only works under SBCL.  It's important, though,
+  ;; as it sets the proper permissions for reading a seedfile.
+  #+sbcl(sb-posix:chmod path (logior sb-posix:S-IRUSR sb-posix:S-IWUSR))
+  (values))
 
-(defgeneric internal-write-seed (path prng)
-  (:documentation "Write enough random data from PRNG to PATH to
-  properly reseed it."))
+(defun feed-fifo (prng path)
+  "Feed random data into a FIFO"
+  (loop while
+       (handler-case (with-open-file
+                         (fortune-out path :direction :output
+                                      :if-exists :overwrite
+                                      :element-type '(unsigned-byte 8))
+                       (loop do (write-sequence
+                                 (random-data (1- (expt 2 20)) prng)
+                                 fortune-out)))
+         (stream-error () t))))
