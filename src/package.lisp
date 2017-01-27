@@ -69,7 +69,7 @@
 
    ;; pseudo-random number generators
    #:list-all-prngs #:make-prng #:random-data #:read-os-random-seed
-   #:read-seed #:write-seed #:random-bits #:prng #:strong-random
+   #:read-seed #:write-seed #:random-bits #:prng #:strong-random #:prng-reseed
 
    ;; default OS PRNG
    #:os-prng
@@ -77,7 +77,7 @@
    ;; Fortuna PRNG
    #:fortuna-prng #:add-random-event
 
-   #: Fortuna generator
+   ;; Fortuna generator
    #:fortuna-generator
 
    ;; cryptographic math

@@ -19,7 +19,7 @@
   (:documentation "A Fortuna entropy pool.  DIGEST contains its current
   state; LENGTH the length in bytes of the entropy it contains."))
 
-(defclass fortuna-prng (prng)
+(defclass fortuna-prng ()
   ((pools :initform (loop for i from 1 to 32
                        collect (make-instance 'fortuna-pool)))
    (reseed-count :initform 0)
@@ -81,7 +81,7 @@
 (defun make-fortuna (cipher)
   (let ((prng (make-instance 'fortuna-prng)))
     (setf (slot-value prng 'generator)
-          (make-instance 'generator :cipher cipher))
+          (make-instance 'fortuna-generator :cipher cipher))
     prng))
 
 (defmethod make-prng ((name (eql :fortuna)) &key seed (cipher :aes))

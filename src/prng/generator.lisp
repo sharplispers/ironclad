@@ -15,7 +15,8 @@
                           :initial-element 0))
    (counter :initform 0)
    (digest :initform (make-digest :sha256))
-   (cipher :initform :aes))
+   (cipher :initform :aes
+           :initarg :cipher))
   (:documentation "Fortuna generator.  KEY is the key used to initialise
   CIPHER as an instance of CIPHER-NAME (which must be a valid NAME
   recognised by MAKE-CIPHER)."))
@@ -39,8 +40,7 @@
 
 (defun %generate-blocks (generator num-blocks)
   (with-slots (cipher key counter) generator
-    (assert (and cipher
-                 (plusp counter)))
+    (assert (and cipher (plusp counter)))
     (loop for i from 1 to num-blocks
        collect (let ((block (integer-to-octets counter
                                                :n-bits 128

@@ -329,19 +329,19 @@
         (num-bytes (length expected-sequence)))
     (loop for (source pool-id event) in entropy
        do (crypto:add-random-event source pool-id event prng))
-    (equalp expected-sequence
-            (crypto:random-data num-bytes prng))))
+    (assert (equalp expected-sequence
+            (crypto:random-data num-bytes prng)))))
 
 (defun generator-test (name cipher seeds expected-sequences)
   (declare (ignore name))
-  (let ((generator (make-instance 'crypto::generator :cipher cipher)))
+  (let ((generator (make-instance 'crypto:fortuna-generator :cipher cipher)))
     (loop for seed in seeds
-       do (crypto::reseed generator (coerce seed '(vector (unsigned-byte 8)))))
+       do (crypto:prng-reseed (coerce seed '(vector (unsigned-byte 8))) generator))
     (every (lambda (sequence)
              (assert (zerop (mod (length sequence) 16)))
-             (equalp sequence
-                     (crypto::generate-blocks generator
-                                              (/ (length sequence) 16))))
+             (assert (equalp sequence
+                             (crypto:random-data (length sequence)
+                                         generator))))
            expected-sequences)))
 
 (defparameter *prng-tests*

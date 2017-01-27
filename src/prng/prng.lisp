@@ -20,14 +20,15 @@
 
 (defmethod make-prng :around (name &key (seed :random))
   (let ((prng (call-next-method)))
-    (cond
-      ((eq seed nil))
-      ((find seed '(:random :urandom)) (read-os-random-seed seed prng))
-      ((or (pathnamep seed) (stringp seed)) (read-seed seed prng))
-      ((typep seed 'simple-octet-vector)
-       (prng-reseed (slot-value prng 'generator) seed)
-       (incf (slot-value prng 'reseed-count)))
-      (t (error "SEED must be an octet vector, pathname indicator, :random or :urandom")))
+    (unless (eq name :fortuna-generator)
+      (cond
+        ((eq seed nil))
+        ((find seed '(:random :urandom)) (read-os-random-seed seed prng))
+        ((or (pathnamep seed) (stringp seed)) (read-seed seed prng))
+        ((typep seed 'simple-octet-vector)
+         (prng-reseed seed prng)
+         (incf (slot-value prng 'reseed-count)))
+        (t (error "SEED must be an octet vector, pathname indicator, :random or :urandom"))))
     prng))
 
 (defgeneric prng-random-data (num-bytes prng)
@@ -45,7 +46,7 @@
   (:documentation "Length of seed required by PRNG-RESEED.")
   (:method (prng) (declare (ignorable prng)) 0))
 
-(defun read-os-random-seed (source &optional (prng *prng))
+(defun read-os-random-seed (source &optional (prng *prng*))
   (let* ((seed-length (prng-seed-length prng))
          (seed (os-random-seed source seed-length)))
     (assert (= (length seed) seed-length))
@@ -110,7 +111,7 @@ exist, reseed from /dev/random and then write that seed to PATH."
                              :if-exists :supersede
                              :if-does-not-exist :create
                              :element-type 'simple-octet-vector)
-    (write-sequence (random-data (seed-length prng)) seed-file))
+    (write-sequence (random-data (prng-seed-length prng)) seed-file))
   ;; FIXME: this only works under SBCL.  It's important, though,
   ;; as it sets the proper permissions for reading a seedfile.
   #+sbcl(sb-posix:chmod path (logior sb-posix:S-IRUSR sb-posix:S-IWUSR))
