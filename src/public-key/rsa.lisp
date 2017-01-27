@@ -31,12 +31,11 @@
   (make-instance 'rsa-private-key :d d :n n))
 
 (defmethod generate-key-pair ((kind (eql :rsa)) &key num-bits &allow-other-keys)
-  (let* ((prng (or *prng* (make-prng :fortuna :seed :random)))
-         (l (floor num-bits 2))
+  (let* ((l (floor num-bits 2))
          p q n)
     (loop
-       for a = (generate-safe-prime (- num-bits l) prng)
-       for b = (generate-safe-prime l prng)
+       for a = (generate-safe-prime (- num-bits l))
+       for b = (generate-safe-prime l)
        for c = (* a b)
        until (and (/= a b) (= num-bits (integer-length c)))
        finally (setf p a
@@ -44,7 +43,7 @@
                      n c))
     (let* ((phi (* (1- p) (1- q)))
            (e (loop
-                 for e = (+ 2 (strong-random (- phi 2) prng))
+                 for e = (+ 2 (strong-random (- phi 2)))
                  until (= 1 (gcd e phi))
                  finally (return e)))
            (d (modular-inverse e phi)))

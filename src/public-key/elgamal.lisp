@@ -40,10 +40,9 @@
     (make-instance 'elgamal-private-key :group group :x x :y (or y (expt-mod g x p)))))
 
 (defmethod generate-key-pair ((kind (eql :elgamal)) &key num-bits &allow-other-keys)
-  (let* ((prng (or *prng* (make-prng :fortuna :seed :random)))
-         (p (generate-safe-prime num-bits prng))
-         (g (find-generator p prng))
-         (x (+ 2 (strong-random (- p 3) prng)))
+  (let* ((p (generate-safe-prime num-bits))
+         (g (find-generator p))
+         (x (+ 2 (strong-random (- p 3))))
          (y (expt-mod g x p)))
     (values (make-private-key :elgamal :p p :g g :y y :x x)
             (make-public-key :elgamal :p p :g g :y y))))
@@ -55,11 +54,10 @@
 (defun elgamal-generate-k (p)
   "Generate a random number K so that 0 < K < P - 1, and K is relatively prime to P - 1."
   (assert (> p 3))
-  (let ((prng (or *prng* (make-prng :fortuna :seed :random))))
-    (loop
-       for k = (+ 1 (strong-random (- p 2) prng))
-       until (= 1 (gcd k (- p 1)))
-       finally (return k))))
+  (loop
+     for k = (+ 1 (strong-random (- p 2)))
+     until (= 1 (gcd k (- p 1)))
+     finally (return k)))
 
 (defun elgamal-encrypt (msg key)
   (let* ((m (octets-to-integer msg))

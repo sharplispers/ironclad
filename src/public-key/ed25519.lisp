@@ -255,8 +255,7 @@
     (ed25519-verify signature (subseq message start end) pk)))
 
 (defmethod generate-key-pair ((kind (eql :ed25519)) &key &allow-other-keys)
-  (let* ((prng (or *prng* (make-prng :fortuna :seed :random)))
-         (sk (random-data (/ +ed25519-bits+ 8) prng))
+  (let* ((sk (random-data (/ +ed25519-bits+ 8)))
          (pk (ed25519-public-key sk)))
     (values (make-private-key :ed25519 :x sk :y pk)
             (make-public-key :ed25519 :y pk))))
