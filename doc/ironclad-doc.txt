@@ -229,7 +229,7 @@ not listed here because there's one method for every type of digest
 that " ${package} " provides, and listing them would get very tedious
 for no benefit.  An example should suffice.")
 
-(:pre 
+(:pre
 "(let ((digester (ironclad:make-digest :sha1))
       (array (make-array 16 :element-type '(unsigned-byte 8) :initial-element 0)))
   ;; Update with 16 zeroes.
@@ -483,7 +483,7 @@ passed to " @make-skein-mac " when " 'skein-mac' " was constructed.")
 ((:h2 id "kdfs") "Key derivation functions")
 
 (:p "Ironclad comes with the basic PBKDF1 and PBKDF2 algorithms, as well as
-an implementation of the scrypt key derivation function as defined by 
+an implementation of the scrypt key derivation function as defined by
 Colin Percival's " (:url
 "http://www.tarsnap.com/scrypt.html"
 "The scrypt key derivation function."))
@@ -502,7 +502,7 @@ the password digest as a byte array of length " 'key-length' ".")
 (:p "Returns a key derivation function instance (" 'kind' " must
 either be " `PBKDF1` ", " `PBKDF2` " or " `SCRYPT-KDF` "). The PBKDF
 algorithms use " 'digest' ". The scrypt key derivation uses cost parameters "
-'N' ", " 'r' " and " 'p' " (" 'N' " is a CPU cost parameter that must be a 
+'N' ", " 'r' " and " 'p' " (" 'N' " is a CPU cost parameter that must be a
 power of 2, " 'r' " and " 'p' " are memory cost parameters that must be defined
 such that " 'r' " * " 'p' " <= 2^30.)")
 
@@ -667,56 +667,57 @@ during encryption (or decryption) with the OAEP scheme of PKCS-1.")
 
 ((:h2 id "prng") "Pseudo-random Number Generation")
 
+(:p "Pseudo-random number generation has overgone a complete overhaul.
+The vast, " 'vast' " vast number of users should just use the
+default " `OS-PRNG` " (which uses " `/dev/urandom` " on Unix and "
+`CryptGenRandom` " on Windows).  For users who need "
+'deterministic' ", high-quality-random-seeming numbers (e.g. for Monte
+Carlo simulations), " `FORTUNA-GENERATOR` " is provided.  Finally, if
+you're running on a platform without a decent PRNG (these are few and
+far between now), you may require the full " `FORTUNA-PRNG` ".  When
+in doubt, use " `OS-PRNG` ", which is the default.")
+
 (:h3 "Example")
 
-(:p (:pre "&gt; (setf *prng* (make-prng :fortuna))
--&gt; #&lt;fortuna-prng&gt;
-&gt; (random-data 16)
+(:p (:pre "&gt; (random-data 16)
 -&gt; #(61 145 133 130 220 200 90 86 0 101 62 169 0 40 101 78)
-&gt; (setf *prng* (make-prng :fortuna :seed nil))
--&gt; #&lt;fortuna-prng&gt;
-&gt; (crypto:read-os-random-seed :random)
--&gt; 1
 &gt; (crypto:strong-random 16)
 -&gt; 3
-&gt; (write-seed #P\"/tmp/seed\")
--&gt; t
-&gt; (crypto:read-seed #P\"/tmp/seed\")
--&gt; t
 &gt; (crypto:random-bits 16)
--&gt; 41546
-&gt; (add-random-event 0 0 (string-to-octets \"foobar\"))"))
-
-(:p "See details about " @add-random-event " below.")
+-&gt; 41546"))
 
 (:describe :function (ironclad:make-prng prng))
 
 (:p "Create an unseeded pseudo-random number generator.")
 
-(:p 'name' " denotes the style of PRNG to use.  " @list-all-prngs " will
-tell you the names of all supported PRNGs.  Currently only Fortuna is
-supported.  " 'name' " can be a symbol in the " `KEYWORD` " package or
-the " `IRONCLAD` " package.")
+(:p 'name' " denotes the style of PRNG to use.  " @list-all-prngs "
+will tell you the names of all supported PRNGs.  Currently supported
+PRNGs are " ':OS' ", " ':FORTUNA' " & " ':FORTUNA-GENERATOR' ".  "
+'name' " can be a symbol in the " `KEYWORD` " package or the "
+`IRONCLAD` " package.")
 
 (:p 'seed' " is a " (:em "seed descriptor") ".  If NIL, the PRNG will
 not be seeded (which may prevent it from generating output until it is
-seeded, depending on the generator).  If " `:RANDOM` " then the PRNG
-will be seeded with the OS's cryptographically-secure PRNG.  If "
+seeded, depending on the PRNG in question).  If " `:RANDOM` " then the
+PRNG will be seeded with the OS's cryptographically-secure PRNG.  If "
 `:URANDOM` " then the PRNG will be seeded with the OS's
 fast-but-potentially-less-secure PRNG, if available (if not, will
-fallback to " `:RANDOM` ").  If it is a pathname indicator, a seed will
-be read from the indicated file, then a new seed will be generated and
-written back to the file (over-writing the old seed).  Finally, if it is
-a byte vector, it will be used to seed the PRNG.")
+fallback to " `:RANDOM` ").  If it is a pathname indicator, a seed
+will be read from the indicated file, then a new seed will be
+generated and written back to the file (over-writing the old seed).
+Finally, if it is a byte vector, it will be used to seed the PRNG.")
+
+(:p "You should very rarely need to call " 'MAKE-PRNG' "; the default
+OS-provided PRNG should be appropriate in nearly all cases.")
 
 (:describe :function (ironclad:list-all-prngs list))
 
 (:p "List all known PRNG types.")
 
-(:describe :function (ironclad:random-data bytes))
+(:describe :function (ironclad:random-data bytes &optional prng))
 
 (:p "Generate " 'num-bytes' " bytes of random data from "
-'pseudo-random-number-generator' ".  Updates the state of the generator.")
+    'prng' ".  Updates the state of the generator.")
 
 (:describe :function (ironclad:read-os-random-seed reseed-count))
 
@@ -744,7 +745,7 @@ the seed to form a new state.")
 
 (:describe :function (ironclad:random-bits integer))
 
-(:p "Generate and integer with " 'num-bits' " bits.")
+(:p "Generate an integer with " 'num-bits' " bits.")
 
 (:describe :function (ironclad:strong-random number))
 
@@ -754,6 +755,11 @@ integer and a float if it is a float) between 0 and " 'limit' "-1 in an
 unbiased fashion.")
 
 (:h3 "Fortuna")
+
+(:p "You should only use the Fortuna PRNG if your OS does not provided
+a sufficiently-good PRNG.  If you use a Unix or Unix-like
+OS (e.g. Linux), macOS or Windows, it does.  Only use the Fortuna PRNG
+if you know for certain that you need it.")
 
 (:p "Fortuna is a cryptographically-secure random number presented by
 Ferguson, Schneier and Kohno in " (:cite "Cryptography Engineering")
