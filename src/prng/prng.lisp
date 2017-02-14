@@ -20,7 +20,7 @@
 
 (defmethod make-prng :around (name &key (seed :random))
   (let ((prng (call-next-method)))
-    (unless (eq name :fortuna-generator)
+    (unless (find name '(:os :fortuna-generator))
       (cond
         ((eq seed nil))
         ((find seed '(:random :urandom)) (read-os-random-seed seed prng))
@@ -78,6 +78,10 @@ replacement for COMMON-LISP:RANDOM."
                  (/ (strong-random floor)
                     floor)))))))
 
+#+(and os-windows allegro)(ff:def-foreign-call (rtl-gen-random "SystemFunction036") ((buff (* :void)) (num-bytes)) :returning :int)
+
+#+(and mswindows lispworks)(fli:define-foreign-function (rtl-gen-random "SystemFunction036") ((buff :pointer) (num-bytes (:unsigned :long))) :result-type :boolean)
+
 (defun os-random-seed (source num-bytes)
   #+unix(let ((path (cond
                       ((eq source :random) #P"/dev/random")
@@ -87,9 +91,23 @@ replacement for COMMON-LISP:RANDOM."
           (with-open-file (seed-file path :element-type '(unsigned-byte 8))
             (assert (>= (read-sequence seq seed-file) num-bytes))
             seq))
-  ;; FIXME: this is _untested_!
   #+(and win32 sb-dynamic-core)(sb-win32:crypt-gen-random num-bytes)
-  #-(or unix (and win32 sb-dynamic-core))(error "OS-RANDOM-SEED is not supported on your platform."))
+  #+(and os-windows ccl) (multiple-value-bind (buff buffp)
+                             (ccl:make-heap-ivector num-bytes '(unsigned-byte 8))
+                           (when (= (ccl:external-call "SystemFunction036" :address buffp :unsigned-long num-bytes :boolean) 0)
+                             (error "RtlGenRandom failed"))
+                           (let ((copy (copy-seq buff)))
+                             (ccl:dispose-heap-ivector buff)
+                             (ccl:dispose-heap-ivector buffp)
+                             copy))
+  #+(and os-windows allegro) (let ((buff (make-array num-bytes :element-type '(unsigned-byte 8))))
+                               (when (= (rtl-gen-random buff num-bytes) 0)
+                                 (error "RtlGenRandom failed"))
+                               buff)
+  #+(and mswindows lispworks)(let ((buff (sys:in-static-area (make-array num-bytes :element-type '(unsigned-byte 8)))))
+                                (unless (fli:with-dynamic-lisp-array-pointer (buff buff) (rtl-gen-random buff num-bytes)) (error "RtlGenRandom failed"))
+                                (copy-seq buff))
+  #-(or unix (and win32 sb-dynamic-core) (and os-windows ccl) (and os-windows allegro) (and mswindows lispworks))(error "OS-RANDOM-SEED is not supported on your platform."))
 
 (defun read-seed (path &optional (prng *prng*))
   "Reseed PRNG from PATH.  If PATH doesn't
