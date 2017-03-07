@@ -384,10 +384,10 @@ recompute the MAC for the given message.  A MAC is useful where
 maintaining data integrity is required, but the secrecy of the data is
 not paramount.")
 
-(:p "Ironclad provides two different kinds of MACs: HMACs, specified in
-" (:url "http://www.ietf.org/rfc/rfc2109.txt" "RFC 2104") ", and CMACs,
+(:p "Ironclad provides three different kinds of MACs: HMACs, specified in
+" (:url "http://www.ietf.org/rfc/rfc2109.txt" "RFC 2104") ", CMACs,
 specified in " (:url "http://www.ietf.org/rfc/rfc4493.txt" "RFC 4493") "
-and NIST document 800-38B.")
+and NIST document 800-38B and Skein-MACs.")
 
 (:h3 "HMACs")
 
@@ -425,6 +425,60 @@ passed to " @make-hmac " when " 'hmac' " was constructed.")
 `(SIMPLE-ARRAY (UNSIGNED-BYTE 8) (*))` ".  An "
 @insufficient-buffer-space " error will be signaled if there is
 insufficient space in " 'buffer' ".")
+
+(:h3 "CMACs")
+
+(:p "Instances of CMACs are constructed by specifying a secret key and a
+cipher-name.")
+
+(:describe :function (ironclad:make-cmac cmac))
+
+(:p "Return a CMAC instance based on the cipher " 'cipher-name' " with
+secret key " 'key' ".  " 'cipher-name' " must have a " @block-length "
+of either 8 or 16; this restriction is satisfied by most ciphers in
+Ironclad with the notable exception of stream ciphers.  " 'key' " must
+be an acceptable key for " 'cipher-name' ".")
+
+(:describe :function (ironclad:update-cmac cmac))
+
+(:p "Update the internal state of " 'cmac' " with the data in "
+'sequence' " bounded by " 'start' " and " 'end' ".  " 'sequence' " must
+be a " `(SIMPLE-ARRAY (UNSIGNED-BYTE 8) (*))` ".")
+
+(:describe :function (ironclad:cmac-digest digest))
+
+(:p "Returns the MAC (" 'digest' ") computed by " 'cmac' " thus far.
+The internal state of " 'cmac' " is not modified; this feature makes it
+possible to compute a \"rolling MAC\" of a document.  The length of "
+'digest' " is determined by the " @block-length " of " 'cipher-name' "
+passed to " @make-cmac " when " 'cmac' " was constructed.")
+
+(:h3 "Skein-MACs")
+
+(:p "Instances of Skein-MACs are constructed by specifying a secret key and
+optionally a block length and a digest-length.")
+
+(:describe :function (ironclad:make-skein-mac shein-mac))
+
+(:p "Return a Skein-MAC instance with secret key " 'key' ". " 'block-length' "
+can be 32 (to use the Skein256 hash function internally), 64 (to use Skein512)
+or 128 (to use Skein1024). " 'digest-length' " can be any length you want the
+computed MAC (" 'digest' ") to be. By default, " 'block-length' " is 64
+and " 'digest-length' " is 64.")
+
+(:describe :function (ironclad:update-skein-mac skein-mac))
+
+(:p "Update the internal state of " 'skein-mac' " with the data in "
+'sequence' " bounded by " 'start' " and " 'end' ".  " 'sequence' " must
+be a " `(SIMPLE-ARRAY (UNSIGNED-BYTE 8) (*))` ".")
+
+(:describe :function (ironclad:skein-mac-digest digest))
+
+(:p "Returns the MAC (" 'digest' ") computed by " 'skein-mac' " thus far.
+The internal state of " 'skein-mac' " is not modified; this feature makes it
+possible to compute a \"rolling MAC\" of a document.  The length of "
+'digest' " is determined by the " 'digest-length' " key parameter
+passed to " @make-skein-mac " when " 'skein-mac' " was constructed.")
 
 ((:h2 id "kdfs") "Key derivation functions")
 
@@ -480,39 +534,32 @@ that encodes the given salt and PBKDF2 algorithm parameters.")
 produced by " `pbkdf2-hash-password-to-combined-string` ", checks whether
 the password is valid.")
 
-(:h3 "CMACs")
-
-(:p "Instances of CMACs are constructed by specifying a secret key and a
-cipher-name.")
-
-(:describe :function (ironclad:make-cmac cmac))
-
-(:p "Return a CMAC instance based on the cipher " 'cipher-name' " with
-secret key " 'key' ".  " 'cipher-name' " must have a " @block-length "
-of either 8 or 16; this restriction is satisfied by most ciphers in
-Ironclad with the notable exception of stream ciphers.  " 'key' " must
-be an acceptable key for " 'cipher-name' ".")
-
-(:describe :function (ironclad:update-cmac cmac))
-
-(:p "Update the internal state of " 'cmac' " with the data in "
-'sequence' " bounded by " 'start' " and " 'end' ".  " 'sequence' " must
-be a " `(SIMPLE-ARRAY (UNSIGNED-BYTE 8) (*))` ".")
-
-(:describe :function (ironclad:cmac-digest digest))
-
-(:p "Returns the MAC (" 'digest' ") computed by " 'cmac' " thus far.
-The internal state of " 'cmac' " is not modified; this feature makes it
-possible to compute a \"rolling MAC\" of a document.  The length of "
-'digest' " is determined by the " @block-length " of " 'cipher-name' "
-passed to " @make-cmac " when " 'cmac' " was constructed.")
-
 ((:h2 id "public-key") "Public-key Operations")
 
-(:p "Ironclad includes support for DSA signing and verification.
-Support for RSA encryption and decryption is provided as well, but it is
-\"raw\"--the various formatting schemes (e.g. PKCS-1) must be implemented
-by the user at this time.")
+(:p "Ironclad includes support for a few public key cryptography algorithms.")
+
+(:p "Encryption algorithms:")
+
+(:ul
+ (:li "Elgamal")
+ (:li "RSA"))
+
+(:p "Signature algorithms:")
+
+(:ul
+ (:li "DSA")
+ (:li "Ed25519")
+ (:li "Elgamal")
+ (:li "RSA"))
+
+(:h3 "Key pair generation")
+
+(:describe :generic-function (ironclad:generate-key-pair private-key,public-key))
+
+(:p "Return a key pair according to " 'kind' ".  If " 'kind' " is :DSA,
+ :ELGAMAL or :RSA, the " 'num-bits' "key argument indicating the size of
+the keys to generate must be specified.
+The generation of DSA, Elgamal and RSA key pairs can take a very long time.")
 
 (:h3 "Key construction")
 
@@ -522,10 +569,25 @@ by the user at this time.")
 arguments vary according to " 'kind' ".  The interesting bits are in the
 methods that specialize on " 'kind' ", below.")
 
-(:describe :method (ironclad:make-public-key ((eql :dsa)) private-key))
+(:describe :method (ironclad:make-public-key ((eql :dsa)) public-key))
 
 (:p "Return a DSA public key.  " 'p' ", " 'q' ", " 'g' ", and " 'y' "
 are the usual parameters for DSA keys discussed in the literature.")
+
+(:describe :method (ironclad:make-public-key ((eql :ed25519)) public-key))
+
+(:p "Return a Ed25519 public key.  " 'y' and 'x' " are the usual parameters
+for Ed25519 keys discussed in the literature.")
+
+(:describe :method (ironclad:make-public-key ((eql :elgamal)) public-key))
+
+(:p "Return a Elgamal public key.  " 'p' ", " 'g' ", and " 'y' "
+are the usual parameters for Elgamal keys discussed in the literature.")
+
+(:describe :method (ironclad:make-public-key ((eql :rsa)) public-key))
+
+(:p "Return a RSA public key.  " 'e' and 'n' " are the usual parameters
+for RSA keys discussed in the literature.")
 
 (:describe :generic-function (ironclad:make-private-key private-key))
 
@@ -539,6 +601,22 @@ methods that specialize on " 'kind' ", below.")
 " 'x' " are the usual parameters for DSA keys discussed in the
 literature.")
 
+(:describe :method (ironclad:make-private-key ((eql :ed25519)) private-key))
+
+(:p "Return a Ed25519 private key.  " 'y' and 'x' " are the usual parameters
+for Ed25519 keys discussed in the literature.")
+
+(:describe :method (ironclad:make-private-key ((eql :elgamal)) private-key))
+
+(:p "Return a Elgamal private key.  " 'p' ", " 'g' ", " 'y' ", and
+" 'x' " are the usual parameters for Elgamal keys discussed in the
+literature.")
+
+(:describe :method (ironclad:make-private-key ((eql :rsa)) private-key))
+
+(:p "Return a RSA private key.  " 'd' and 'n' " are the usual parameters
+for RSA keys discussed in the literature.")
+
 (:h3 "Digital signatures")
 
 (:describe :generic-function (ironclad:sign-message signature))
@@ -547,51 +625,45 @@ literature.")
 " signed with " 'key' "; the class of " 'key' " determines the class of
 " 'signature' ".")
 
-(:describe :method (ironclad:sign-message (ironclad::dsa-private-key t) signature))
-
-(:p "This method places an additional constraint on the size of "
-'message' " specified by " 'start' " and " 'end' ": it must be exactly
-20 bytes long (the length of a SHA-1 digest).  " 'signature' " is a "
-@dsa-signature " object.")
-
 (:describe :generic-function (ironclad:verify-signature boolean))
 
 (:p "Verify whether " 'signature' " is the signature of " 'message' "
 between " 'start' " and " 'end' " using " 'key' ".  Return T or NIL
 depending on the result of verification.")
 
-(:describe :method (ironclad:verify-signature (ironclad::dsa-public-key t ironclad::dsa-signature) boolean))
+(:h4 "Padding")
 
-(:h4 "Signature objects")
+(:p "To be secure, RSA signature requires the message to be padded.
+The " 'pss' "key parameter is provided to pad (or unpad) the message
+during signature (or verification) with the PSS scheme of PKCS-1.")
 
-(:p "There is no one \"right\" way to format signatures into octet
-vectors; different applications may have different requirements.  "
-@sign-message " therefore returns objects and lets the user determine
-how to best format the values contained therein.")
+(:describe :method (ironclad:sign-message ((eql :rsa)) signature))
 
-(:describe :class dsa-signature)
+(:describe :method (ironclad:verify-signature ((eql :rsa)) boolean))
 
-(:p "A DSA signature object.")
+(:h4 "Format of signatures")
 
-(:describe :function (ironclad:make-dsa-signature signature))
-
-(:p "Returns a DSA signature with the provided " 'r' " and " 's' "
-values.  " 'r' " and " 's' " may be either integers or they may be
-20-byte octet vectors.")
-
-(:describe :function (ironclad:dsa-signature-r integer))
-
-(:p "Returns the " 'r' " value of the provided DSA signature.")
-
-(:describe :function (ironclad:dsa-signature-s integer))
-
-(:p "Returns the " 's' " value of the provided DSA signature.")
+(:p @sign-message " returns signatures as octet vectors.
+When the signature contains several values (e.g. the R and S values
+of DSA and Elgamal signatures), the octet vector is the concatenation
+of these values (e.g. the first half of the vector is the R value,
+the second half is the S value.")
 
 (:h3 "Encryption and decryption")
 
-(:describe :function (ironclad:encrypt-message encrypted-message))
+(:describe :generic-function (ironclad:encrypt-message encrypted-message))
 
-(:describe :function (ironclad:decrypt-message decrypted-message))
+(:describe :generic-function (ironclad:decrypt-message decrypted-message))
+
+(:h4 "Padding")
+
+(:p "To be secure, RSA encryption requires the message to be padded.
+The " 'oaep' "key parameter is provided to pad (or unpad) the message
+during encryption (or decryption) with the OAEP scheme of PKCS-1.")
+
+(:describe :method (ironclad:encrypt-message ((eql :rsa)) encrypted-message))
+
+(:describe :method (ironclad:decrypt-message ((eql :rsa)) decrypted-message))
 
 ((:h2 id "prng") "Pseudo-random Number Generation")
 
