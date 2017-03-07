@@ -56,7 +56,7 @@
                                   ((:file "fndb")
                                    (:file "x86oid-vm" :depends-on ("fndb"))))
                          (:module "ciphers"
-                                  :depends-on ("common" "macro-utils")
+                                  :depends-on ("common" "macro-utils" "sbcl-opt")
                                   :components
                                   (
                                    ;; block ciphers of various kinds
