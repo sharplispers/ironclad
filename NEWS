@@ -1,5 +1,23 @@
 -*- mode: outline -*-
 
+* Version 0.34, released 2017-03-07
+
+** bug fixes
+
+Padding issues in 64-bit SHA variants have been fixed.
+
+Compiling with newer versions of SBCL will no longer throw errors due to
+a missing SB-BIGNUM:BIGNUM-TYPE.
+
+** new features
+
+Many new algorithms have been added, all by Guillaume LE VAILLANT:
+Threefish, Skein, ElGamal, ED25519, Poly1305, Serpent, SHA3, Blake2, and
+variants thereof.
+
+CTR mode should be faster on some implementations.  (Thanks to Guillaume
+LE VAILLANT.)
+
 * Version 0.33, released 2014-10-15
 
 ** bug fixes

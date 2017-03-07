@@ -24,7 +24,7 @@
 (defclass css-file (asdf:doc-file) ((type :initform "css")))
 
 (asdf:defsystem :ironclad
-  :version "0.33.0"
+  :version "0.34"
   :author "Nathan Froyd <froydnj@gmail.com>"
   :maintainer "Nathan Froyd <froydnj@gmail.com>"
   :description "A cryptographic toolkit written in pure Common Lisp"
