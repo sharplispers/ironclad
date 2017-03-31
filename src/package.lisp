@@ -49,6 +49,7 @@
    #:make-public-key #:make-private-key #:generate-key-pair
    #:sign-message #:verify-signature
    #:encrypt-message #:decrypt-message
+   #:diffie-hellman
 
    ;; public-key encryption/signature padding
    #:oaep-encode #:oaep-decode #:pss-encode #:pss-verify
@@ -58,6 +59,9 @@
    #:elgamal-key-p #:elgamal-key-g #:elgamal-key-y #:elgamal-key-x
    #:rsa-key-modulus #:rsa-key-exponent
    #:ed25519-key-x #:ed25519-key-y
+   #:ed448-key-x #:ed448-key-y
+   #:curve25519-key-x #:curve25519-key-y
+   #:curve448-key-x #:curve448-key-y
 
    ;; pseudo-random number generators
    #:pseudo-random-number-generator #:list-all-prngs #:make-prng #:random-data

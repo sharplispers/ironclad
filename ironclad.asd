@@ -121,7 +121,10 @@
                                    (:file "elgamal" :depends-on ("public-key"))
                                    (:file "rsa" :depends-on ("public-key"))
                                    (:file "pkcs1" :depends-on ("public-key"))
-                                   (:file "ed25519" :depends-on ("public-key"))))
+                                   (:file "ed25519" :depends-on ("public-key"))
+                                   (:file "ed448" :depends-on ("public-key"))
+                                   (:file "curve25519" :depends-on ("public-key"))
+                                   (:file "curve448" :depends-on ("public-key"))))
                          (:module "prng"
                                   :depends-on ("digests" "ciphers")
                                   :components
@@ -316,8 +319,12 @@
                                    (:test-vector-file "rsa-sig")
                                    (:test-vector-file "elgamal-enc")
                                    (:test-vector-file "elgamal-sig")
+                                   (:test-vector-file "elgamal-dh")
                                    (:test-vector-file "dsa")
-                                   (:test-vector-file "ed25519")))))))
+                                   (:test-vector-file "ed25519")
+                                   (:test-vector-file "ed448")
+                                   (:test-vector-file "curve25519")
+                                   (:test-vector-file "curve448")))))))
 
 (defmethod asdf:perform ((op asdf:test-op)
                          (c (eql (asdf:find-system :ironclad-tests))))
