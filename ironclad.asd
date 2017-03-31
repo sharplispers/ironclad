@@ -105,7 +105,8 @@
                                    (:file "skein" :depends-on ("digest"))
                                    (:file "sha3" :depends-on ("digest"))
                                    (:file "blake2" :depends-on ("digest"))
-                                   (:file "blake2s" :depends-on ("digest"))))
+                                   (:file "blake2s" :depends-on ("digest"))
+                                   (:file "jh" :depends-on ("digest"))))
                          (:module "macs"
                                   :depends-on ("common" "digests")
                                   :components
@@ -275,6 +276,10 @@
                                    (:test-vector-file "blake2s-128")
                                    (:test-vector-file "blake2s-160")
                                    (:test-vector-file "blake2s-224")
+                                   (:test-vector-file "jh")
+                                   (:test-vector-file "jh-224")
+                                   (:test-vector-file "jh-256")
+                                   (:test-vector-file "jh-384")
                                    ;; block ciphers of various kinds
                                    (:test-vector-file "null")
                                    (:test-vector-file "aes")

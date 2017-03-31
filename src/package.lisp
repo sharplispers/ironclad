@@ -100,7 +100,8 @@
            #:sha3 #:sha3/384 #:sha3/256 #:sha3/224
            #:shake128 #:shake256
            #:blake2 #:blake2/384 #:blake2/256 #:blake2/160
-           #:blake2s #:blake2s/224 #:blake2s/160 #:blake2s/128)
+           #:blake2s #:blake2s/224 #:blake2s/160 #:blake2s/128
+           #:jh #:jh/384 #:jh/256 #:jh/224)
   ;; supported block ciphers
   (:export #:blowfish #:tea #:xtea #:square #:rc2 #:rc5 #:rc6 #:des #:3des
            #:aes #:twofish #:cast5 #:idea #:misty1 #:null
