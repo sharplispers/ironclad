@@ -104,6 +104,7 @@
                                    (:file "tree-hash" :depends-on ("digest"))
                                    (:file "skein" :depends-on ("digest"))
                                    (:file "sha3" :depends-on ("digest"))
+                                   (:file "groestl" :depends-on ("digest"))
                                    (:file "blake2" :depends-on ("digest"))
                                    (:file "blake2s" :depends-on ("digest"))))
                          (:module "macs"
@@ -267,6 +268,10 @@
                                    (:test-vector-file "sha3-384")
                                    (:test-vector-file "shake128")
                                    (:test-vector-file "shake256")
+                                   (:test-vector-file "groestl")
+                                   (:test-vector-file "groestl-224")
+                                   (:test-vector-file "groestl-256")
+                                   (:test-vector-file "groestl-384")
                                    (:test-vector-file "blake2")
                                    (:test-vector-file "blake2-160")
                                    (:test-vector-file "blake2-256")
