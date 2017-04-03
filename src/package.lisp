@@ -103,6 +103,7 @@
            #:skein1024 #:skein1024/384 #:skein1024/512
            #:sha3 #:sha3/384 #:sha3/256 #:sha3/224
            #:shake128 #:shake256
+           #:groestl #:groestl/384 #:groestl/256 #:groestl/224
            #:blake2 #:blake2/384 #:blake2/256 #:blake2/160
            #:blake2s #:blake2s/224 #:blake2s/160 #:blake2s/128
            #:jh #:jh/384 #:jh/256 #:jh/224)
