@@ -129,8 +129,7 @@
   (make-instance 'curve448-private-key :x x :y (or y (curve448-public-key x))))
 
 (defmethod generate-key-pair ((kind (eql :curve448)) &key &allow-other-keys)
-  (let* ((prng (or *prng* (make-prng :fortuna :seed :random)))
-         (sk (random-data (ceiling +curve448-bits+ 8) prng)))
+  (let ((sk (random-data (ceiling +curve448-bits+ 8))))
     (setf (ldb (byte 2 0) (elt sk 0)) 0)
     (setf (ldb (byte 1 7) (elt sk (- (ceiling +curve448-bits+ 8) 1))) 1)
     (let ((pk (curve448-public-key sk)))

@@ -248,8 +248,7 @@
     (ed448-verify signature (subseq message start end) pk)))
 
 (defmethod generate-key-pair ((kind (eql :ed448)) &key &allow-other-keys)
-  (let* ((prng (or *prng* (make-prng :fortuna :seed :random)))
-         (sk (random-data (ceiling +ed448-bits+ 8) prng))
+  (let* ((sk (random-data (ceiling +ed448-bits+ 8)))
          (pk (ed448-public-key sk)))
     (values (make-private-key :ed448 :x sk :y pk)
             (make-public-key :ed448 :y pk))))
