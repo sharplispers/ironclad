@@ -112,7 +112,8 @@
                                   ((:file "hmac")
                                    (:file "cmac")
                                    (:file "skein-mac")
-                                   (:file "poly1305")))
+                                   (:file "poly1305")
+                                   (:file "blake2-mac")))
                          (:module "public-key"
                                   :depends-on ("digests" "math")
                                   :components
@@ -261,6 +262,7 @@
                                    (:test-vector-file "skein1024-512")
                                    (:test-vector-file "skein-mac")
                                    (:test-vector-file "poly1305")
+                                   (:test-vector-file "blake2-mac")
                                    (:test-vector-file "sha3")
                                    (:test-vector-file "sha3-224")
                                    (:test-vector-file "sha3-256")

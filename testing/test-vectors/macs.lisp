@@ -5,3 +5,4 @@
 (rtest:deftest :cmac (run-test-vector-file :cmac *mac-tests*) t)
 (rtest:deftest :skein-mac (run-test-vector-file :skein-mac *mac-tests*) t)
 (rtest:deftest :poly1305 (run-test-vector-file :poly1305 *mac-tests*) t)
+(rtest:deftest :blake2-mac (run-test-vector-file :blake2-mac *mac-tests*) t)

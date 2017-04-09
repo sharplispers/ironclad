@@ -278,11 +278,29 @@
                  (error "progressive POLY1305 failed on key ~A, input ~A, output ~A"
                         key data expected-digest)))))
 
+(defun blake2-mac-test (name key data expected-digest)
+  (declare (ignore name))
+  (let ((mac (ironclad:make-blake2-mac key)))
+    (ironclad:update-blake2-mac mac data)
+    (when (mismatch expected-digest (ironclad:blake2-mac-digest mac))
+      (error "blake2-mac failed on key ~A, input ~A, output ~A"
+             key data expected-digest))
+    (loop
+       initially (reinitialize-instance mac :key key)
+       for i from 0 below (length data)
+       do (progn
+            (ironclad:update-blake2-mac mac data :start i :end (1+ i))
+            (ironclad:blake2-mac-digest mac))
+       finally (when (mismatch expected-digest (ironclad:blake2-mac-digest mac))
+                 (error "progressive blake2-mac failed on key ~A, input ~A, output ~A"
+                        key data expected-digest)))))
+
 (defparameter *mac-tests*
   (list (cons :hmac-test 'hmac-test)
         (cons :cmac-test 'cmac-test)
         (cons :skein-mac-test 'skein-mac-test)
-        (cons :poly1305-test 'poly1305-test)))
+        (cons :poly1305-test 'poly1305-test)
+        (cons :blake2-mac-test 'blake2-mac-test)))
 
 
 ;;; PRNG testing routines
