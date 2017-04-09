@@ -36,10 +36,16 @@
                                     #x1F83D9AB
                                     #x5BE0CD19))))
 
-(defun blake2s-make-initial-state (output-length)
-  (assert (<= output-length 32))
+(defun blake2s-make-initial-state (output-length &optional (key-length 0))
+  (when (> output-length 32)
+    (error "The output length must be at most 32 bytes."))
+  (when (> key-length 32)
+    (error "The key length must be at most 32 bytes."))
   (let ((state (copy-seq +blake2s-iv+)))
-    (setf (aref state 0) (logxor (aref state 0) #x01010000 output-length))
+    (setf (aref state 0) (logxor (aref state 0)
+                                 #x01010000
+                                 (ash key-length 8)
+                                 output-length))
     state))
 
 

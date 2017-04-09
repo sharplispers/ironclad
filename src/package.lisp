@@ -23,6 +23,10 @@
    #:make-skein-mac #:update-skein-mac #:skein-mac-digest
    ;; Poly1305
    #:make-poly1305 #:update-poly1305 #:poly1305-digest
+   ;; Blake2-MAC
+   #:make-blake2-mac #:update-blake2-mac #:blake2-mac-digest
+   ;; Blake2s-MAC
+   #:make-blake2s-mac #:update-blake2s-mac #:blake2s-mac-digest
 
    ;; introspection
    #:cipher-supported-p #:list-all-ciphers
