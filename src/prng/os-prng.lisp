@@ -8,10 +8,10 @@
 
 (defmethod prng-random-data (num-bytes (prng os-prng))
   #+unix
-  (let ((seq (make-array num-bytes :element-type 'unsigned-byte)))
+  (let ((seq (make-array num-bytes :element-type '(unsigned-byte 8))))
     (unless (slot-boundp prng 'source)
       (setf (slot-value prng 'source)
-            (open #P"/dev/urandom" :element-type 'unsigned-byte)))
+            (open #P"/dev/urandom" :element-type '(unsigned-byte 8))))
     (assert (>= (read-sequence seq (slot-value prng 'source)) num-bytes))
     seq)
   #+(and win32 sb-dynamic-core)(sb-win32:crypt-gen-random num-bytes)
