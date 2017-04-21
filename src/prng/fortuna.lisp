@@ -72,6 +72,9 @@
                                          event))
     (incf (slot-value pool 'length) (length event))))
 
+(defmethod prng-seed-length ((prng fortuna-prng))
+  +fortuna-seed-length+)
+
 (defmethod prng-reseed (seed (prng fortuna-prng))
   (declare (type simple-octet-vector seed))
   (assert (= (length seed) +fortuna-seed-length+))
