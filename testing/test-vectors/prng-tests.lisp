@@ -2,7 +2,7 @@
 (in-package :crypto-tests)
 
 (rtest:deftest :prng-fortuna (run-test-vector-file :prng *prng-tests*) t)
-(rtest:deftest :prng-fortuna-urandom (let ((prng (crypto:make-prng :fortuna :seed urandom)))
+(rtest:deftest :prng-fortuna-urandom (let ((prng (crypto:make-prng :fortuna :seed :urandom)))
                                        (= (length (crypto:random-data 16 prng))
                                           16)) t)
 
