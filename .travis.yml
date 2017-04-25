@@ -18,4 +18,4 @@ script:
                  (lambda (&rest ignorable)
                    (declare (ignore ignorable))
                    (uiop:quit -1)))'
-       -e '(rt:do-tests)'
+       -e '(unless (rt:do-tests) (uiop:quit -1))'
