@@ -1,0 +1,1434 @@
+#+TITLE: Ironclad
+#+AUTHOR: The Ironclad developers
+#+DATE:
+#+EMAIL:
+#+LANGUAGE: en
+#+OPTIONS: num:nil toc:nil html-style:nil html-postamble:nil html-scripts:nil
+#+HTML_DOCTYPE: html5
+#+HTML_HEAD: <style type="text/css">
+#+HTML_HEAD: body { margin: 1em 5% 1em 5%; }
+#+HTML_HEAD: p { margin-top: 0.5em; margin-bottom: 0.5em; }
+#+HTML_HEAD: pre { padding: 0; margin: 0; }
+#+HTML_HEAD: h1, h2 { border-bottom: 2px solid #449977; }
+#+HTML_HEAD: h1, h2, h3, h4, h5, h6 { font-family: sans-serif; line-height: 1.3; }
+#+HTML_HEAD: a:link { color: #449977; }
+#+HTML_HEAD: a:visited { color: purple; }
+#+HTML_HEAD: a { text-decoration: none; padding: 1px 2px; }
+#+HTML_HEAD: a:hover { text-decoration: none; padding: 1px; border: 1px solid #000000; }
+#+HTML_HEAD: pre.src-lisp { margin-right: 10%; margin-top: 1.5em; margin-bottom: 1.5em; border: 1px solid #449977; background: #eeeeee; padding: 1em; }
+#+HTML_HEAD: pre.example { margin-right: 10%; margin-top: 1.5em; margin-bottom: 1.5em; border: 1px solid black; padding: 1em; }
+#+HTML_HEAD: .underline { margin-top: 1.5em; margin-bottom: 1.5em; font-family: sans-serif; font-size: 1.1em; font-weight: bold; text-decoration: underline; }
+#+HTML_HEAD: </style>
+
+Ironclad is a cryptography library written entirely in Common Lisp. It
+includes support for several popular [[#ciphers][ciphers]], [[#digests][digests]], [[#message-authentication-codes][MACs]] and
+[[#public-key-cryptography][public key cryptography]] algorithms. For several implementations that
+support Gray streams, support is included for convenient [[#gray-streams][stream wrappers]].
+
+Most of the algorithms were written with efficiency for specific
+Common Lisp implementations in mind, although portable code is
+provided as an alternative in nearly all instances. The framework
+should be flexible enough to accomodate implementation-specific
+optimizations when possible.
+
+Test vectors for many of the algorithms are included to provide
+a level of confidence in the correctness of the implementations.
+
+#+TOC: headlines 1
+
+* Warning
+  :PROPERTIES:
+  :CUSTOM_ID: warning
+  :END:
+
+*Ironclad should not be considered safe against side channel attacks.*
+
+Some algorithms can be safe against side channel attacks on some
+architectures using some Common Lisp implementations, but in the
+general case it can't be guaranteed. This is due to the fact that
+integers and arithmetic functions of Common Lisp implementations are
+usually not safe against side channel attacks.
+
+* Installation
+  :PROPERTIES:
+  :CUSTOM_ID: installation
+  :END:
+
+The current version of Ironclad is 0.34. It can be downloaded
+at [[https://github.com/froydnj/ironclad/archive/v0.34.tar.gz]].
+If you are feeling adventurous, you can download a bleeding-edge version
+at [[https://github.com/froydnj/ironclad]].
+
+It comes with an ASDF system definition, so ~(asdf:oos 'asdf:load-op :ironclad)~
+should be all that you need to get started. The testsuite can be run
+by substituting ~asdf:test-op~ for ~asdf:load-op~ in the form above.
+
+Ironclad has been tested in the following implementations:
+ - SBCL x86/linux, x86-64/linux (primary development platforms)
+ - SBCL x86-64/solaris, x86/darwin
+ - CMUCL x86/linux
+ - ABCL with Sun's 1.5.0 JVM
+ - Lispworks 5.0.1 x86/linux
+ - Lispworks 5.1.2 x86-64/darwin x86/windows
+ - Allegro 8.0 x86/linux
+ - Allegro 8.1 x86/linux, x86-64/linux, sparc/solaris
+ - CLISP 2.41 x86/linux, x86/cygwin
+ - Clozure Common Lisp 1.2 x86-64/Linux
+ - Clozure Common Lisp 1.10 x86-64/darwin
+
+All included tests should pass successfully. If you use a platform not
+listed above, please send your platform information so that it can be
+added to the above list. If the tests do not all pass, you have found
+a bug; please report it.
+
+* License
+  :PROPERTIES:
+  :CUSTOM_ID: license
+  :END:
+
+Ironclad is released under a MIT-like license; you can do pretty much
+anything you want to with the code except claim that you wrote it.
+
+* Ciphers
+  :PROPERTIES:
+  :CUSTOM_ID: ciphers
+  :END:
+
+#+NAME: make-cipher
+#+BEGIN_SRC lisp
+(make-cipher name &key key mode initialization-vector padding tweak) => cipher
+#+END_SRC
+
+Return a cipher object suitable for use for both encryption and decryption.
+
+/name/ denotes the encryption algorithm to use. [[list-all-ciphers][list-all-ciphers]] will tell you
+the names of all supported ciphers. They are:
+ - 3des
+ - aes
+ - arcfour (rc4)
+ - blowfish
+ - cast5
+ - chacha
+ - chacha/12
+ - chacha/8
+ - des
+ - idea
+ - misty1
+ - null
+ - rc2
+ - rc5
+ - rc6
+ - salsa20
+ - salsa20/12
+ - salsa20/8
+ - serpent
+ - square
+ - tea
+ - threefish1024
+ - threefish256
+ - threefish512
+ - twofish
+ - xtea
+
+/name/ can be a symbol in the ~keyword~ package or in the ~ironclad~ package;
+~:aes~ for AES, ~ironclad:arcfour~ for RC4, and so forth.
+
+/mode/ describes the mode of operation for the cipher. Stream ciphers
+such as Arcfour can operate in only one mode, ~stream~. Block ciphers
+such as AES and DES can operate in several different modes:
+ - ecb
+ - cbc
+ - ofb
+ - cfb (note that Ironclad's CFB mode is /n/-bit CFB, where /n/ is the [[block-length][block-length]] of the cipher)
+ - cfb8 (this seems to be the mode other crypto packages call CFB)
+ - ctr
+
+/mode/ should be a symbol in the ~keyword~ or ~ironclad~ packages;
+~:stream~, ~ironclad:ofb~, and so forth. An error will be signaled if
+/mode/ is not appropriate for the cipher /name/.
+
+/initialization-vector/ (IV) should be supplied only if /mode/ requires one.
+/initialization-vector/ should be a ~(simple-array (unsigned-byte 8) (*))~.
+The supplied IV should be the same length as the [[block-length][block-length]] of /name/.
+
+/key/ is, of course, the key for the cipher.
+/key/ should be a ~(simple-array (unsigned-byte 8) (*))~.
+
+If /padding/ is supplied, the specified padding method will be used by
+[[encrypt][encrypt]] and [[decrypt][decrypt]] to handle short blocks when the
+~:handle-final-block~ argument is supplied. Depending on the mode
+specified, /padding/ may be ignored (e.g. OFB and CFB modes do not
+care about short blocks; neither do stream ciphers).
+
+_Note:_ /padding/ is currently ignored in all modes (and, by
+extension, so is ~:handle-final-block~). This oversight is expected to
+be corrected in a future release.
+
+If the cipher can use a tweak (e.g. threefish), it can be specified
+with the /tweak/ key parameter.
+
+
+#+NAME: encrypt
+#+BEGIN_SRC lisp
+(encrypt cipher plaintext ciphertext &key plaintext-start plaintext-end ciphertext-start handle-final-block) => n-bytes-consumed, n-bytes-produced
+#+END_SRC
+
+Encrypts data according to /cipher/ from /plaintext/ starting at
+/plaintext-start/ and continuing until /plaintext-end/. The encrypted
+data is placed in /ciphertext/ starting at /ciphertext-start/.
+
+
+#+NAME: decrypt
+#+BEGIN_SRC lisp
+(decrypt cipher ciphertext plaintext &key ciphertext-start ciphertext-end plaintext-start handle-final-block) => n-bytes-consumed, n-bytes-produced
+#+END_SRC
+
+Decrypts data according to /cipher/ from /ciphertext/ starting at
+/ciphertext-start/ and continuing until /ciphertext-end/. The decrypted
+data is placed in /plaintext/ starting at /plaintext-start/.
+
+
+#+NAME: encrypt-in-place
+#+BEGIN_SRC lisp
+(encrypt-in-place cipher text &key start end) => n-bytes-consumed, n-bytes-produced
+#+END_SRC
+#+NAME: decrypt-in-place
+#+BEGIN_SRC lisp
+(decrypt-in-place cipher text &key start end) => n-bytes-consumed, n-bytes-produced
+#+END_SRC
+
+Encrypts or decrypts data in /text/ between /start/ and /end/ "in-place"
+according to /cipher/. These functions are shorthand for:
+#+BEGIN_EXAMPLE
+(encrypt cipher text text :plaintext-start start :plaintext-end end :ciphertext-start start)
+(decrypt cipher text text :ciphertext-start start :ciphertext-end end :plaintext-start start)
+#+END_EXAMPLE
+
+_Note:_ [[encrypt-in-place][encrypt-in-place]] and [[decrypt-in-place][decrypt-in-place]] do not support
+a /handle-final-block/ parameter as [[encrypt][encrypt]] and [[decrypt][decrypt]] do. If you
+need the functionality that /handle-final-block/ provides, then you
+need to use [[encrypt][encrypt]] and [[decrypt][decrypt]].
+
+_Note:_ /n-bytes-consumed/ and /n-bytes-produced/ may not always be
+equal to the length of the data specified in the call to
+[[encrypt-in-place][encrypt-in-place]] or [[decrypt-in-place][decrypt-in-place]]. This subtlely is also present in
+[[encrypt][encrypt]] or [[decrypt][decrypt]].
+
+** Inquiry functions
+
+#+NAME: list-all-ciphers
+#+BEGIN_SRC lisp
+(list-all-ciphers) => list
+#+END_SRC
+
+Returns a list of cipher-names that may be validly passed to [[make-cipher][make-cipher]].
+
+
+#+NAME: cipher-supported-p
+#+BEGIN_SRC lisp
+(cipher-supported-p name) => boolean
+#+END_SRC
+
+Returns ~t~ if /name/ would be in the list returned by [[list-all-ciphers][list-all-ciphers]],
+~nil~ otherwise.
+
+
+#+NAME: key-lengths
+#+BEGIN_SRC lisp
+(key-lengths cipher) => list
+#+END_SRC
+
+Return a list of valid key lengths for /cipher/.
+
+
+#+NAME: block-length
+#+BEGIN_SRC lisp
+(block-length cipher) => number
+#+END_SRC
+
+Return the number of octets /cipher/ processes at a time. This
+function always returns 1 for stream ciphers.
+
+* Digests
+  :PROPERTIES:
+  :CUSTOM_ID: digests
+  :END:
+
+Digest functions, also known as hash functions, produce fixed-length
+output (a /digest/ or /hash/) from a variable-length message. The
+simplest example of a digest function is one that adds up all the
+bytes in the message modulo 256. This digest function fails one test
+of a cryptographically secure hash function: it must be difficult to
+find a message with a given digest. It also fails the other test: it
+must be difficult to find two messages with the same digest.
+
+Ironclad provides several cryptographically secure digest functions
+and several non-cryptographically secure digest functions.
+
+_Note:_ In the functions below, messages or parts thereof are provided
+as octet vectors; Ironclad has no facilities for producing digests of
+strings. If you need to obtain the digest of a string, then you need
+to figure out how to convert it to an octet vector first. This is
+a deliberate design decision. Characters are not equivalent to bytes.
+See your local Unicode guru for more details.
+
+
+#+NAME: make-digest
+#+BEGIN_SRC lisp
+(make-digest digest-name &rest keys &key &allow-other-keys) => digester
+#+END_SRC
+
+Returns a digest object. /digest-name/ is a keyword naming the
+algorithm you wish /digester/ to use. The supported digest names can be found
+by calling [[list-all-digests][list-all-digests]]. They are:
+ - adler32
+ - blake2
+ - blake2/160
+ - blake2/256
+ - blake2/384
+ - blake2s
+ - blake2s/128
+ - blake2s/160
+ - blake2s/224
+ - crc24
+ - crc32
+ - groestl
+ - groestl/224
+ - groestl/256
+ - groestl/384
+ - jh
+ - jh/224
+ - jh/256
+ - jh/384
+ - md2
+ - md4
+ - md5
+ - ripemd-128
+ - ripemd-160
+ - sha1
+ - sha224
+ - sha256
+ - sha3
+ - sha3/224
+ - sha3/256
+ - sha3/384
+ - sha384
+ - sha512
+ - shake128
+ - shake256
+ - skein1024
+ - skein1024/384
+ - skein1024/512
+ - skein256
+ - skein256/128
+ - skein256/160
+ - skein256/224
+ - skein512
+ - skein512/128
+ - skein512/160
+ - skein512/224
+ - skein512/256
+ - skein512/384
+ - tiger
+ - tree-hash
+ - whirlpool
+
+Like for [[make-cipher][make-cipher]], /digest-name/ should be a symbol in the
+~keyword~ or ~ironclad~ packages.
+
+Some algorithms (e.g. shake128 and shake256) can produce digests of
+any size. The size of the digest in bytes can be specified with the
+/output-length/ key parameter:
+
+#+BEGIN_EXAMPLE
+(make-digest :shake256 :output-length 123)
+#+END_EXAMPLE
+
+
+#+NAME: update-digest
+#+BEGIN_SRC lisp
+(update-digest digester thing &key &allow-other-keys) => (values)
+#+END_SRC
+
+Updates the internal state of /digester/ with the contents of /thing/.
+The exact method is determined by the type of /thing/.
+
+There are several methods defined on this generic function that take
+a particular digester and a ~(simple-array (unsigned-byte 8) (*))~ as
+well as the usual /start/ and /end/ keyword arguments. These methods
+update the state of /digester/ with the subsequence of the array
+denoted by /start/ and /end/. They are not listed here because there's
+one method for every type of digest that Ironclad provides, and
+listing them would get very tedious for no benefit. An example should
+suffice.
+
+#+BEGIN_EXAMPLE
+(let ((digester (ironclad:make-digest :sha1))
+      (array (make-array 16 :element-type '(unsigned-byte 8) :initial-element 0)))
+  ;; Update with 16 zeroes.
+  (ironclad:update-digest digester array)
+  ;; Update with 8 ones.
+  (fill array 1 :start 2 :end 10)
+  (ironclad:update-digest digester array :start 2 :end 10))
+#+END_EXAMPLE
+
+
+#+BEGIN_SRC lisp
+(update-digest digester (stream stream) &key buffer start end &allow-other-keys) => digester
+#+END_SRC
+
+Update the internal state of /digester/ with the contents of /stream/,
+which must respond to ~read-byte~ or ~read-sequence~ with
+a ~(simple-array (unsigned-byte 8) (*))~ and return /digester/. It
+differs from [[digest-stream][digest-stream]], below, in that you may need to digest data
+before or after the contents of /stream/ (this happens, for instance,
+when signing the contents of some file).
+
+
+#+NAME: produce-digest
+#+BEGIN_SRC lisp
+(produce-digest digester &key digest digest-start) => digest
+#+END_SRC
+
+Return the digest of the data processed by /digester/ so far.
+
+If /digest/ is provided, the computed digest will be placed into
+/digest/ starting at /digest-start/. /digest/ must be a
+~(simple-array (unsigned-byte 8) (*))~. An [[insufficient-buffer-space][insufficient-buffer-space]]
+error will be signaled if there is insufficient space in /digest/.
+
+** High-level convenience functions
+
+Several high-level convenience functions that encapsulate common
+sequences of [[make-digest][make-digest]], [[update-digest][update-digest]] and [[produce-digest][produce-digest]] are
+provided by Ironclad as well. They come in two flavors: the first
+takes a digest name as would be provided to [[make-digest][make-digest]]. The second
+way to call these functions is to provide an actual digest object as
+the first argument. So one can say:
+
+#+BEGIN_EXAMPLE
+(ironclad:digest-sequence :md5 *buffer*)
+#+END_EXAMPLE
+
+or, equivalently:
+
+#+BEGIN_EXAMPLE
+(let ((digester (ironclad:make-digest :md5)))
+  (ironclad:digest-sequence digester *buffer*))
+#+END_EXAMPLE
+
+The second form comes in handy if you plan on [[*Miscellaneous][reusing the digest object]].
+
+
+#+NAME: digest-sequence
+#+BEGIN_SRC lisp
+(digest-sequence digest-spec sequence &rest args &key start end digest digest-start) => digest
+#+END_SRC
+
+Returns the digest of the subsequence of /sequence/ bounded by /start/
+and /end/, according to /digest-name/. /sequence/ must be
+a ~(simple-array (unsigned-byte 8) (*))~. /digest/ and /digest-start/
+are as in [[produce-digest][produce-digest]].
+
+
+#+NAME: digest-stream
+#+BEGIN_SRC lisp
+(digest-stream digest-spec stream &rest args &key buffer start end digest digest-start) => digest
+#+END_SRC
+
+Returns the digest of the contents of the stream specified by
+/stream/. ~read-byte~ must be a legal operation on /stream/ and return
+an ~(unsigned-byte 8)~. In a similar fashion, ~read-sequence~ on
+/stream/ must support reading into a ~(simple-array (unsigned-byte 8) (*))~.
+/digest/ and /digest-start/ are as in [[produce-digest][produce-digest]].
+
+If /buffer/ is provided, it must be a ~(simple-array (unsigned-byte 8) (*))~;
+the portion of /buffer/ between /start/ and /end/ will be used to read
+the data from the stream.
+
+
+#+NAME: digest-file
+#+BEGIN_SRC lisp
+(digest-file digest-spec pathname &rest args &key buffer start end digest digest-start) => digest
+#+END_SRC
+
+Returns the digest of the contents of the file named by /pathname/.
+/digest/ and /digest-start/ are as in [[produce-digest][produce-digest]].
+
+If /buffer/ is provided, it must be a ~(simple-array (unsigned-byte 8) (*))~;
+the portion of /buffer/ between /start/ and /end/ will be used to read
+the data from the stream.
+
+** Inquiry functions
+
+#+NAME: list-all-digests
+#+BEGIN_SRC lisp
+(list-all-digests) => list
+#+END_SRC
+
+Returns a list whose elements may be validly passed to [[make-digest][make-digest]].
+
+
+#+NAME: digest-supported-p
+#+BEGIN_SRC lisp
+(digest-supported-p name) => boolean
+#+END_SRC
+
+Returns ~t~ if /name/ would be in the list returned by [[list-all-digests][list-all-digests]],
+~nil~ otherwise.
+
+
+#+NAME: digest-length
+#+BEGIN_SRC lisp
+(digest-length digest) => number
+#+END_SRC
+
+Returns the length of the digest computed by /digest/, which may be
+a digest-name or a digest instance.
+
+** Miscellaneous
+
+Ironclad digests are CLOS objects; the interesting thing about this
+for most purposes is that functions like ~reinitialize-instance~ are
+supported. This means one can write a fairly efficient clone of the
+=md5sum= program like so:
+
+#+BEGIN_EXAMPLE
+(defun digest-sum-files (digest-name &rest files)
+  (unless files
+    (error "no files given to digest"))
+  (loop with buffer = (make-array 8192 :element-type '(unsigned-byte 8))
+        with digest = (make-array (ironclad:digest-length digest-name)
+                                  :element-type '(unsigned-byte 8))
+       for file in files
+       for digester = (ironclad:make-digest digest-name)
+       then (reinitialize-instance digester)
+       do (ironclad:digest-file digester file :buffer buffer :digest digest)
+          (format t "~A ~A~%" (file-namestring file)
+                  (ironclad:byte-array-to-hex-string digest))))
+#+END_EXAMPLE
+
+** Tree hashes
+
+Ironclad supports tree hashes, as described in [[http://web.archive.org/web/20080316033726/http://www.open-content.net/specs/draft-jchapweske-thex-02.html][Tree Hash EXchange format]].
+You create tree hashes as if you were creating a digest:
+
+#+BEGIN_EXAMPLE
+(ironclad:make-digest :tree-hash)
+#+END_EXAMPLE
+
+By default, this creates a tree hash that uses the Tiger digest
+algorithm internally and a segment size of 1024. Since using the Tiger
+digest algorithm is so common, a convenience function that makes your
+intent obvious has also been provided:
+
+#+BEGIN_EXAMPLE
+(ironclad:make-tiger-tree-hash)
+#+END_EXAMPLE
+
+You may indicate that you wish to use a different algorithm than
+Tiger:
+
+#+BEGIN_EXAMPLE
+(ironclad:make-digest '(:treehash :digest :sha256))
+#+END_EXAMPLE
+
+Or you might wish to use a different segment size:
+
+#+BEGIN_EXAMPLE
+(ironclad:make-digest '(:tree-hash :block-length 16384))
+#+END_EXAMPLE
+
+There is currently no interface for obtaining the intermediate hashes
+computed while computing the final tree hash.
+
+* Message authentication codes
+  :PROPERTIES:
+  :CUSTOM_ID: message-authentication-codes
+  :END:      
+
+A message authentication code is a cryptographic function of some data
+and a user-specified key. Only a person knowing the key can recompute
+the MAC for the given message. A MAC is useful where maintaining data
+integrity is required, but the secrecy of the data is not paramount.
+
+Ironclad provides different kinds of MACs:
+ - HMAC, specified in [[http://www.ietf.org/rfc/rfc2109.txt][RFC 2104]]
+ - CMAC, specified in [[http://www.ietf.org/rfc/rfc4493.txt][RFC 4493]] and NIST document 800-38B
+ - Blake2 and Blake2s MAC
+ - Poly1305 MAC
+ - Skein MAC
+
+** HMAC
+
+Instances of HMACs are constructed by specifying a secret key and
+a digest-name.
+
+
+#+NAME: make-hmac
+#+BEGIN_SRC lisp
+(make-hmac key digest-name) => hmac
+#+END_SRC
+
+Return an HMAC instance based on the hash function /digest-name/ with
+secret key /key/.
+
+The returned object supports ~reinitialize-instance~:
+
+#+BEGIN_SRC lisp
+(reinitialize-instance (mac hmac) &rest initargs &key key &allow-other-keys) => hmac
+#+END_SRC
+
+The /:key/ argument is the secret key, as provided to [[make-hmac][make-hmac]].
+
+
+#+NAME: update-hmac
+#+BEGIN_SRC lisp
+(update-hmac hmac sequence &key start end) => hmac
+#+END_SRC
+
+Update the internal state of /hmac/ with the data in /sequence/
+bounded by /start/ and /end/. /sequence/ must be a
+~(simple-array (unsigned-byte 8) (*))~.
+
+
+#+NAME: hmac-digest
+#+BEGIN_SRC lisp
+(hmac-digest hmac &key buffer buffer-start) => digest
+#+END_SRC
+
+Returns the MAC (/digest/) computed by /hmac/ thus far. The internal
+state of /hmac/ is not modified; this feature makes it possible to
+compute a "rolling MAC" of a document. The length of /digest/ is
+determined by the [[digest-length][digest-length]] of the /digest-name/ passed to
+[[make-hmac][make-hmac]] when /hmac/ was constructed.
+
+If /buffer/ is provided, the computed MAC will be placed into
+/buffer/ starting at /buffer-start/. /buffer/ must be a
+~(simple-array (unsigned-byte 8) (*))~. An [[insufficient-buffer-space][insufficient-buffer-space]]
+error will be signaled if there is insufficient space in /buffer/.
+
+** CMAC
+
+Instances of CMACs are constructed by specifying a secret key and
+a cipher-name.
+
+
+#+NAME: make-cmac
+#+BEGIN_SRC lisp
+(make-cmac key cipher-name) => cmac
+#+END_SRC
+
+Return a CMAC instance based on the cipher /cipher-name/ with secret
+key /key/. /cipher-name/ must have a [[block-length][block-length]] of either 8 or 16;
+this restriction is satisfied by many ciphers in Ironclad with the
+notable exception of stream ciphers. /key/ must be an acceptable key
+for /cipher-name/.
+
+
+#+NAME: update-cmac
+#+BEGIN_SRC lisp
+(update-cmac cmac sequence &key start end) => cmac
+#+END_SRC
+
+Update the internal state of /cmac/ with the data in /sequence/
+bounded by /start/ and /end/. /sequence/ must be a
+~(simple-array (unsigned-byte 8) (*))~.
+
+
+#+NAME: cmac-digest
+#+BEGIN_SRC lisp
+(cmac-digest cmac) => digest
+#+END_SRC
+
+Returns the MAC (/digest/) computed by /cmac/ thus far. The internal
+state of /cmac/ is not modified; this feature makes it possible to
+compute a "rolling MAC" of a document. The length of /digest/ is
+determined by the [[block-length][block-length]] of the /cipher-name/ passed to
+[[make-cmac][make-cmac]] when /cmac/ was constructed.
+
+** Blake2 and Blake2s MAC
+
+Instances of Blake2 and Blake2s MACs are constructed by specifying
+a secret key and optionally a digest-length.
+
+
+#+NAME: make-blake2-mac
+#+BEGIN_SRC lisp
+(make-blake2-mac key &key digest-length) => mac
+(make-blake2s-mac key &key digest-length) => mac
+#+END_SRC
+
+Return a Blake2 or Blake2s MAC instance with secret key /key/.
+/digest-length/ can be any length from 1 to 64 for Blake2, or from
+1 to 32 for Blake2s. By default, /digest-length/ is 64 for Blake2 and
+32 for Blake2s.
+
+
+#+NAME: update-blake2-mac
+#+BEGIN_SRC lisp
+(update-blake2-mac mac sequence &key start end) => mac
+(update-blake2s-mac mac sequence &key start end) => mac
+#+END_SRC
+
+Update the internal state of /mac/ with the data in /sequence/ bounded
+by /start/ and /end/. /sequence/ must be a
+~(simple-array (unsigned-byte 8) (*))~.
+
+
+#+NAME: blake2-mac-digest
+#+BEGIN_SRC lisp
+(blake2-mac-digest mac) => digest
+(blake2s-mac-digest mac) => digest
+#+END_SRC
+
+Returns the MAC (/digest/) computed by /mac/ thus far. The internal
+state of /mac/ is not modified; this feature makes it possible to
+compute a "rolling MAC" of a document. The length of /digest/ is
+determined by the /digest-length/ key parameter passed to
+[[make-blake2-mac][make-blake2-mac]] or [[make-blake2-mac][make-blake2s-mac]] when /mac/ was constructed.
+
+** Poly1305 MAC
+
+Instances of Poly1305 MACs are constructed by specifying
+a secret key.
+
+
+#+NAME: make-poly1305
+#+BEGIN_SRC lisp
+(make-poly1305 key) => mac
+#+END_SRC
+
+Return a Poly1305 MAC instance with secret key /key/.
+The size of /key/ must be 32 bytes.
+
+
+#+NAME: update-poly1305
+#+BEGIN_SRC lisp
+(update-poly1305 mac data &key start end) => (values)
+#+END_SRC
+
+Update the internal state of /mac/ with the /data/ bounded by /start/
+and /end/. /data/ must be a ~(simple-array (unsigned-byte 8) (*))~.
+
+
+#+NAME: poly1305-digest
+#+BEGIN_SRC lisp
+(poly1305-digest mac) => digest
+#+END_SRC
+
+Returns the MAC (/digest/) computed by /mac/ thus far. The internal
+state of /mac/ is not modified; this feature makes it possible to
+compute a "rolling MAC" of a document. The length of /digest/ is 16
+bytes.
+
+** Skein MAC
+
+Instances of Skein MACs are constructed by specifying a secret key and
+optionally a block length and a digest-length.
+
+
+#+NAME: make-skein-mac
+#+BEGIN_SRC lisp
+(make-skein-mac key &key block-length digest-length) => mac
+#+END_SRC
+
+Return a Skein MAC instance with secret key /key/. /block-length/ can
+be 32 (to use the Skein256 hash function internally), 64 (to use
+Skein512) or 128 (to use Skein1024). /digest-length/ can be any length
+you want the computed MAC (/digest/) to be. By default, /block-length/
+is 64 and /digest-length/ is 64.
+
+
+#+NAME: update-skein-mac
+#+BEGIN_SRC lisp
+(update-skein-mac mac sequence &key start end) => mac
+#+END_SRC
+
+Update the internal state of /mac/ with the data in /sequence/ bounded
+by /start/ and /end/. /sequence/ must be a
+~(simple-array (unsigned-byte 8) (*))~.
+
+
+#+NAME: skein-mac-digest
+#+BEGIN_SRC lisp
+(skein-mac-digest mac) => digest
+#+END_SRC
+
+Returns the MAC (/digest/) computed by /mac/ thus far. The internal
+state of /mac/ is not modified; this feature makes it possible to
+compute a "rolling MAC" of a document. The length of /digest/ is
+determined by the /digest-length/ key parameter passed to
+[[make-skein-mac][make-skein-mac]] when /mac/ was constructed.
+
+* Key derivation functions
+  :PROPERTIES:
+  :CUSTOM_ID: key-derivation-functions
+  :END:
+
+Ironclad comes with the basic PBKDF1 and PBKDF2 algorithms, as well as
+an implementation of the scrypt key derivation function as defined by
+Colin Percival's [[http://www.tarsnap.com/scrypt.html][The scrypt key derivation function]].
+
+
+#+NAME: derive-key
+#+BEGIN_SRC lisp
+(derive-key kdf passphrase salt iteration-count key-length) => digest
+#+END_SRC
+
+Given a key derivation function object (produced by [[make-kdf][make-kdf]]),
+a password and salt (both must be of type
+~(simple-array (unsigned-byte 8) (*))~), and number of digest iterations,
+returns the password digest as a byte array of length /key-length/.
+
+Scrypt ignores /iteration-count/ parameter.
+
+
+#+NAME: make-kdf
+#+BEGIN_SRC lisp
+(make-kdf kind &key digest n r p) => kdf
+#+END_SRC
+
+Returns a key derivation function instance (/kind/ must either be
+/PBKDF1/, /PBKDF2/ or /SCRYPT-KDF/). The PBKDF algorithms use
+/digest/. The scrypt key derivation uses cost parameters /N/, /r/ and
+/p/ (/N/ is a CPU cost parameter that must be a power of 2, /r/ and
+/p/ are memory cost parameters that must be defined such that
+/r/ * /p/ <= 2^30).
+
+The default parameters are /N/ = 4096, /r/ = 8, and /p/ = 2.
+Please note that depending on the values of /N/ and /r/,
+[[derive-key][derive-key]] may not be able to allocate sufficient space for its
+temporary arrays.
+
+** PBKDF convenience functions
+
+Ironclad comes with convenience functions for using PBKDF1 and PBKDF2
+to store passwords.
+
+
+#+NAME: pbkdf2-hash-password
+#+BEGIN_SRC lisp
+(pbkdf2-hash-password password &key salt digest iterations) => password
+#+END_SRC
+
+Convenience function for hashing passwords using the PBKDF2 algorithm.
+Returns the derived hash of the password, and the original salt, as
+byte vectors.
+
+
+#+NAME: pbkdf2-hash-password-to-combined-string
+#+BEGIN_SRC lisp
+(pbkdf2-hash-password-to-combined-string password &key salt digest iterations) => password
+#+END_SRC
+
+Convenience function for hashing passwords using the PBKDF2 algorithm.
+Returns the derived hash of the password as a single string that
+encodes the given salt and PBKDF2 algorithm parameters.
+
+
+#+NAME: pbkdf2-check-password
+#+BEGIN_SRC lisp
+(pbkdf2-check-password password combined-salt-and-digest) => boolean
+#+END_SRC
+
+Given a /password/ byte vector and a combined salt and digest string
+produced by [[pbkdf2-hash-password-to-combined-string][pbkdf2-hash-password-to-combined-string]], checks whether
+the password is valid.
+
+* Public key cryptography
+  :PROPERTIES:
+  :CUSTOM_ID: public-key-cryptography
+  :END:
+
+Ironclad includes support for a few public key cryptography algorithms.
+
+Encryption algorithms:
+ - Elgamal
+ - RSA
+
+Signature algorithms:
+ - DSA
+ - Ed25519
+ - Ed448
+ - Elgamal
+ - RSA
+
+Diffie-Hellman key exchange:
+ - Curve25519
+ - Curve448
+ - Elgamal
+
+** Key pair generation
+
+#+NAME: generate-key-pair
+#+BEGIN_SRC lisp
+(generate-key-pair kind &key num-bits &allow-other-keys) => private-key, public-key
+#+END_SRC
+
+Return a key pair according to /kind/. If /kind/ is ~:dsa~, ~:elgamal~
+or ~:rsa~, the /num-bits/ key argument indicating the size of the keys
+to generate must be specified. The generation of DSA, Elgamal and RSA
+key pairs can take a very long time.
+
+** Key construction
+
+#+NAME: make-publickey
+#+BEGIN_SRC lisp
+(make-public-key king &key &allow-other-keys) => public-key
+#+END_SRC
+
+Return a public key according to /kind/. The /&key/
+arguments vary according to /kind/. The interesting bits are in the
+methods that specialize on /kind/, below.
+
+#+BEGIN_EXAMPLE
+(make-public-key :curve25519 &key y) => public-key
+(make-public-key :curve448 &key y) => public-key
+(make-public-key :dsa &key p q g y) => public-key
+(make-public-key :ed25519 &key y) => public-key
+(make-public-key :ed448 &key y) => public-key
+(make-public-key :elgamal &key p g y) => public-key
+(make-public-key :rsa &key e n) => public-key
+#+END_EXAMPLE
+
+
+#+NAME: make-private-key
+#+BEGIN_SRC lisp
+(make-private-key kind &key &allow-other-keys) => private-key
+#+END_SRC
+
+Return a private key according to /kind/. The /&key/ arguments vary
+according to /kind/. The interesting bits are in the methods that
+specialize on /kind/, below.
+
+#+BEGIN_EXAMPLE
+(make-private-key :curve25519 &key x y) => private-key
+(make-private-key :curve448 &key x y) => private-key
+(make-private-key :dsa &key p q g y x) => private-key
+(make-private-key :ed25519 &key x y) => private-key
+(make-private-key :ed448 &key x y) => private-key
+(make-private-key :elgamal &key p g y x) => private-key
+(make-private-key :rsa &key d n) => private-key
+#+END_EXAMPLE
+
+
+For Curve25519, Curve448, Ed25519 and Ed448 keys, the type of the
+parameters is ~(simple-array (unsigned-byte 8) (*))~:
+ - /x/, the secret key
+ - /y/, the public key
+
+For DSA and Elgamal keys, the type of the parameters is ~integer~:
+ - /p/, the prime number defining the DL group
+ - /q/, the prime number defining the DL sub-group
+ - /g/, the generator
+ - /y/, the public key
+ - /x/, the private key
+
+For RSA keys, the type of the parameters is ~integer~:
+ - /n/, the modulus
+ - /e/, the public key
+ - /d/, the private key
+
+** Digital signatures
+
+#+NAME: sign-message
+#+BEGIN_SRC lisp
+(sign-message key message &key start end &allow-other-keys) => signature
+#+END_SRC
+
+Return a signature of /message/ between /start/ and /end/ signed with
+/key/; the class of /key/ determines the algorithm used to create the
+/signature/.
+
+_Note:_ The [[sign-message][sign-message]] does not perform the hashing of the data. You
+should hash your data using your favorite hash function, and then use
+this hash as the /message/ passed to [[sign-message][sign-message]].
+
+
+#+NAME: verify-signature
+#+BEGIN_SRC lisp
+(verify-signature key message signature &key start end &allow-other-keys) => boolean
+#+END_SRC
+
+Verify whether /signature/ is a valid signature of /message/ between
+/start/ and /end/ using /key/. Return ~t~ is the signature is valid
+and ~nil~ otherwise.
+
+*** Padding
+
+To be secure, RSA signature requires the message to be padded.
+The /pss/ key parameter is provided to pad (or unpad) the message
+during signature (or verification) with the PSS scheme of PKCS-1.
+
+#+BEGIN_EXAMPLE
+(sign-message rsa-private-key message :pss t) => signature
+(verify-signature rsa-public-key message signature :pss t) => boolean
+#+END_EXAMPLE
+
+*** Format of signatures
+
+[[sign-message][sign-message]] returns signatures as octet vectors.
+When the signature contains several values (e.g. the R and S values
+of DSA and Elgamal signatures), the octet vector is the concatenation
+of these values (e.g. the first half of the vector is the R value,
+the second half is the S value).
+
+** Encryption and decryption
+
+#+NAME: encrypt-message
+#+BEGIN_SRC lisp
+(encrypt-message key message &key start end &allow-other-keys) => encrypted-message
+#+END_SRC
+
+Return the /message/ between /start/ and /end/ encrypted with the /key/;
+the class of /key/ determines the algorithm used to encrypt the message.
+
+
+#+NAME: decrypt-message
+#+BEGIN_SRC lisp
+(decrypt-message key message &key start end &allow-other-keys) => decrypted-message
+#+END_SRC
+
+Return the /message/ between /start/ and /end/ decrypted by the /key/;
+the class of /key/ determines the algorithm used to decrypt the message.
+
+*** Padding
+
+To be secure, RSA encryption requires the message to be padded. The
+/oaep/ key parameter is provided to pad (or unpad) the message during
+encryption (or decryption) with the OAEP scheme of PKCS-1.
+
+#+BEGIN_EXAMPLE
+(encrypt-message rsa-public-key message :oaep t) => encrypted-message
+(decrypt-message rsa-private-key message :oaep t) => decrypted-message
+#+END_EXAMPLE
+
+** Diffie-Hellman key exchange
+
+#+NAME: diffie-hellman
+#+BEGIN_SRC lisp
+(diffie-hellman private-key public-key) => bytes
+#+END_SRC
+
+Return a secret shared by two users Alice and Bob, computed from
+Alice's private key and Bob's public key.
+
+* Pseudo-random number generation
+  :PROPERTIES:
+  :CUSTOM_ID: pseudo-random-number-generation
+  :END:
+
+The vast, vast vast number of users should just use the default
+~os-prng~ (which uses =/dev/urandom= on Unix and ~CryptGenRandom~ on
+Windows). For users who need /deterministic/,
+high-quality-random-seeming numbers (e.g. for Monte Carlo
+simulations), ~fortuna-generator~ is provided. Finally, if you're
+running on a platform without a decent PRNG (these are few and far
+between now), you may require the full ~fortuna-prng~. When in doubt,
+use ~os-prng~, which is the default.
+
+
+#+NAME:make-prng
+#+BEGIN_SRC lisp
+(make-prng name &key seed) => prng
+#+END_SRC
+
+Create a pseudo-random number generator.
+
+/name/ denotes the style of PRNG to use. [[list-all-prngs][list-all-prngs]] will tell you
+the names of all supported PRNGs. Currently supported PRNGs are:
+ - OS
+ - Fortuna
+ - Fortuna-generator
+
+/name/ can be a symbol in the ~keyword~ package or in the ~ironclad~
+package.
+
+/seed/ is a *seed descriptor*. If ~nil~, the PRNG will not be seeded
+(which may prevent it from generating output until it is seeded,
+depending on the PRNG in question). If ~:random~ then the PRNG will be
+seeded with the OS's cryptographically-secure PRNG. If ~:urandom~ then
+the PRNG will be seeded with the OS's fast-but-potentially-less-secure
+PRNG, if available (if not, will fallback to ~:random~). If it is
+a pathname indicator, a seed will be read from the indicated file,
+then a new seed will be generated and written back to the file
+(over-writing the old seed). Finally, if it is a byte vector, it will
+be used to seed the PRNG.
+
+You should very rarely need to call [[make-prng][make-prng]]; the default OS-provided
+PRNG should be appropriate in nearly all cases.
+
+
+#+NAME: list-all-prngs
+#+BEGIN_SRC lisp
+(list-all-prngs) => list
+#+END_SRC
+
+List all known PRNG types.
+
+
+#+NAME: random-data
+#+BEGIN_SRC lisp
+(random-data num-bytes &optional prng) => bytes
+#+END_SRC
+
+Generate /num-bytes/ bytes of random data from /prng/. Updates the
+state of the generator.
+
+
+#+NAME: random-bits
+#+BEGIN_SRC lisp
+(random-bits num-bits &optional prng) => integer
+#+END_SRC
+
+Generate an integer with /num-bits/ bits.
+
+
+#+NAME: strong-random
+#+BEGIN_SRC lisp
+(strong-random limit &optional prng) => number
+#+END_SRC
+
+A drop-in replacement for ~common-lisp:random~, [[strong-random][strong-random]]
+generates a number (an integer if /limit/ is an integer and a float if
+it is a float) between 0 and /limit/ - 1 in an unbiased fashion.
+
+
+#+NAME: read-os-random-seed
+#+BEGIN_SRC lisp
+(read-os-random-seed source &optional prng) => reseed-count
+#+END_SRC
+
+Read an OS-provided random seed (from =/dev/urandom= or =/dev/random=
+on Unix; ~CryptGenRandom~ on Windows) and reseed /prng/.
+
+/source/ may be ~:random~, which indicates =/dev/random= or
+~:urandom~, which indicates =/dev/urandom=. On Windows,
+~CryptGenRandom~ is always used.
+
+
+#+NAME: read-seed
+#+BEGIN_SRC lisp
+(read-seed path &optional prng) => t
+#+END_SRC
+
+Read enough bytes from /path/ to reseed /prng/, then generate
+a pseudo-random seed and write it back to /path/. If /path/ doesn't
+exist, calls [[read-os-random-seed][read-os-random-seed]] to get a truly random seed from the
+OS. Note that reseeding does *not* reset the generator's state to the
+seed value; rather, it *combines* the generator's state with the seed
+to form a new state.
+
+
+#+NAME: write-seed
+#+BEGIN_SRC lisp
+(write-seed path &optional prng) => t
+#+END_SRC
+
+Generate enough random data to reseed /prng/, then write it to /path/.
+
+** Example
+
+#+BEGIN_EXAMPLE
+(random-data 16)
+=> #(61 145 133 130 220 200 90 86 0 101 62 169 0 40 101 78)
+
+(crypto:strong-random 16)
+=> 3
+
+(crypto:random-bits 16)
+=> 41546
+#+END_EXAMPLE
+
+** Fortuna
+
+You should only use the Fortuna PRNG if your OS does not provided
+a sufficiently-good PRNG. If you use a Unix or Unix-like OS (e.g.
+Linux), macOS or Windows, it does. Only use the Fortuna PRNG if you
+know for certain that you need it.
+
+Fortuna is a cryptographically-secure random number presented by
+Ferguson, Schneier and Kohno in /Cryptography Engineering/. It is
+built around 32 entropy pools, which are used with decreasing
+frequency for each reseed (e.g. pool 0 is used in each reseed, pool
+1 in every other reseed, pool 2 in every fourth reseed and so forth).
+Pools are seeded with data from up to 256 sources.
+
+Each application should have one or more entropy sources (say, one for
+each OS random number source, one for the low bits of the current
+time, one for the output of a particular command or group of commands
+and so forth). A source should be used to add randomness to each pool
+in order, so source 0 should top up pool 0, then pool 1, and so forth
+up to pool 31, then loop back to pool 1 again. Be very careful to
+spread entropy across all 32 pools.
+
+Fortuna automatically feeds entropy from the pools back into its
+random state when [[random-data][random-data]] is called, using a method designed to
+make it resistant to various avenues of attack; even in case of
+generator compromise it will return to a safe state within a bounded
+time.
+
+For purposes of reseeding, Fortuna will not reseed until the first
+pool contains 128 bits of entropy; ~+min-pool-size+~ sets the number
+of bytes this is; it defaults to a very conservative 128, meaning that
+by default each byte of event is assumed to contain a single bit of
+randomness.
+
+It also will not reseed more than ten times per second.
+
+
+#+NAME: add-random-event
+#+BEGIN_SRC lisp
+(add-random-event source pool-id event &optional prng) => pool-length
+#+END_SRC
+
+Add entropy to /prng/.
+
+/source/ is an integer in the range 0-255 specifiying the event's
+application-defined source.
+
+/pool-id/ is an integer in the range 0-31 specifying the pool to top
+up.
+
+/event/ is up to 32 bytes of data (for longer events, hash them down
+or break them up into chunks).
+
+* Gray streams
+  :PROPERTIES:
+  :CUSTOM_ID: gray-streams
+  :END:
+
+Ironclad includes support for several convenient stream abstractions
+based on Gray streams. Gray streams support in Ironclad is included
+for SBCL, CMUCL, OpenMCL, Lispworks, and Allegro.
+
+** Octet streams
+
+Octet streams are very similar to Common Lisp's ~string-stream~ except
+they deal in octets instead of characters.
+
+
+#+NAME: make-octet-input-stream
+#+BEGIN_SRC lisp
+(make-octet-input-stream buffer &optional start end) => octet-input-stream
+#+END_SRC
+
+As ~make-string-input-stream~, only with octets instead of characters.
+
+#+NAME: make-octet-output-stream
+#+BEGIN_SRC lisp
+(make-octet-output-stream) => octet-output-stream
+#+END_SRC
+
+As ~make-string-output-stream~, only with octets instead of characters.
+
+
+#+NAME: get-output-stream-octets
+#+BEGIN_SRC lisp
+(get-output-stream-octets stream) => octet-vector
+#+END_SRC
+
+As ~get-output-stream-string~, only with an octet output-steam instead
+of a string output-stream.
+
+** Digest streams
+
+Digest streams compute a digest of the data written to them according
+to a specific digest algorithm.
+
+Example:
+#+BEGIN_EXAMPLE
+(defun frobbing-function (stream)
+  ;; We want to compute a digest of the data being written to STREAM
+  ;; without involving our callees in the process.
+  (let* ((digesting-stream (crypto:make-digesting-stream :sha1))
+         (stream (make-broadcast-stream stream digesting-stream)))
+    ;; Feed data to STREAM.
+    (frob-guts stream)
+    ;; Do something with the digest computed.
+    (... (crypto:produce-digest digesting-stream) ...)
+    ...))
+#+END_EXAMPLE
+
+
+#+NAME: make-digesting-stream
+#+BEGIN_SRC lisp
+(make-digesting-stream digest) => stream
+#+END_SRC
+
+Make a stream that computes a digest of the data written to it
+according to the algorithm /digest/. [[produce-digest][produce-digest]] may be used to
+obtain a digest of all the data written to the stream.
+
+_Note:_ Calling [[produce-digest][produce-digest]] on a digest stream does not alter
+the internal state of the digest.
+
+* Utility functions
+  :PROPERTIES:
+  :CUSTOM_ID: utility-functions
+  :END:
+
+#+NAME: ub-ref-le
+#+BEGIN_SRC lisp
+(ub16ref/le vector index) => value
+(ub32ref/le vector index) => value
+(ub64ref/le vector index) => value
+#+END_SRC
+
+This family of functions accesses an unsigned 16-bit, 32-bit or 64-bit
+value stored in little-endian order starting at /index/ in /vector/.
+/vector/ must be a ~(simple-array (unsigned-byte 8) (*))~. These
+functions are SETFable.
+
+
+#+NAME: ub-ref-be
+#+BEGIN_SRC lisp
+(ub16ref/be vector index) => value
+(ub32ref/be vector index) => value
+(ub64ref/be vector index) => value
+#+END_SRC
+
+As the above, only the value is stored in big-endian order.
+
+
+#+NAME: array-hex-string
+#+BEGIN_SRC lisp
+(byte-array-to-hex-string vector &key start end element-type) => string
+(hex-string-to-byte-array string &key start end) => string
+(ascii-string-to-byte-array string &key start end) => vector
+#+END_SRC
+
+[[array-hex-string][byte-array-to-hex-string]] converts the bytes of /vector/ between
+/start/ and /end/ into a hexadecimal string. It is useful for
+converting digests to a more readable form. /element-type/ indicates
+the element-type of the returned string.
+
+[[array-hex-string][hex-string-to-byte-array]] parses a substring of /string/ delimited
+/start/ and /end/ of hexadecimal digits into a byte array.
+
+[[array-hex-string][ascii-string-to-byte-array]] is provided as a quick and dirty way to
+convert a string to a byte array suitable for feeding to [[update-digest][update-digest]]
+or [[encrypt][encrypt]]. Care should be taken to ensure that the provided string is
+actually an ASCII string. /start/ and /end/ have their usual
+interpretations.
+
+
+#+NAME: octets-integer
+#+BEGIN_SRC lisp
+(octets-to-integer octet-vec &key start end big-endian n-bits) => number
+(integer-to-octets bignum &key n-bits big-endian) => vector
+#+END_SRC
+
+[[octets-integer][octets-to-integer]] converts the bytes of /octet-vec/ between /start/
+and /end/ to an integer as though the bytes denoted a number in
+base 256. /big-endian/ is a boolean indicating whether the bytes are
+to be read in big-endian or little-endian order. /n-bits/ specifies
+how many bits should be considered as significant in the resulting
+number.
+
+[[octets-integer][integer-to-octets]] is the reverse operation.
+
+
+#+NAME: expt-mod
+#+BEGIN_SRC lisp
+(expt-mod n exponent modulus) => number
+#+END_SRC
+
+Raises /n/ to the /exponent/ power modulo /modulus/ in a more
+efficient fashion than ~(mod (expt n exponent) modulus)~.
+
+
+#+NAME: make-random-salt
+#+BEGIN_SRC lisp
+make-random-salt &optional size => bytes
+#+END_SRC
+
+Generate a byte vector of /size/ (default 16) random bytes, suitable
+for use as a password salt.
+
+* Conditions
+  :PROPERTIES:
+  :CUSTOM_ID: conditions
+  :END:
+
+#+NAME: ironclad-error
+#+BEGIN_SRC lisp
+ironclad-error
+#+END_SRC
+
+All errors signaled by Ironclad are of this type. This type is
+a direct subtype of ~simple-error~ without any extra slots or options.
+
+
+#+NAME: initialization-vector-not-supplied
+#+BEGIN_SRC lisp
+initialization-vector-not-supplied
+#+END_SRC
+
+This error is signaled by [[make-cipher][make-cipher]] when an initialization vector is
+not provided and the requested mode requires an initialization vector.
+
+
+#+NAME: invalid-initialization-vector
+#+BEGIN_SRC lisp
+invalid-initialization-vector
+#+END_SRC
+
+This error is signaled when an invalid initialization vector is
+supplied to [[make-cipher][make-cipher]] (e.g. when the length of the initialization
+vector does not match the block length of the cipher).
+
+
+#+NAME: invalid-key-length
+#+BEGIN_SRC lisp
+invalid-key-length
+#+END_SRC
+
+This error is signaled when the key provided to [[make-cipher][make-cipher]] is not of
+an acceptable length for the requested cipher.
+
+
+#+NAME: unsupported-cipher
+#+BEGIN_SRC lisp
+unsupported-cipher
+#+END_SRC
+
+This error is signaled when the /cipher-name/ provided to [[make-cipher][make-cipher]]
+is not [[cipher-supported-p][cipher-supported-p]].
+
+
+#+NAME: unsupported-mode
+#+BEGIN_SRC lisp
+unsupported-mode
+#+END_SRC
+
+This error is signaled when the /mode/ provided to
+[[make-cipher][make-cipher]] is not [[mode-supported-p][mode-supported-p]].
+
+
+#+NAME: unsupported-digest
+#+BEGIN_SRC lisp
+unsupported-digest
+#+END_SRC
+
+This error is signaled when the /digest-name/ provided to
+[[make-digest][make-digest]] is not [[digest-supported-p][digest-supported-p]].
+
+
+#+NAME: insufficient-buffer-space
+#+BEGIN_SRC lisp
+insufficient-buffer-space
+#+END_SRC
+
+This error is signaled when Ironclad needs to stuff some data into
+a buffer (e.g. when the user provides /digest/ to [[produce-digest][produce-digest]] and
+there is insufficient space).
+
+#+NAME: key-not-supplied
+#+BEGIN_SRC lisp
+key-not-supplied
+#+END_SRC
+
+This error is signaled when a /:key/ argument is not provided
+to [[make-cipher][make-cipher]].

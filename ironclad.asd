@@ -20,8 +20,6 @@
     readtable))
 
 (defclass ironclad-source-file (asdf:cl-source-file) ())
-(defclass txt-file (asdf:doc-file) ((type :initform "txt")))
-(defclass css-file (asdf:doc-file) ((type :initform "css")))
 
 (asdf:defsystem :ironclad
   :version "0.34"
@@ -30,7 +28,7 @@
   :description "A cryptographic toolkit written in pure Common Lisp"
   :default-component-class ironclad-source-file
   :depends-on (#+sbcl sb-rotate-byte #+sbcl sb-posix nibbles)
-  :components ((:static-file "README")
+  :components ((:static-file "README.org")
                (:static-file "LICENSE")
                (:static-file "TODO")
                (:static-file "NEWS")
@@ -58,8 +56,7 @@
                          (:module "ciphers"
                                   :depends-on ("common" "macro-utils" "sbcl-opt")
                                   :components
-                                  (
-                                   ;; block ciphers of various kinds
+                                  (;; block ciphers of various kinds
                                    (:file "cipher")
                                    (:file "modes" :depends-on ("cipher"))
                                    (:file "make-cipher" :depends-on ("cipher"))
@@ -139,10 +136,7 @@
                                    (:file "generator" :depends-on ("prng"))))))
                (:module "doc"
                         :components
-                        ((:html-file "ironclad")
-                         ;; XXX ASDF bogosity
-                         (:txt-file "ironclad-doc")
-                         (:css-file "style")))))
+                        ((:html-file "ironclad")))))
 
 (defun ironclad-implementation-features ()
   #+sbcl
