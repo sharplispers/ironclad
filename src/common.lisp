@@ -74,6 +74,14 @@
          (ftype (function ((unsigned-byte 32) (unsigned-byte 32)) (unsigned-byte 32)) mod32+))
 (defun mod32+ (a b)
   (declare (type (unsigned-byte 32) a b))
+  #+ecl
+  (ffi:c-inline (a b)
+                (:uint32-t :uint32-t)
+                :uint32-t
+                "#0 + #1"
+                :one-liner t
+                :side-effects nil)
+  #-ecl
   (ldb (byte 32 0) (+ a b)))
 
 #+cmu
@@ -90,6 +98,14 @@
 
 (defun mod32- (a b)
   (declare (type (unsigned-byte 32) a b))
+  #+ecl
+  (ffi:c-inline (a b)
+                (:uint32-t :uint32-t)
+                :uint32-t
+                "#0 - #1"
+                :one-liner t
+                :side-effects nil)
+  #-ecl
   (ldb (byte 32 0) (- a b)))
 
 #+cmu
@@ -106,6 +122,14 @@
 
 (defun mod32* (a b)
   (declare (type (unsigned-byte 32) a b))
+  #+ecl
+  (ffi:c-inline (a b)
+                (:uint32-t :uint32-t)
+                :uint32-t
+                "#0 * #1"
+                :one-liner t
+                :side-effects nil)
+  #-ecl
   (ldb (byte 32 0) (* a b)))
 
 #+cmu
@@ -120,8 +144,16 @@
          (ftype (function ((unsigned-byte 32) (integer -31 31)) (unsigned-byte 32)) mod32ash))
 
 (defun mod32ash (num count)
-  (declare (type (unsigned-byte 32) num))
-  (declare (type (integer -31 31) count))
+  (declare (type (unsigned-byte 32) num)
+           (type (integer -31 31) count))
+  #+ecl
+  (ffi:c-inline (num count)
+                (:uint32-t :int8-t)
+                :uint32-t
+                "(#1 > 0) ? (#0 << #1) : (#0 >> -#1)"
+                :one-liner t
+                :side-effects nil)
+  #-ecl
   (ldb (byte 32 0) (ash num count)))
 
 #+sbcl
@@ -134,6 +166,15 @@
          (ftype (function ((unsigned-byte 32)) (unsigned-byte 32)) mod32lognot))
 
 (defun mod32lognot (num)
+  (declare (type (unsigned-byte 32) num))
+  #+ecl
+  (ffi:c-inline (num)
+                (:uint32-t)
+                :uint32-t
+                "~#0"
+                :one-liner t
+                :side-effects nil)
+  #-ecl
   (ldb (byte 32 0) (lognot num)))
 
 #+sbcl
@@ -149,22 +190,44 @@
   (kernel:32bit-logical-or #+little-endian (kernel:shift-towards-end a s)
                            #+big-endian (kernel:shift-towards-start a s)
                            (ash a (- s 32)))
+  #+ecl
+  (ffi:c-inline (a s)
+                (:uint32-t :uint8-t)
+                :uint32-t
+                "(#0 << #1) | (#0 >> (32 - #1))"
+                :one-liner t
+                :side-effects nil)
   #+sbcl
   (sb-rotate-byte:rotate-byte s (byte 32 0) a)
-  #-(or sbcl cmu)
+  #-(or cmu ecl sbcl)
   (logior (ldb (byte 32 0) (ash a s)) (ash a (- s 32))))
 
 (defun ror32 (a s)
   (declare (type (unsigned-byte 32) a) (type (integer 0 32) s))
+  #+ecl
+  (ffi:c-inline (a s)
+                (:uint32-t :uint8-t)
+                :uint32-t
+                "(#0 << (32 - #1)) | (#0 >> #1)"
+                :one-liner t
+                :side-effects nil)
   #+sbcl
   (sb-rotate-byte:rotate-byte (- s) (byte 32 0) a)
-  #-sbcl
+  #-(or ecl sbcl)
   (rol32 a (- 32 s)))
 
 (declaim #+ironclad-fast-mod64-arithmetic (inline mod64+ mod64- mod64*)
          (ftype (function ((unsigned-byte 64) (unsigned-byte 64)) (unsigned-byte 64)) mod64+))
 (defun mod64+ (a b)
   (declare (type (unsigned-byte 64) a b))
+  #+ecl
+  (ffi:c-inline (a b)
+                (:uint64-t :uint64-t)
+                :uint64-t
+                "#0 + #1"
+                :one-liner t
+                :side-effects nil)
+  #-ecl
   (ldb (byte 64 0) (+ a b)))
 
 #+sbcl
@@ -173,6 +236,14 @@
 
 (defun mod64- (a b)
   (declare (type (unsigned-byte 64) a b))
+  #+ecl
+  (ffi:c-inline (a b)
+                (:uint64-t :uint64-t)
+                :uint64-t
+                "#0 - #1"
+                :one-liner t
+                :side-effects nil)
+  #-ecl
   (ldb (byte 64 0) (- a b)))
 
 #+sbcl
@@ -181,6 +252,14 @@
 
 (defun mod64* (a b)
   (declare (type (unsigned-byte 64) a b))
+  #+ecl
+  (ffi:c-inline (a b)
+                (:uint64-t :uint64-t)
+                :uint64-t
+                "#0 * #1"
+                :one-liner t
+                :side-effects nil)
+  #-ecl
   (ldb (byte 64 0) (* a b)))
 
 #+sbcl
@@ -194,8 +273,16 @@
          (ftype (function ((unsigned-byte 64) (integer -63 63)) (unsigned-byte 64)) mod64ash))
 
 (defun mod64ash (num count)
-  (declare (type (unsigned-byte 64) num))
-  (declare (type (integer -63 63) count))
+  (declare (type (unsigned-byte 64) num)
+           (type (integer -63 63) count))
+  #+ecl
+  (ffi:c-inline (num count)
+                (:uint64-t :int8-t)
+                :uint64-t
+                "(#1 > 0) ? (#0 << #1) : (#0 >> -#1)"
+                :one-liner t
+                :side-effects nil)
+  #-ecl
   (ldb (byte 64 0) (ash num count)))
 
 #+sbcl
@@ -208,6 +295,15 @@
          (ftype (function ((unsigned-byte 64)) (unsigned-byte 64)) mod64lognot))
 
 (defun mod64lognot (num)
+  (declare (type (unsigned-byte 64) num))
+  #+ecl
+  (ffi:c-inline (num)
+                (:uint64-t)
+                :uint64-t
+                "~#0"
+                :one-liner t
+                :side-effects nil)
+  #-ecl
   (ldb (byte 64 0) (lognot num)))
 
 #+sbcl
@@ -219,16 +315,30 @@
 
 (defun rol64 (a s)
   (declare (type (unsigned-byte 64) a) (type (integer 0 64) s))
+  #+ecl
+  (ffi:c-inline (a s)
+                (:uint64-t :uint8-t)
+                :uint64-t
+                "(#0 << #1) | (#0 >> (64 - #1))"
+                :one-liner t
+                :side-effects nil)
   #+(and sbcl ironclad-fast-mod64-arithmetic)
   (sb-rotate-byte:rotate-byte s (byte 64 0) a)
-  #-(and sbcl ironclad-fast-mod64-arithmetic)
+  #-(or ecl (and sbcl ironclad-fast-mod64-arithmetic))
   (logior (ldb (byte 64 0) (ash a s)) (ash a (- s 64))))
 
 (defun ror64 (a s)
   (declare (type (unsigned-byte 64) a) (type (integer 0 64) s))
+  #+ecl
+  (ffi:c-inline (a s)
+                (:uint64-t :uint8-t)
+                :uint64-t
+                "(#0 << (64 - #1)) | (#0 >> #1)"
+                :one-liner t
+                :side-effects nil)
   #+(and sbcl ironclad-fast-mod64-arithmetic)
   (sb-rotate-byte:rotate-byte (- s) (byte 64 0) a)
-  #-(and sbcl ironclad-fast-mod64-arithmetic)
+  #-(or ecl (and sbcl ironclad-fast-mod64-arithmetic))
   (rol64 a (- 64 s)))
 
 
