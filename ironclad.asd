@@ -212,12 +212,12 @@
 
 (defmethod asdf:perform ((op asdf:test-op)
                          (c (eql (asdf:find-system :ironclad))))
-  (asdf:oos 'asdf:test-op 'ironclad-tests))
+  (asdf:oos 'asdf:test-op 'ironclad/tests))
 
-(asdf:defsystem ironclad-tests
+(asdf:defsystem ironclad/tests
   :depends-on (ironclad)
-  :version "0.6"
-  :in-order-to ((asdf:test-op (asdf:load-op :ironclad-tests)))
+  :version "0.34"
+  :in-order-to ((asdf:test-op (asdf:load-op :ironclad/tests)))
   :components ((:module "testing"
                         :components
                         ((:file "rt")
@@ -342,6 +342,6 @@
                                    (:test-vector-file "curve448")))))))
 
 (defmethod asdf:perform ((op asdf:test-op)
-                         (c (eql (asdf:find-system :ironclad-tests))))
+                         (c (eql (asdf:find-system :ironclad/tests))))
   (or (funcall (intern "DO-TESTS" (find-package "RTEST")))
-      (error "TEST-OP failed for IRONCLAD-TESTS")))
+      (error "TEST-OP failed for IRONCLAD/TESTS")))
