@@ -14,9 +14,7 @@
 
 (defun update-digest-from-stream (digest stream &key buffer (start 0) end)
   (cond
-    ((let ((element-type (stream-element-type stream)))
-       (or (equal element-type '(unsigned-byte 8))
-           (equal element-type '(integer 0 255))))
+    ((subtypep (stream-element-type stream) '(unsigned-byte 8))
      (flet ((frob (read-buffer start end)
               (loop for last-updated = (read-sequence read-buffer stream
                                                       :start start :end end)
