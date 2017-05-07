@@ -104,8 +104,7 @@
 
       ;; Get input data as 64-bit little-endian integers
       (dotimes-unrolled (i 16)
-        (dotimes-unrolled (j 8)
-          (setf (ldb (byte 8 (* j 8)) (aref m i)) (aref input (+ start (* i 8) j)))))
+        (setf (aref m i) (ub64ref/le input (+ start (* i 8)))))
 
       ;; Mixing rounds
       (dotimes-unrolled (i +blake2-rounds+)
