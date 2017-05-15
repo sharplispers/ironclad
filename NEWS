@@ -1,5 +1,25 @@
 -*- mode: outline -*-
 
+* Changes since version 0.34
+
+** bug fixes
+
+Fixed type checking of stream element-type.
+
+** new features
+
+New algorithms:
+ - Diffie-Hellman: Curve25519, Curve448, Elgamal
+ - Digest: JH, Groestl
+ - Message authentication code: Blake2, Blake2s
+ - Signature: Ed448
+
+New default pseudo-random number generator (os-prng) using the
+operating system's PRNG.
+
+Added optimized versions of some common functions for CCL on x86-64
+and for ECL.
+
 * Version 0.34, released 2017-03-07
 
 ** bug fixes
