@@ -18,7 +18,10 @@ New default pseudo-random number generator (os-prng) using the
 operating system's PRNG.
 
 Added optimized versions of some common functions for CCL on x86-64
-and for ECL.
+CPUs and for ECL.
+
+Added optimized AES encryption and decryption for SBCL on x86-64 CPUs
+with AES-NI support.
 
 * Version 0.34, released 2017-03-07
 

@@ -6,6 +6,13 @@
 
 (in-package :crypto)
 
+#+(and sbcl x86-64)
+(eval-when (:compile-toplevel :load-toplevel :execute)
+  (defun aes-ni-support-p ()
+    (aes-ni-support-p))
+  (when (aes-ni-support-p)
+    (pushnew :aes-ni *features*)))
+
 ;;; FIXME: is it work it to combine these into one large array and
 ;;; subscript into that rather than having separate arrays?  CMUCL
 ;;; and SBCL don't seem to want to keep the constant in a register,
@@ -859,12 +866,17 @@
         (n-rounds (n-rounds context)))
     (declare (type aes-round-keys round-keys))
     (declare (type (integer 0 14) n-rounds))
-    ;; the "optimized implementation" also had a fully unrolled version of
-    ;; this loop hanging around.  it might be worthwhile to translate it and
-    ;; see if it actually gains us anything.  a wizard would do this with a
-    ;; macro which allows one to easily switch between unrolled and
-    ;; non-unrolled versions.  I am not a wizard.
+    #+(and sbcl x86-64 aes-ni)
+    (aes-ni-encrypt plaintext plaintext-start
+                    ciphertext ciphertext-start
+                    round-keys n-rounds)
+    #-(and sbcl x86-64 aes-ni)
     (with-words ((s0 s1 s2 s3) plaintext plaintext-start)
+      ;; the "optimized implementation" also had a fully unrolled version of
+      ;; this loop hanging around.  it might be worthwhile to translate it and
+      ;; see if it actually gains us anything.  a wizard would do this with a
+      ;; macro which allows one to easily switch between unrolled and
+      ;; non-unrolled versions.  I am not a wizard.
       (let ((t0 0) (t1 0) (t2 0) (t3 0)
             (round-key-offset 0))
         (declare (type (unsigned-byte 32) t0 t1 t2 t3))
@@ -902,6 +914,11 @@
         (n-rounds (n-rounds context)))
     (declare (type aes-round-keys round-keys))
     (declare (type (unsigned-byte 16) n-rounds))
+    #+(and sbcl x86-64 aes-ni)
+    (aes-ni-decrypt ciphertext ciphertext-start
+                    plaintext plaintext-start
+                    round-keys n-rounds)
+    #-(and sbcl x86-64 aes-ni)
     (with-words ((s0 s1 s2 s3) ciphertext ciphertext-start)
       (let ((t0 0) (t1 0) (t2 0) (t3 0)
             (round-key-offset 0))
@@ -943,6 +960,18 @@
     (declare (type aes-round-keys encryption-keys))
     (let ((decryption-keys (copy-seq encryption-keys)))
       (generate-round-keys-for-decryption decryption-keys n-rounds)
+      #+(and sbcl x86-64 aes-ni)
+      (labels ((bswap32 (x)
+                 (logior (ash (logand x #xff000000) -24)
+                         (ash (logand x #x00ff0000) -8)
+                         (ash (logand x #x0000ff00) 8)
+                         (ash (logand x #x000000ff) 24)))
+               (bswap-keys (keys)
+                 (dotimes (i (length keys))
+                   (setf (aref keys i) (bswap32 (aref keys i))))))
+        ;; The aes-ni vops expect round keys to be in little-endian order
+        (bswap-keys encryption-keys)
+        (bswap-keys decryption-keys))
       (setf (encryption-round-keys cipher) encryption-keys
             (decryption-round-keys cipher) decryption-keys
             (n-rounds cipher) n-rounds)

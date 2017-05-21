@@ -53,4 +53,34 @@
   (values)
   (any) :overwrite-fndb-silently t)
 
+#+x86-64
+(defknown ironclad::aes-ni-support-p
+  ()
+  (boolean)
+  (any)
+  :overwrite-fndb-silently t)
+
+#+x86-64
+(defknown ironclad::aes-ni-encrypt
+  ((simple-array (unsigned-byte 8) (*))
+   (unsigned-byte 64)
+   (simple-array (unsigned-byte 8) (*))
+   (unsigned-byte 64)
+   (simple-array (unsigned-byte 32) (*))
+   (integer 0 14))
+  (values)
+  (any)
+  :overwrite-fndb-silently t)
+
+#+x86-64
+(defknown ironclad::aes-ni-decrypt
+  ((simple-array (unsigned-byte 8) (*))
+   (unsigned-byte 64)
+   (simple-array (unsigned-byte 8) (*))
+   (unsigned-byte 64)
+   (simple-array (unsigned-byte 32) (*))
+   (integer 0 14))
+  (values)
+  (any)
+  :overwrite-fndb-silently t)
 );#+sbcl
