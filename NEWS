@@ -5,6 +5,7 @@
 ** bug fixes
 
 Fixed type checking of stream element-type.
+Fixed possible timing attack in the pbkdf2-check-password function.
 
 ** new features
 
@@ -22,6 +23,9 @@ CPUs and for ECL.
 
 Added optimized AES encryption and decryption for SBCL on x86-64 CPUs
 with AES-NI support.
+
+Added the constant-time-equal function to check the equality of two
+byte arrays (e.g. passwords, MACs) in constant time.
 
 * Version 0.34, released 2017-03-07
 

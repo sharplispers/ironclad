@@ -1333,10 +1333,15 @@ number.
 #+NAME: expt-mod
 #+BEGIN_SRC lisp
 (expt-mod n exponent modulus) => number
+(expt-mod/unsafe n exponent modulus) => number
 #+END_SRC
 
 Raises /n/ to the /exponent/ power modulo /modulus/ in a more
 efficient fashion than ~(mod (expt n exponent) modulus)~.
+[[expt-mod][expt-mod]] is using the Montgomery ladder algorithm to be more robust
+against timing attacks.
+[[expt-mod][expt-mod/unsafe]] runs faster than [[expt-mod][expt-mod]] but is not safe against
+timing attacks; don't use it on secret data.
 
 
 #+NAME: make-random-salt
@@ -1346,6 +1351,17 @@ make-random-salt &optional size => bytes
 
 Generate a byte vector of /size/ (default 16) random bytes, suitable
 for use as a password salt.
+
+
+#+NAME: constant-time-equal
+#+BEGIN_SRC lisp
+constant-time-equal data1 data2 => boolean
+#+END_SRC
+
+Check whether the contents of the byte arrays /data1/ and /data2/ are
+the same. This function runs in constant time (for a given array
+length) to prevent timing attacks. It can be used to compare passwords
+or MACs.
 
 * Conditions
   :PROPERTIES:

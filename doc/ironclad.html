@@ -2,7 +2,7 @@
 <html>
 <head>
 <title>Ironclad</title>
-<!-- 2017-04-28 ven. 22:46 -->
+<!-- 2017-05-22 lun. 15:32 -->
 <meta  charset="utf-8">
 <meta  name="generator" content="Org-mode">
 <meta  name="author" content="The Ironclad developers">
@@ -1946,12 +1946,17 @@ number.
 <div class="org-src-container">
 
 <pre class="src src-lisp" id="expt-mod">(expt-mod n exponent modulus) =&gt; number
+(expt-mod/unsafe n exponent modulus) =&gt; number
 </pre>
 </div>
 
 <p>
 Raises <i>n</i> to the <i>exponent</i> power modulo <i>modulus</i> in a more
 efficient fashion than <code>(mod (expt n exponent) modulus)</code>.
+<a href="#expt-mod">expt-mod</a> is using the Montgomery ladder algorithm to be more robust
+against timing attacks.
+<a href="#expt-mod">expt-mod/unsafe</a> runs faster than <a href="#expt-mod">expt-mod</a> but is not safe against
+timing attacks; don't use it on secret data.
 </p>
 
 
@@ -1964,6 +1969,20 @@ efficient fashion than <code>(mod (expt n exponent) modulus)</code>.
 <p>
 Generate a byte vector of <i>size</i> (default 16) random bytes, suitable
 for use as a password salt.
+</p>
+
+
+<div class="org-src-container">
+
+<pre class="src src-lisp" id="constant-time-equal">constant-time-equal data1 data2 =&gt; boolean
+</pre>
+</div>
+
+<p>
+Check whether the contents of the byte arrays <i>data1</i> and <i>data2</i> are
+the same. This function runs in constant time (for a given array
+length) to prevent timing attacks. It can be used to compare passwords
+or MACs.
 </p>
 </div>
 </div>
