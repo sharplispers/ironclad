@@ -34,6 +34,18 @@ single ASCII string, suitable for use with PBKDF2-CHECK-PASSWORD."
              (pbkdf2-hash-password password :iterations iterations
                                             :salt salt :digest digest)))))
 
+(defun constant-time-equal (data1 data2)
+  "Returns T if the elements in DATA1 and DATA2 are identical, NIL otherwise.
+All the elements of DATA1 and DATA2 are compared to prevent timing attacks."
+  (declare (type (simple-array (unsigned-byte 8) (*)) data1 data2)
+           (optimize (speed 3)))
+  (let ((res (if (= (length data1) (length data2)) 0 1)))
+    (declare (type (unsigned-byte 8) res))
+    (loop for d1 across data1
+          for d2 across data2
+          do (setf res (logior res (logxor d1 d2))))
+    (zerop res)))
+
 (defun pbkdf2-check-password (password combined-salt-and-digest)
   "Given a PASSWORD byte vector and a combined salt and digest string
 produced by PBKDF2-HASH-PASSWORD-TO-COMBINED-STRING, checks whether
@@ -44,18 +56,18 @@ the password is valid."
                                                :start (1+ start)))))
          (digest-separator-position
           (position #\: combined-salt-and-digest :start (first positions))))
-    (not (mismatch
-          (pbkdf2-hash-password
-           password
-           :digest (find-symbol (subseq combined-salt-and-digest
-                                        (1+ (first positions))
-                                        digest-separator-position)
-                                '#:ironclad)
-           :iterations (parse-integer combined-salt-and-digest
-                                      :start (1+ digest-separator-position)
-                                      :end (second positions))
-           :salt (hex-string-to-byte-array combined-salt-and-digest
-                                           :start (1+ (second positions))
-                                           :end (third positions)))
-          (hex-string-to-byte-array combined-salt-and-digest
-                                    :start (1+ (third positions)))))))
+    (constant-time-equal
+     (pbkdf2-hash-password
+      password
+      :digest (find-symbol (subseq combined-salt-and-digest
+                                   (1+ (first positions))
+                                   digest-separator-position)
+                           '#:ironclad)
+      :iterations (parse-integer combined-salt-and-digest
+                                 :start (1+ digest-separator-position)
+                                 :end (second positions))
+      :salt (hex-string-to-byte-array combined-salt-and-digest
+                                      :start (1+ (second positions))
+                                      :end (third positions)))
+     (hex-string-to-byte-array combined-salt-and-digest
+                               :start (1+ (third positions))))))
