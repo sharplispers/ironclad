@@ -19,15 +19,15 @@
   "digest is used for pbkdf1 and pbkdf2.
    N, p, and r are cost factors for scrypt."
   (case kind
-    (pbkdf1
+    ((pbkdf1 :pbkdf1)
      (unless (digestp digest)
        (error 'unsupported-digest :name digest))
      (make-instance 'pbkdf1 :digest digest))
-    (pbkdf2
+    ((pbkdf2 :pbkdf2)
      (unless (digestp digest)
        (error 'unsupported-digest :name digest))
      (make-instance 'pbkdf2 :digest digest))
-    (scrypt-kdf
+    ((scrypt-kdf :scrypt-kdf)
      (when (or (<= N 1)
                (not (zerop (logand N (1- N))))
                (>= (* r p) (expt 2 30)))
