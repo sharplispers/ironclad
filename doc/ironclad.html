@@ -2,7 +2,7 @@
 <html>
 <head>
 <title>Ironclad</title>
-<!-- 2017-05-22 lun. 15:32 -->
+<!-- 2017-05-24 mer. 14:42 -->
 <meta  charset="utf-8">
 <meta  name="generator" content="Org-mode">
 <meta  name="author" content="The Ironclad developers">
@@ -1294,14 +1294,13 @@ to generate must be specified. The generation of DSA, Elgamal and RSA
 key pairs can take a very long time.
 </p>
 </div>
-</div>
 
-<div id="outline-container-sec-8-2" class="outline-3">
-<h3 id="sec-8-2">Key construction</h3>
-<div class="outline-text-3" id="text-8-2">
+<div id="outline-container-sec-8-1-1" class="outline-4">
+<h4 id="sec-8-1-1">Key construction</h4>
+<div class="outline-text-4" id="text-8-1-1">
 <div class="org-src-container">
 
-<pre class="src src-lisp" id="make-publickey">(make-public-key king &amp;key &amp;allow-other-keys) =&gt; public-key
+<pre class="src src-lisp" id="make-public-key">(make-public-key kind &amp;key &amp;allow-other-keys) =&gt; public-key
 </pre>
 </div>
 
@@ -1385,10 +1384,11 @@ For RSA keys, the type of the parameters is <code>integer</code>:
 </ul>
 </div>
 </div>
+</div>
 
-<div id="outline-container-sec-8-3" class="outline-3">
-<h3 id="sec-8-3">Digital signatures</h3>
-<div class="outline-text-3" id="text-8-3">
+<div id="outline-container-sec-8-2" class="outline-3">
+<h3 id="sec-8-2">Digital signatures</h3>
+<div class="outline-text-3" id="text-8-2">
 <div class="org-src-container">
 
 <pre class="src src-lisp" id="sign-message">(sign-message key message &amp;key start end &amp;allow-other-keys) =&gt; signature
@@ -1421,9 +1421,9 @@ and <code>nil</code> otherwise.
 </p>
 </div>
 
-<div id="outline-container-sec-8-3-1" class="outline-4">
-<h4 id="sec-8-3-1">Padding</h4>
-<div class="outline-text-4" id="text-8-3-1">
+<div id="outline-container-sec-8-2-1" class="outline-4">
+<h4 id="sec-8-2-1">Padding</h4>
+<div class="outline-text-4" id="text-8-2-1">
 <p>
 To be secure, RSA signature requires the message to be padded.
 The <i>pss</i> key parameter is provided to pad (or unpad) the message
@@ -1437,23 +1437,73 @@ during signature (or verification) with the PSS scheme of PKCS-1.
 </div>
 </div>
 
-<div id="outline-container-sec-8-3-2" class="outline-4">
-<h4 id="sec-8-3-2">Format of signatures</h4>
-<div class="outline-text-4" id="text-8-3-2">
+<div id="outline-container-sec-8-2-2" class="outline-4">
+<h4 id="sec-8-2-2">Format of signatures</h4>
+<div class="outline-text-4" id="text-8-2-2">
 <p>
-<a href="#sign-message">sign-message</a> returns signatures as octet vectors.
-When the signature contains several values (e.g. the R and S values
-of DSA and Elgamal signatures), the octet vector is the concatenation
-of these values (e.g. the first half of the vector is the R value,
-the second half is the S value).
+<a href="#sign-message">sign-message</a> returns signatures as octet vectors. When the signature
+contains several values (e.g. the R and S values of DSA signatures),
+the octet vector is the concatenation of these values (e.g. the first
+half of the vector is the R value, the second half is the S value).
+You can use the <a href="#make-signature">make-signature</a> and <a href="#destructure-signature">destructure-signature</a> functions if
+you need access to the elements of a signature (e.g. to use
+a different kind of serialization).
+</p>
+
+
+<div class="org-src-container">
+
+<pre class="src src-lisp" id="make-signature">(make-signature kind &amp;key &amp;allow-other-keys) =&gt; signature
+</pre>
+</div>
+
+<p>
+Return an octet vector representing a signature. The <i>&amp;key</i> arguments
+vary according to <i>kind</i>. The interesting bits are in the methods that
+specialize on <i>kind</i>, below.
+</p>
+
+<pre class="example">
+(make-signature :dsa &amp;key r s n-bits) =&gt; signature
+(make-signature :ed25519 &amp;key r s) =&gt; signature
+(make-signature :ed448 &amp;key r s) =&gt; signature
+(make-signature :elgamal &amp;key r s n-bits) =&gt; signature
+(make-signature :rsa &amp;key s n-bits) =&gt; signature
+</pre>
+
+<p>
+For Ed25519 and Ed448 signatures, the type of the parameters <i>r</i> and
+<i>s</i> is <code>(simple-array (unsigned-byte 8) (*))</code>.
+</p>
+
+<p>
+For DSA and Elgamal signatures, the type of the parameters <i>r</i>, <i>s</i>
+and <i>n-bits</i> is <code>integer</code>.
+</p>
+
+<p>
+For RSA signatures, the type of the parameters <i>s</i> and <i>n-bits</i> is
+<code>integer</code>.
+</p>
+
+
+<div class="org-src-container">
+
+<pre class="src src-lisp" id="destructure-signature">(destructure-signature kind signature) =&gt; plist
+</pre>
+</div>
+
+<p>
+Return the elements of a signature in a plist. The indicators of the
+plist match the <i>&amp;key</i> arguments of the <a href="#make-signature">make-signature</a> method.
 </p>
 </div>
 </div>
 </div>
 
-<div id="outline-container-sec-8-4" class="outline-3">
-<h3 id="sec-8-4">Encryption and decryption</h3>
-<div class="outline-text-3" id="text-8-4">
+<div id="outline-container-sec-8-3" class="outline-3">
+<h3 id="sec-8-3">Encryption and decryption</h3>
+<div class="outline-text-3" id="text-8-3">
 <div class="org-src-container">
 
 <pre class="src src-lisp" id="encrypt-message">(encrypt-message key message &amp;key start end &amp;allow-other-keys) =&gt; encrypted-message
@@ -1478,9 +1528,9 @@ the class of <i>key</i> determines the algorithm used to decrypt the message.
 </p>
 </div>
 
-<div id="outline-container-sec-8-4-1" class="outline-4">
-<h4 id="sec-8-4-1">Padding</h4>
-<div class="outline-text-4" id="text-8-4-1">
+<div id="outline-container-sec-8-3-1" class="outline-4">
+<h4 id="sec-8-3-1">Padding</h4>
+<div class="outline-text-4" id="text-8-3-1">
 <p>
 To be secure, RSA encryption requires the message to be padded. The
 <i>oaep</i> key parameter is provided to pad (or unpad) the message during
@@ -1493,11 +1543,66 @@ encryption (or decryption) with the OAEP scheme of PKCS-1.
 </pre>
 </div>
 </div>
+
+<div id="outline-container-sec-8-3-2" class="outline-4">
+<h4 id="sec-8-3-2">Format of messages</h4>
+<div class="outline-text-4" id="text-8-3-2">
+<p>
+<a href="#encrypt-message">encrypt-message</a> returns encrypted messages as octet vectors. When the
+message contains several values (e.g. the C1 and C2 values of Elgamal
+messages), the octet vector is the concatenation of these values (e.g.
+the first half of the vector is the C1 value, the second half is the
+C2 value). You can use the <a href="#make-message">make-message</a> and <a href="#destructure-message">destructure-message</a>
+functions if you need access to the elements of a message (e.g. to use
+a different kind of serialization).
+</p>
+
+
+<div class="org-src-container">
+
+<pre class="src src-lisp" id="make-message">(make-message kind &amp;key &amp;allow-other-keys) =&gt; message
+</pre>
 </div>
 
-<div id="outline-container-sec-8-5" class="outline-3">
-<h3 id="sec-8-5">Diffie-Hellman key exchange</h3>
-<div class="outline-text-3" id="text-8-5">
+<p>
+Return an octet vector representing a message. The <i>&amp;key</i> arguments
+vary according to <i>kind</i>. The interesting bits are in the methods that
+specialize on <i>kind</i>, below.
+</p>
+
+<pre class="example">
+(make-message :elgamal &amp;key c1 c2 n-bits) =&gt; message
+(make-message :rsa &amp;key m n-bits) =&gt; message
+</pre>
+
+<p>
+For Elgamal messages, the type of the parameters <i>c1</i>, <i>c2</i> and
+<i>n-bits</i> is <code>integer</code>.
+</p>
+
+<p>
+For RSA signatures, the type of the parameters <i>m</i> and <i>n-bits</i> is
+<code>integer</code>.
+</p>
+
+
+<div class="org-src-container">
+
+<pre class="src src-lisp" id="destructure-message">(destructure-message kind message) =&gt; plist
+</pre>
+</div>
+
+<p>
+Return the elements of a message in a plist. The indicators of the
+plist match the <i>&amp;key</i> arguments of the <a href="#make-message">make-message</a> method.
+</p>
+</div>
+</div>
+</div>
+
+<div id="outline-container-sec-8-4" class="outline-3">
+<h3 id="sec-8-4">Diffie-Hellman key exchange</h3>
+<div class="outline-text-3" id="text-8-4">
 <div class="org-src-container">
 
 <pre class="src src-lisp" id="diffie-hellman">(diffie-hellman private-key public-key) =&gt; bytes

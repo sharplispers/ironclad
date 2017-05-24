@@ -27,6 +27,11 @@ with AES-NI support.
 Added the constant-time-equal function to check the equality of two
 byte arrays (e.g. passwords, MACs) in constant time.
 
+Added the make-message, destructure-message, make-signature and
+destructure-signature functions allowing to manage the elements of
+messages and signatures returned by encrypt-message and sign-message
+by hand if necessary (e.g. to use a different serialization).
+
 * Version 0.34, released 2017-03-07
 
 ** bug fixes

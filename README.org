@@ -871,11 +871,11 @@ or ~:rsa~, the /num-bits/ key argument indicating the size of the keys
 to generate must be specified. The generation of DSA, Elgamal and RSA
 key pairs can take a very long time.
 
-** Key construction
+*** Key construction
 
-#+NAME: make-publickey
+#+NAME: make-public-key
 #+BEGIN_SRC lisp
-(make-public-key king &key &allow-other-keys) => public-key
+(make-public-key kind &key &allow-other-keys) => public-key
 #+END_SRC
 
 Return a public key according to /kind/. The /&key/
@@ -968,11 +968,49 @@ during signature (or verification) with the PSS scheme of PKCS-1.
 
 *** Format of signatures
 
-[[sign-message][sign-message]] returns signatures as octet vectors.
-When the signature contains several values (e.g. the R and S values
-of DSA and Elgamal signatures), the octet vector is the concatenation
-of these values (e.g. the first half of the vector is the R value,
-the second half is the S value).
+[[sign-message][sign-message]] returns signatures as octet vectors. When the signature
+contains several values (e.g. the R and S values of DSA signatures),
+the octet vector is the concatenation of these values (e.g. the first
+half of the vector is the R value, the second half is the S value).
+You can use the [[make-signature][make-signature]] and [[destructure-signature][destructure-signature]] functions if
+you need access to the elements of a signature (e.g. to use
+a different kind of serialization).
+
+
+#+NAME: make-signature
+#+BEGIN_SRC lisp
+(make-signature kind &key &allow-other-keys) => signature
+#+END_SRC
+
+Return an octet vector representing a signature. The /&key/ arguments
+vary according to /kind/. The interesting bits are in the methods that
+specialize on /kind/, below.
+
+#+BEGIN_EXAMPLE
+(make-signature :dsa &key r s n-bits) => signature
+(make-signature :ed25519 &key r s) => signature
+(make-signature :ed448 &key r s) => signature
+(make-signature :elgamal &key r s n-bits) => signature
+(make-signature :rsa &key s n-bits) => signature
+#+END_EXAMPLE
+
+For Ed25519 and Ed448 signatures, the type of the parameters /r/ and
+/s/ is ~(simple-array (unsigned-byte 8) (*))~.
+
+For DSA and Elgamal signatures, the type of the parameters /r/, /s/
+and /n-bits/ is ~integer~.
+
+For RSA signatures, the type of the parameters /s/ and /n-bits/ is
+~integer~.
+
+
+#+NAME: destructure-signature
+#+BEGIN_SRC lisp
+(destructure-signature kind signature) => plist
+#+END_SRC
+
+Return the elements of a signature in a plist. The indicators of the
+plist match the /&key/ arguments of the [[make-signature][make-signature]] method.
 
 ** Encryption and decryption
 
@@ -1003,6 +1041,46 @@ encryption (or decryption) with the OAEP scheme of PKCS-1.
 (encrypt-message rsa-public-key message :oaep t) => encrypted-message
 (decrypt-message rsa-private-key message :oaep t) => decrypted-message
 #+END_EXAMPLE
+
+*** Format of messages
+
+[[encrypt-message][encrypt-message]] returns encrypted messages as octet vectors. When the
+message contains several values (e.g. the C1 and C2 values of Elgamal
+messages), the octet vector is the concatenation of these values (e.g.
+the first half of the vector is the C1 value, the second half is the
+C2 value). You can use the [[make-message][make-message]] and [[destructure-message][destructure-message]]
+functions if you need access to the elements of a message (e.g. to use
+a different kind of serialization).
+
+
+#+NAME: make-message
+#+BEGIN_SRC lisp
+(make-message kind &key &allow-other-keys) => message
+#+END_SRC
+
+Return an octet vector representing a message. The /&key/ arguments
+vary according to /kind/. The interesting bits are in the methods that
+specialize on /kind/, below.
+
+#+BEGIN_EXAMPLE
+(make-message :elgamal &key c1 c2 n-bits) => message
+(make-message :rsa &key m n-bits) => message
+#+END_EXAMPLE
+
+For Elgamal messages, the type of the parameters /c1/, /c2/ and
+/n-bits/ is ~integer~.
+
+For RSA signatures, the type of the parameters /m/ and /n-bits/ is
+~integer~.
+
+
+#+NAME: destructure-message
+#+BEGIN_SRC lisp
+(destructure-message kind message) => plist
+#+END_SRC
+
+Return the elements of a message in a plist. The indicators of the
+plist match the /&key/ arguments of the [[make-message][make-message]] method.
 
 ** Diffie-Hellman key exchange
 

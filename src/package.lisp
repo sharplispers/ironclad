@@ -51,6 +51,8 @@
 
    ;; public-key encryption operations
    #:make-public-key #:make-private-key #:generate-key-pair
+   #:make-signature #:destructure-signature
+   #:make-message #:destructure-message
    #:sign-message #:verify-signature
    #:encrypt-message #:decrypt-message
    #:diffie-hellman
