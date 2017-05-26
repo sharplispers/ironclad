@@ -64,6 +64,13 @@ for a particular mode of operation but not supplied."))
                      (digest condition))))
   (:documentation "Signaled when an invalid digest name is provided to MAKE-DIGEST."))
 
+(define-condition unsupported-mac (ironclad-error)
+  ((mac :initarg :name :reader mac))
+  (:report (lambda (condition stream)
+             (format stream "MAC ~A is not a supported MAC"
+                     (mac condition))))
+  (:documentation "Signaled when an invalid MAC name is provided to MAKE-MAC."))
+
 (define-condition unsupported-kdf (ironclad-error)
   ((kdf :initarg :kdf :reader kdf))
   (:report (lambda (condition stream)

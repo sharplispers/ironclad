@@ -52,3 +52,8 @@
         (mac-copy (copy-blake2-mac mac)))
     (blake2-finalize (blake2-digest mac-copy) digest 0)
     digest))
+
+(defmac blake2-mac
+        make-blake2-mac
+        update-blake2-mac
+        blake2-mac-digest)

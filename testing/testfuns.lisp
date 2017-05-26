@@ -220,95 +220,104 @@
 
 (defun hmac-test (name digest-name key data expected-digest)
   (declare (ignore name))
-  (let ((hmac (ironclad:make-hmac key digest-name)))
-    (ironclad:update-hmac hmac data)
-    (when (mismatch expected-digest (ironclad:hmac-digest hmac))
+  (let ((hmac (ironclad:make-mac :hmac key digest-name)))
+    (ironclad:update-mac hmac data)
+    (when (mismatch expected-digest (ironclad:produce-mac hmac))
       (error "HMAC/~A failed on key ~A, input ~A, output ~A"
              digest-name key data expected-digest))
     (loop
        initially (reinitialize-instance hmac :key key)
        for i from 0 below (length data)
-       do (ironclad:update-hmac hmac data :start i :end (1+ i))
-       (ironclad:hmac-digest hmac)
-       finally (when (mismatch expected-digest (ironclad:hmac-digest hmac))
+       do (ironclad:update-mac hmac data :start i :end (1+ i))
+       (ironclad:produce-mac hmac)
+       finally (when (mismatch expected-digest (ironclad:produce-mac hmac))
                  (error "progressive HMAC/~A failed on key ~A, input ~A, output ~A"
                         digest-name key data expected-digest)))))
 
 (defun cmac-test (name cipher-name key data expected-digest)
   (declare (ignore name))
-  (let ((cmac (ironclad:make-cmac key cipher-name)))
-    (ironclad:update-cmac cmac data)
-    (when (mismatch expected-digest (ironclad:cmac-digest cmac))
+  (let ((cmac (ironclad:make-mac :cmac key cipher-name)))
+    (ironclad:update-mac cmac data)
+    (when (mismatch expected-digest (ironclad:produce-mac cmac))
       (error "CMAC/~A failed on key ~A, input ~A, output ~A"
-             cipher-name key data expected-digest))))
+             cipher-name key data expected-digest))
+    (loop
+       initially (reinitialize-instance cmac :key key)
+       for i from 0 below (length data)
+       do (ironclad:update-mac cmac data :start i :end (1+ i))
+       (ironclad:produce-mac cmac)
+       finally (when (mismatch expected-digest (ironclad:produce-mac cmac))
+                 (error "progressive CMAC/~A failed on key ~A, input ~A, output ~A"
+                        cipher-name key data expected-digest)))))
 
 (defun skein-mac-test (name block-length digest-length key data expected-digest)
   (declare (ignore name))
-  (let ((mac (ironclad:make-skein-mac key
-                                      :block-length block-length
-                                      :digest-length digest-length)))
-    (ironclad:update-skein-mac mac data)
-    (when (mismatch expected-digest (ironclad:skein-mac-digest mac))
+  (let ((mac (ironclad:make-mac :skein-mac
+                                key
+                                :block-length block-length
+                                :digest-length digest-length)))
+    (ironclad:update-mac mac data)
+    (when (mismatch expected-digest (ironclad:produce-mac mac))
       (error "SKEIN-MAC(~A/~A) failed on key ~A, input ~A, output ~A"
              block-length digest-length key data expected-digest))
     (loop
        initially (reinitialize-instance mac :key key)
        for i from 0 below (length data)
        do (progn
-            (ironclad:update-skein-mac mac data :start i :end (1+ i))
-            (ironclad:skein-mac-digest mac))
-       finally (when (mismatch expected-digest (ironclad:skein-mac-digest mac))
+            (ironclad:update-mac mac data :start i :end (1+ i))
+            (ironclad:produce-mac mac))
+       finally (when (mismatch expected-digest (ironclad:produce-mac mac))
                  (error "progressive SKEIN-MAC(~A/~A) failed on key ~A, input ~A, output ~A"
                         block-length digest-length key data expected-digest)))))
 
 (defun poly1305-test (name key data expected-digest)
   (declare (ignore name))
-  (let ((mac (ironclad:make-poly1305 key)))
-    (ironclad:update-poly1305 mac data)
-    (when (mismatch expected-digest (ironclad:poly1305-digest mac))
+  (let ((mac (ironclad:make-mac :poly1305 key)))
+    (ironclad:update-mac mac data)
+    (when (mismatch expected-digest (ironclad:produce-mac mac))
       (error "POLY1305 failed on key ~A, input ~A, output ~A"
              key data expected-digest))
     (loop
        initially (reinitialize-instance mac :key key)
        for i from 0 below (length data)
        do (progn
-            (ironclad:update-poly1305 mac data :start i :end (1+ i))
-            (ironclad:poly1305-digest mac))
-       finally (when (mismatch expected-digest (ironclad:poly1305-digest mac))
+            (ironclad:update-mac mac data :start i :end (1+ i))
+            (ironclad:produce-mac mac))
+       finally (when (mismatch expected-digest (ironclad:produce-mac mac))
                  (error "progressive POLY1305 failed on key ~A, input ~A, output ~A"
                         key data expected-digest)))))
 
 (defun blake2-mac-test (name key data expected-digest)
   (declare (ignore name))
-  (let ((mac (ironclad:make-blake2-mac key)))
-    (ironclad:update-blake2-mac mac data)
-    (when (mismatch expected-digest (ironclad:blake2-mac-digest mac))
+  (let ((mac (ironclad:make-mac :blake2-mac key)))
+    (ironclad:update-mac mac data)
+    (when (mismatch expected-digest (ironclad:produce-mac mac))
       (error "BLAKE2-MAC failed on key ~A, input ~A, output ~A"
              key data expected-digest))
     (loop
        initially (reinitialize-instance mac :key key)
        for i from 0 below (length data)
        do (progn
-            (ironclad:update-blake2-mac mac data :start i :end (1+ i))
-            (ironclad:blake2-mac-digest mac))
-       finally (when (mismatch expected-digest (ironclad:blake2-mac-digest mac))
+            (ironclad:update-mac mac data :start i :end (1+ i))
+            (ironclad:produce-mac mac))
+       finally (when (mismatch expected-digest (ironclad:produce-mac mac))
                  (error "progressive BLAKE2-MAC failed on key ~A, input ~A, output ~A"
                         key data expected-digest)))))
 
 (defun blake2s-mac-test (name key data expected-digest)
   (declare (ignore name))
-  (let ((mac (ironclad:make-blake2s-mac key)))
-    (ironclad:update-blake2s-mac mac data)
-    (when (mismatch expected-digest (ironclad:blake2s-mac-digest mac))
+  (let ((mac (ironclad:make-mac :blake2s-mac key)))
+    (ironclad:update-mac mac data)
+    (when (mismatch expected-digest (ironclad:produce-mac mac))
       (error "BLAKE2S-MAC failed on key ~A, input ~A, output ~A"
              key data expected-digest))
     (loop
        initially (reinitialize-instance mac :key key)
        for i from 0 below (length data)
        do (progn
-            (ironclad:update-blake2s-mac mac data :start i :end (1+ i))
-            (ironclad:blake2s-mac-digest mac))
-       finally (when (mismatch expected-digest (ironclad:blake2s-mac-digest mac))
+            (ironclad:update-mac mac data :start i :end (1+ i))
+            (ironclad:produce-mac mac))
+       finally (when (mismatch expected-digest (ironclad:produce-mac mac))
                  (error "progressive BLAKE2S-MAC failed on key ~A, input ~A, output ~A"
                         key data expected-digest)))))
 

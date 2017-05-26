@@ -15,6 +15,10 @@
    #:digest-sequence #:digest-stream #:digest-file
    #:make-digest #:copy-digest #:update-digest #:produce-digest
 
+   ;; MACs
+   #:make-mac #:update-mac #:produce-mac
+
+   ;;; Deprecated MAC functions
    ;; HMACs
    #:make-hmac #:update-hmac #:hmac-digest
    ;; CMACs
@@ -31,6 +35,7 @@
    ;; introspection
    #:cipher-supported-p #:list-all-ciphers
    #:digest-supported-p #:list-all-digests
+   #:mac-supported-p #:list-all-macs
    #:mode-supported-p #:list-all-modes
    #:block-length #:digest-length #:key-lengths
 
@@ -123,6 +128,8 @@
            #:blake2 #:blake2/384 #:blake2/256 #:blake2/160
            #:blake2s #:blake2s/224 #:blake2s/160 #:blake2s/128
            #:jh #:jh/384 #:jh/256 #:jh/224)
+  ;; supported macs
+  (:export #:blake2-mac #:blake2s-mac #:cmac #:hmac #:poly1305 #:skein-mac)
   ;; supported block ciphers
   (:export #:blowfish #:tea #:xtea #:square #:rc2 #:rc5 #:rc6 #:des #:3des
            #:aes #:twofish #:cast5 #:idea #:misty1 #:null

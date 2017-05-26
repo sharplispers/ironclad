@@ -41,6 +41,15 @@
                                            :element-type '(unsigned-byte 8)
                                            :initial-element 0))))))
 
+(defmethod reinitialize-instance ((mac cmac) &rest initargs
+                                  &key key &allow-other-keys)
+  (declare (ignore initargs)
+           (type (simple-array (unsigned-byte 8) (*)) key))
+  (fill (cmac-buffer mac) 0)
+  (setf (cmac-buffer-index mac) 0)
+  (reinitialize-instance (cmac-cipher mac) :key key :mode :ecb)
+  mac)
+
 (defun update-cmac (cmac sequence
                     &key (start 0) end)
   (declare (type (simple-array (unsigned-byte 8) (*)) sequence))
@@ -72,3 +81,8 @@
     (xor-block block-length L x 0 x 0)
     (encrypt-in-place (cmac-cipher cmac) x)
     x))
+
+(defmac cmac
+        make-cmac
+        update-cmac
+        cmac-digest)

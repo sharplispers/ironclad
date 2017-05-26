@@ -32,6 +32,8 @@ destructure-signature functions allowing to manage the elements of
 messages and signatures returned by encrypt-message and sign-message
 by hand if necessary (e.g. to use a different serialization).
 
+Added a unified API for MACs.
+
 * Version 0.34, released 2017-03-07
 
 ** bug fixes

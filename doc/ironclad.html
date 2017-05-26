@@ -2,7 +2,7 @@
 <html>
 <head>
 <title>Ironclad</title>
-<!-- 2017-05-24 mer. 14:42 -->
+<!-- 2017-05-26 ven. 10:18 -->
 <meta  charset="utf-8">
 <meta  name="generator" content="Org-mode">
 <meta  name="author" content="The Ironclad developers">
@@ -846,284 +846,194 @@ Ironclad provides different kinds of MACs:
 <li>Skein MAC
 </li>
 </ul>
+
+
+<div class="org-src-container">
+
+<pre class="src src-lisp" id="make-mac">(make-mac mac-name key &amp;rest args) =&gt; mac
+</pre>
+</div>
+
+<p>
+Return a MAC object initialized with a secret <i>key</i>. <i>mac-name</i> is
+a keyword naming the algorithm you wish <i>mac</i> to use. The supported
+MACs can be found by calling <a href="#list-all-macs">list-all-macs</a>. They are:
+</p>
+<ul class="org-ul">
+<li>blake2-mac
+</li>
+<li>blake2s-mac
+</li>
+<li>cmac
+</li>
+<li>hmac
+</li>
+<li>poly1305
+</li>
+<li>skein-mac
+</li>
+</ul>
+
+<p>
+Like for <a href="#make-digest">make-digest</a>, <i>mac-name</i> should be a symbol in the <code>keyword</code>
+or <code>ironclad</code> packages.
+</p>
+
+<p>
+Some MACs take extra arguments that can be specified in <i>args</i>.
+</p>
+
+<pre class="example">
+(make-mac :blake2-mac key &amp;key digest-length)
+(make-mac :blake2s-mac key &amp;key digest-length)
+(make-mac :cmac key cipher-name)
+(make-mac :hmac key digest-name)
+(make-mac :poly1305 key)
+(make-mac :skein-mac key &amp;key block-length digest-length)
+</pre>
+
+<p>
+When making a Blake2 MAC, the length of the <i>key</i> passed to <a href="#make-mac">make-mac</a>
+must be 64 bytes.
+</p>
+
+<p>
+When making a Blake2s MAC, the length of the <i>key</i> passed to <a href="#make-mac">make-mac</a>
+must be 32 bytes.
+</p>
+
+<p>
+When making a CMAC, <i>cipher-name</i> must have a <a href="#block-length">block-length</a> of either
+8 or 16; this restriction is satisfied by many ciphers in Ironclad
+with the notable exception of stream ciphers. <i>key</i> must be an
+acceptable key for <i>cipher-name</i>.
+</p>
+
+<p>
+When making a Poly1305, the length of the <i>key</i> passed to <a href="#make-mac">make-mac</a>
+must be 32 bytes.
+</p>
+
+<p>
+When making a Skein MAC, <i>block-length</i> can be 32 (to use the Skein256
+hash function internally), 64 (to use Skein512) or 128 (to use
+Skein1024). <i>digest-length</i> can be any length you want the computed
+digest to be. By default, <i>block-length</i> is 64 and <i>digest-length</i>
+is 64.
+</p>
+
+
+<p>
+MAC objects support <code>reinitialize-instance</code>:
+</p>
+
+<div class="org-src-container">
+
+<pre class="src src-lisp">(reinitialize-instance mac &amp;rest initargs &amp;key key &amp;allow-other-keys) =&gt; mac
+</pre>
+</div>
+
+<p>
+The <i>:key</i> argument is the secret key, as provided to <a href="#make-mac">make-mac</a>.
+</p>
+
+
+<div class="org-src-container">
+
+<pre class="src src-lisp" id="update-mac">(update-mac mac thing &amp;key &amp;allow-other-keys) =&gt; (values)
+</pre>
+</div>
+
+<p>
+Updates the internal state of <i>mac</i> with the contents of <i>thing</i>.
+The exact method is determined by the type of <i>thing</i>.
+</p>
+
+<p>
+There are several methods defined on this generic function that take
+a particular MAC and a <code>(simple-array (unsigned-byte 8) (*))</code> as
+well as the usual <i>start</i> and <i>end</i> keyword arguments. These methods
+update the state of <i>mac</i> with the subsequence of the array
+denoted by <i>start</i> and <i>end</i>. They are not listed here because there's
+one method for every type of MAC that Ironclad provides, and
+listing them would get very tedious for no benefit. An example should
+suffice.
+</p>
+
+<pre class="example">
+(let* ((key (random-data 32))
+       (mac (ironclad:make-mac :hmac key :sha256))
+       (array (make-array 16 :element-type '(unsigned-byte 8) :initial-element 0)))
+  ;; Update with 16 zeroes.
+  (ironclad:update-mac mac array)
+  ;; Update with 8 ones.
+  (fill array 1 :start 2 :end 10)
+  (ironclad:update-mac mac array :start 2 :end 10))
+</pre>
+
+
+<div class="org-src-container">
+
+<pre class="src src-lisp" id="produce-mac">(produce-mac mac &amp;key digest digest-start) =&gt; digest
+</pre>
+</div>
+
+<p>
+Return the digest of the data processed by <i>mac</i> so far. The internal
+state of <i>mac</i> is not modified; this feature makes it possible to
+compute a "rolling MAC" of a document.
+</p>
+
+<p>
+If <i>digest</i> is provided, the computed digest will be placed into
+<i>digest</i> starting at <i>digest-start</i>. <i>digest</i> must be a
+<code>(simple-array (unsigned-byte 8) (*))</code>. An <a href="#insufficient-buffer-space">insufficient-buffer-space</a>
+error will be signaled if there is insufficient space in <i>digest</i>.
+</p>
+
+<p>
+The length of the digest returned by <a href="#produce-mac">produce-mac</a> is determined by the
+kind of MAC and the extra arguments passed to <a href="#make-mac">make-mac</a>:
+</p>
+<ul class="org-ul">
+<li>blake2-mac: from 1 to 64 bytes (64 by default)
+</li>
+<li>blake2s-mac: from 1 to 32 bytes (32 by default)
+</li>
+<li>hmac: <a href="#digest-length">digest-length</a> of the <i>digest-name</i> passed to <a href="#make-mac">make-mac</a>
+</li>
+<li>cmac: <a href="#block-length">block-length</a> of the <i>cipher-name</i> passed to <a href="#make-mac">make-mac</a>
+</li>
+<li>poly1305: 16 bytes
+</li>
+<li>skein-mac: <i>digest-length</i> passed to <a href="#make-mac">make-mac</a> (64 by default)
+</li>
+</ul>
 </div>
 
 <div id="outline-container-sec-6-1" class="outline-3">
-<h3 id="sec-6-1">HMAC</h3>
+<h3 id="sec-6-1">Inquiry functions</h3>
 <div class="outline-text-3" id="text-6-1">
+<div class="org-src-container">
+
+<pre class="src src-lisp" id="list-all-macs">(list-all-macs) =&gt; list
+</pre>
+</div>
+
 <p>
-Instances of HMACs are constructed by specifying a secret key and
-a digest-name.
+Returns a list whose elements may be validly passed to <a href="#make-mac">make-mac</a>.
 </p>
 
 
 <div class="org-src-container">
 
-<pre class="src src-lisp" id="make-hmac">(make-hmac key digest-name) =&gt; hmac
+<pre class="src src-lisp" id="mac-supported-p">(mac-supported-p name) =&gt; boolean
 </pre>
 </div>
 
 <p>
-Return an HMAC instance based on the hash function <i>digest-name</i> with
-secret key <i>key</i>.
-</p>
-
-<p>
-The returned object supports <code>reinitialize-instance</code>:
-</p>
-
-<div class="org-src-container">
-
-<pre class="src src-lisp">(reinitialize-instance (mac hmac) &amp;rest initargs &amp;key key &amp;allow-other-keys) =&gt; hmac
-</pre>
-</div>
-
-<p>
-The <i>:key</i> argument is the secret key, as provided to <a href="#make-hmac">make-hmac</a>.
-</p>
-
-
-<div class="org-src-container">
-
-<pre class="src src-lisp" id="update-hmac">(update-hmac hmac sequence &amp;key start end) =&gt; hmac
-</pre>
-</div>
-
-<p>
-Update the internal state of <i>hmac</i> with the data in <i>sequence</i>
-bounded by <i>start</i> and <i>end</i>. <i>sequence</i> must be a
-<code>(simple-array (unsigned-byte 8) (*))</code>.
-</p>
-
-
-<div class="org-src-container">
-
-<pre class="src src-lisp" id="hmac-digest">(hmac-digest hmac &amp;key buffer buffer-start) =&gt; digest
-</pre>
-</div>
-
-<p>
-Returns the MAC (<i>digest</i>) computed by <i>hmac</i> thus far. The internal
-state of <i>hmac</i> is not modified; this feature makes it possible to
-compute a "rolling MAC" of a document. The length of <i>digest</i> is
-determined by the <a href="#digest-length">digest-length</a> of the <i>digest-name</i> passed to
-<a href="#make-hmac">make-hmac</a> when <i>hmac</i> was constructed.
-</p>
-
-<p>
-If <i>buffer</i> is provided, the computed MAC will be placed into
-<i>buffer</i> starting at <i>buffer-start</i>. <i>buffer</i> must be a
-<code>(simple-array (unsigned-byte 8) (*))</code>. An <a href="#insufficient-buffer-space">insufficient-buffer-space</a>
-error will be signaled if there is insufficient space in <i>buffer</i>.
-</p>
-</div>
-</div>
-
-<div id="outline-container-sec-6-2" class="outline-3">
-<h3 id="sec-6-2">CMAC</h3>
-<div class="outline-text-3" id="text-6-2">
-<p>
-Instances of CMACs are constructed by specifying a secret key and
-a cipher-name.
-</p>
-
-
-<div class="org-src-container">
-
-<pre class="src src-lisp" id="make-cmac">(make-cmac key cipher-name) =&gt; cmac
-</pre>
-</div>
-
-<p>
-Return a CMAC instance based on the cipher <i>cipher-name</i> with secret
-key <i>key</i>. <i>cipher-name</i> must have a <a href="#block-length">block-length</a> of either 8 or 16;
-this restriction is satisfied by many ciphers in Ironclad with the
-notable exception of stream ciphers. <i>key</i> must be an acceptable key
-for <i>cipher-name</i>.
-</p>
-
-
-<div class="org-src-container">
-
-<pre class="src src-lisp" id="update-cmac">(update-cmac cmac sequence &amp;key start end) =&gt; cmac
-</pre>
-</div>
-
-<p>
-Update the internal state of <i>cmac</i> with the data in <i>sequence</i>
-bounded by <i>start</i> and <i>end</i>. <i>sequence</i> must be a
-<code>(simple-array (unsigned-byte 8) (*))</code>.
-</p>
-
-
-<div class="org-src-container">
-
-<pre class="src src-lisp" id="cmac-digest">(cmac-digest cmac) =&gt; digest
-</pre>
-</div>
-
-<p>
-Returns the MAC (<i>digest</i>) computed by <i>cmac</i> thus far. The internal
-state of <i>cmac</i> is not modified; this feature makes it possible to
-compute a "rolling MAC" of a document. The length of <i>digest</i> is
-determined by the <a href="#block-length">block-length</a> of the <i>cipher-name</i> passed to
-<a href="#make-cmac">make-cmac</a> when <i>cmac</i> was constructed.
-</p>
-</div>
-</div>
-
-<div id="outline-container-sec-6-3" class="outline-3">
-<h3 id="sec-6-3">Blake2 and Blake2s MAC</h3>
-<div class="outline-text-3" id="text-6-3">
-<p>
-Instances of Blake2 and Blake2s MACs are constructed by specifying
-a secret key and optionally a digest-length.
-</p>
-
-
-<div class="org-src-container">
-
-<pre class="src src-lisp" id="make-blake2-mac">(make-blake2-mac key &amp;key digest-length) =&gt; mac
-(make-blake2s-mac key &amp;key digest-length) =&gt; mac
-</pre>
-</div>
-
-<p>
-Return a Blake2 or Blake2s MAC instance with secret key <i>key</i>.
-<i>digest-length</i> can be any length from 1 to 64 for Blake2, or from
-1 to 32 for Blake2s. By default, <i>digest-length</i> is 64 for Blake2 and
-32 for Blake2s.
-</p>
-
-
-<div class="org-src-container">
-
-<pre class="src src-lisp" id="update-blake2-mac">(update-blake2-mac mac sequence &amp;key start end) =&gt; mac
-(update-blake2s-mac mac sequence &amp;key start end) =&gt; mac
-</pre>
-</div>
-
-<p>
-Update the internal state of <i>mac</i> with the data in <i>sequence</i> bounded
-by <i>start</i> and <i>end</i>. <i>sequence</i> must be a
-<code>(simple-array (unsigned-byte 8) (*))</code>.
-</p>
-
-
-<div class="org-src-container">
-
-<pre class="src src-lisp" id="blake2-mac-digest">(blake2-mac-digest mac) =&gt; digest
-(blake2s-mac-digest mac) =&gt; digest
-</pre>
-</div>
-
-<p>
-Returns the MAC (<i>digest</i>) computed by <i>mac</i> thus far. The internal
-state of <i>mac</i> is not modified; this feature makes it possible to
-compute a "rolling MAC" of a document. The length of <i>digest</i> is
-determined by the <i>digest-length</i> key parameter passed to
-<a href="#make-blake2-mac">make-blake2-mac</a> or <a href="#make-blake2-mac">make-blake2s-mac</a> when <i>mac</i> was constructed.
-</p>
-</div>
-</div>
-
-<div id="outline-container-sec-6-4" class="outline-3">
-<h3 id="sec-6-4">Poly1305 MAC</h3>
-<div class="outline-text-3" id="text-6-4">
-<p>
-Instances of Poly1305 MACs are constructed by specifying
-a secret key.
-</p>
-
-
-<div class="org-src-container">
-
-<pre class="src src-lisp" id="make-poly1305">(make-poly1305 key) =&gt; mac
-</pre>
-</div>
-
-<p>
-Return a Poly1305 MAC instance with secret key <i>key</i>.
-The size of <i>key</i> must be 32 bytes.
-</p>
-
-
-<div class="org-src-container">
-
-<pre class="src src-lisp" id="update-poly1305">(update-poly1305 mac data &amp;key start end) =&gt; (values)
-</pre>
-</div>
-
-<p>
-Update the internal state of <i>mac</i> with the <i>data</i> bounded by <i>start</i>
-and <i>end</i>. <i>data</i> must be a <code>(simple-array (unsigned-byte 8) (*))</code>.
-</p>
-
-
-<div class="org-src-container">
-
-<pre class="src src-lisp" id="poly1305-digest">(poly1305-digest mac) =&gt; digest
-</pre>
-</div>
-
-<p>
-Returns the MAC (<i>digest</i>) computed by <i>mac</i> thus far. The internal
-state of <i>mac</i> is not modified; this feature makes it possible to
-compute a "rolling MAC" of a document. The length of <i>digest</i> is 16
-bytes.
-</p>
-</div>
-</div>
-
-<div id="outline-container-sec-6-5" class="outline-3">
-<h3 id="sec-6-5">Skein MAC</h3>
-<div class="outline-text-3" id="text-6-5">
-<p>
-Instances of Skein MACs are constructed by specifying a secret key and
-optionally a block length and a digest-length.
-</p>
-
-
-<div class="org-src-container">
-
-<pre class="src src-lisp" id="make-skein-mac">(make-skein-mac key &amp;key block-length digest-length) =&gt; mac
-</pre>
-</div>
-
-<p>
-Return a Skein MAC instance with secret key <i>key</i>. <i>block-length</i> can
-be 32 (to use the Skein256 hash function internally), 64 (to use
-Skein512) or 128 (to use Skein1024). <i>digest-length</i> can be any length
-you want the computed MAC (<i>digest</i>) to be. By default, <i>block-length</i>
-is 64 and <i>digest-length</i> is 64.
-</p>
-
-
-<div class="org-src-container">
-
-<pre class="src src-lisp" id="update-skein-mac">(update-skein-mac mac sequence &amp;key start end) =&gt; mac
-</pre>
-</div>
-
-<p>
-Update the internal state of <i>mac</i> with the data in <i>sequence</i> bounded
-by <i>start</i> and <i>end</i>. <i>sequence</i> must be a
-<code>(simple-array (unsigned-byte 8) (*))</code>.
-</p>
-
-
-<div class="org-src-container">
-
-<pre class="src src-lisp" id="skein-mac-digest">(skein-mac-digest mac) =&gt; digest
-</pre>
-</div>
-
-<p>
-Returns the MAC (<i>digest</i>) computed by <i>mac</i> thus far. The internal
-state of <i>mac</i> is not modified; this feature makes it possible to
-compute a "rolling MAC" of a document. The length of <i>digest</i> is
-determined by the <i>digest-length</i> key parameter passed to
-<a href="#make-skein-mac">make-skein-mac</a> when <i>mac</i> was constructed.
+Returns <code>t</code> if <i>name</i> would be in the list returned by <a href="#list-all-macs">list-all-macs</a>,
+<code>nil</code> otherwise.
 </p>
 </div>
 </div>
@@ -2183,6 +2093,18 @@ This error is signaled when the <i>digest-name</i> provided to
 
 <div class="org-src-container">
 
+<pre class="src src-lisp" id="unsupported-mac">unsupported-mac
+</pre>
+</div>
+
+<p>
+This error is signaled when the <i>mac-name</i> provided to
+<a href="#make-mac">make-mac</a> is not <a href="#mac-supported-p">mac-supported-p</a>.
+</p>
+
+
+<div class="org-src-container">
+
 <pre class="src src-lisp" id="insufficient-buffer-space">insufficient-buffer-space
 </pre>
 </div>
@@ -2192,6 +2114,7 @@ This error is signaled when Ironclad needs to stuff some data into
 a buffer (e.g. when the user provides <i>digest</i> to <a href="#produce-digest">produce-digest</a> and
 there is insufficient space).
 </p>
+
 
 <div class="org-src-container">
 

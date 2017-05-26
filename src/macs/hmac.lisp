@@ -65,3 +65,8 @@
     (copy-digest (outer-digest hmac) x)
     (update-digest x inner-hash :digest buffer :digest-start buffer-start)
     (produce-digest x :digest buffer :digest-start buffer-start)))
+
+(defmac hmac
+        make-hmac
+        update-hmac
+        hmac-digest)

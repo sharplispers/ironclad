@@ -364,7 +364,7 @@ The exact method is determined by the type of THING."))
 
 (defgeneric produce-digest (digester &key digest digest-start)
   (:documentation "Return the hash of the data processed by
-DIGESTER so far. This function modifies the internal state of DIGESTER.
+DIGESTER so far.
 
 If DIGEST is provided, the hash will be placed into DIGEST starting at
 DIGEST-START.  DIGEST must be a (SIMPLE-ARRAY (UNSIGNED-BYTE 8) (*)).

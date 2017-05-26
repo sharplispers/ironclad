@@ -139,3 +139,8 @@
     ;; Produce the tag
     (incf accumulator s)
     (poly1305-uint128le->octets accumulator)))
+
+(defmac poly1305
+        make-poly1305
+        update-poly1305
+        poly1305-digest)

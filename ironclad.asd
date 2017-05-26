@@ -112,12 +112,13 @@
                          (:module "macs"
                                   :depends-on ("common" "digests")
                                   :components
-                                  ((:file "hmac")
-                                   (:file "cmac")
-                                   (:file "skein-mac")
-                                   (:file "poly1305")
-                                   (:file "blake2-mac")
-                                   (:file "blake2s-mac")))
+                                  ((:file "mac")
+                                   (:file "hmac" :depends-on ("mac"))
+                                   (:file "cmac" :depends-on ("mac"))
+                                   (:file "skein-mac" :depends-on ("mac"))
+                                   (:file "poly1305" :depends-on ("mac"))
+                                   (:file "blake2-mac" :depends-on ("mac"))
+                                   (:file "blake2s-mac" :depends-on ("mac"))))
                          (:module "public-key"
                                   :depends-on ("digests" "math")
                                   :components

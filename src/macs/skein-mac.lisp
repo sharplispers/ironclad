@@ -113,3 +113,8 @@
         (mac-copy (copy-skein-mac mac)))
     (skein-finalize mac-copy digest 0)
     digest))
+
+(defmac skein-mac
+        make-skein-mac
+        update-skein-mac
+        skein-mac-digest)

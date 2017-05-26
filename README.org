@@ -559,207 +559,135 @@ Ironclad provides different kinds of MACs:
  - Poly1305 MAC
  - Skein MAC
 
-** HMAC
 
-Instances of HMACs are constructed by specifying a secret key and
-a digest-name.
-
-
-#+NAME: make-hmac
+#+NAME: make-mac
 #+BEGIN_SRC lisp
-(make-hmac key digest-name) => hmac
+(make-mac mac-name key &rest args) => mac
 #+END_SRC
 
-Return an HMAC instance based on the hash function /digest-name/ with
-secret key /key/.
+Return a MAC object initialized with a secret /key/. /mac-name/ is
+a keyword naming the algorithm you wish /mac/ to use. The supported
+MACs can be found by calling [[list-all-macs][list-all-macs]]. They are:
+ - blake2-mac
+ - blake2s-mac
+ - cmac
+ - hmac
+ - poly1305
+ - skein-mac
 
-The returned object supports ~reinitialize-instance~:
+Like for [[make-digest][make-digest]], /mac-name/ should be a symbol in the ~keyword~
+or ~ironclad~ packages.
+
+Some MACs take extra arguments that can be specified in /args/.
+
+#+BEGIN_EXAMPLE
+(make-mac :blake2-mac key &key digest-length)
+(make-mac :blake2s-mac key &key digest-length)
+(make-mac :cmac key cipher-name)
+(make-mac :hmac key digest-name)
+(make-mac :poly1305 key)
+(make-mac :skein-mac key &key block-length digest-length)
+#+END_EXAMPLE
+
+When making a Blake2 MAC, the length of the /key/ passed to [[make-mac][make-mac]]
+must be 64 bytes.
+
+When making a Blake2s MAC, the length of the /key/ passed to [[make-mac][make-mac]]
+must be 32 bytes.
+
+When making a CMAC, /cipher-name/ must have a [[block-length][block-length]] of either
+8 or 16; this restriction is satisfied by many ciphers in Ironclad
+with the notable exception of stream ciphers. /key/ must be an
+acceptable key for /cipher-name/.
+
+When making a Poly1305, the length of the /key/ passed to [[make-mac][make-mac]]
+must be 32 bytes.
+
+When making a Skein MAC, /block-length/ can be 32 (to use the Skein256
+hash function internally), 64 (to use Skein512) or 128 (to use
+Skein1024). /digest-length/ can be any length you want the computed
+digest to be. By default, /block-length/ is 64 and /digest-length/
+is 64.
+
+
+MAC objects support ~reinitialize-instance~:
 
 #+BEGIN_SRC lisp
-(reinitialize-instance (mac hmac) &rest initargs &key key &allow-other-keys) => hmac
+(reinitialize-instance mac &rest initargs &key key &allow-other-keys) => mac
 #+END_SRC
 
-The /:key/ argument is the secret key, as provided to [[make-hmac][make-hmac]].
+The /:key/ argument is the secret key, as provided to [[make-mac][make-mac]].
 
 
-#+NAME: update-hmac
+#+NAME: update-mac
 #+BEGIN_SRC lisp
-(update-hmac hmac sequence &key start end) => hmac
+(update-mac mac thing &key &allow-other-keys) => (values)
 #+END_SRC
 
-Update the internal state of /hmac/ with the data in /sequence/
-bounded by /start/ and /end/. /sequence/ must be a
-~(simple-array (unsigned-byte 8) (*))~.
+Updates the internal state of /mac/ with the contents of /thing/.
+The exact method is determined by the type of /thing/.
+
+There are several methods defined on this generic function that take
+a particular MAC and a ~(simple-array (unsigned-byte 8) (*))~ as
+well as the usual /start/ and /end/ keyword arguments. These methods
+update the state of /mac/ with the subsequence of the array
+denoted by /start/ and /end/. They are not listed here because there's
+one method for every type of MAC that Ironclad provides, and
+listing them would get very tedious for no benefit. An example should
+suffice.
+
+#+BEGIN_EXAMPLE
+(let* ((key (random-data 32))
+       (mac (ironclad:make-mac :hmac key :sha256))
+       (array (make-array 16 :element-type '(unsigned-byte 8) :initial-element 0)))
+  ;; Update with 16 zeroes.
+  (ironclad:update-mac mac array)
+  ;; Update with 8 ones.
+  (fill array 1 :start 2 :end 10)
+  (ironclad:update-mac mac array :start 2 :end 10))
+#+END_EXAMPLE
 
 
-#+NAME: hmac-digest
+#+NAME: produce-mac
 #+BEGIN_SRC lisp
-(hmac-digest hmac &key buffer buffer-start) => digest
+(produce-mac mac &key digest digest-start) => digest
 #+END_SRC
 
-Returns the MAC (/digest/) computed by /hmac/ thus far. The internal
-state of /hmac/ is not modified; this feature makes it possible to
-compute a "rolling MAC" of a document. The length of /digest/ is
-determined by the [[digest-length][digest-length]] of the /digest-name/ passed to
-[[make-hmac][make-hmac]] when /hmac/ was constructed.
+Return the digest of the data processed by /mac/ so far. The internal
+state of /mac/ is not modified; this feature makes it possible to
+compute a "rolling MAC" of a document.
 
-If /buffer/ is provided, the computed MAC will be placed into
-/buffer/ starting at /buffer-start/. /buffer/ must be a
+If /digest/ is provided, the computed digest will be placed into
+/digest/ starting at /digest-start/. /digest/ must be a
 ~(simple-array (unsigned-byte 8) (*))~. An [[insufficient-buffer-space][insufficient-buffer-space]]
-error will be signaled if there is insufficient space in /buffer/.
+error will be signaled if there is insufficient space in /digest/.
 
-** CMAC
+The length of the digest returned by [[produce-mac][produce-mac]] is determined by the
+kind of MAC and the extra arguments passed to [[make-mac][make-mac]]:
+ - blake2-mac: from 1 to 64 bytes (64 by default)
+ - blake2s-mac: from 1 to 32 bytes (32 by default)
+ - hmac: [[digest-length][digest-length]] of the /digest-name/ passed to [[make-mac][make-mac]]
+ - cmac: [[block-length][block-length]] of the /cipher-name/ passed to [[make-mac][make-mac]]
+ - poly1305: 16 bytes
+ - skein-mac: /digest-length/ passed to [[make-mac][make-mac]] (64 by default)
 
-Instances of CMACs are constructed by specifying a secret key and
-a cipher-name.
+** Inquiry functions
 
-
-#+NAME: make-cmac
+#+NAME: list-all-macs
 #+BEGIN_SRC lisp
-(make-cmac key cipher-name) => cmac
+(list-all-macs) => list
 #+END_SRC
 
-Return a CMAC instance based on the cipher /cipher-name/ with secret
-key /key/. /cipher-name/ must have a [[block-length][block-length]] of either 8 or 16;
-this restriction is satisfied by many ciphers in Ironclad with the
-notable exception of stream ciphers. /key/ must be an acceptable key
-for /cipher-name/.
+Returns a list whose elements may be validly passed to [[make-mac][make-mac]].
 
 
-#+NAME: update-cmac
+#+NAME: mac-supported-p
 #+BEGIN_SRC lisp
-(update-cmac cmac sequence &key start end) => cmac
+(mac-supported-p name) => boolean
 #+END_SRC
 
-Update the internal state of /cmac/ with the data in /sequence/
-bounded by /start/ and /end/. /sequence/ must be a
-~(simple-array (unsigned-byte 8) (*))~.
-
-
-#+NAME: cmac-digest
-#+BEGIN_SRC lisp
-(cmac-digest cmac) => digest
-#+END_SRC
-
-Returns the MAC (/digest/) computed by /cmac/ thus far. The internal
-state of /cmac/ is not modified; this feature makes it possible to
-compute a "rolling MAC" of a document. The length of /digest/ is
-determined by the [[block-length][block-length]] of the /cipher-name/ passed to
-[[make-cmac][make-cmac]] when /cmac/ was constructed.
-
-** Blake2 and Blake2s MAC
-
-Instances of Blake2 and Blake2s MACs are constructed by specifying
-a secret key and optionally a digest-length.
-
-
-#+NAME: make-blake2-mac
-#+BEGIN_SRC lisp
-(make-blake2-mac key &key digest-length) => mac
-(make-blake2s-mac key &key digest-length) => mac
-#+END_SRC
-
-Return a Blake2 or Blake2s MAC instance with secret key /key/.
-/digest-length/ can be any length from 1 to 64 for Blake2, or from
-1 to 32 for Blake2s. By default, /digest-length/ is 64 for Blake2 and
-32 for Blake2s.
-
-
-#+NAME: update-blake2-mac
-#+BEGIN_SRC lisp
-(update-blake2-mac mac sequence &key start end) => mac
-(update-blake2s-mac mac sequence &key start end) => mac
-#+END_SRC
-
-Update the internal state of /mac/ with the data in /sequence/ bounded
-by /start/ and /end/. /sequence/ must be a
-~(simple-array (unsigned-byte 8) (*))~.
-
-
-#+NAME: blake2-mac-digest
-#+BEGIN_SRC lisp
-(blake2-mac-digest mac) => digest
-(blake2s-mac-digest mac) => digest
-#+END_SRC
-
-Returns the MAC (/digest/) computed by /mac/ thus far. The internal
-state of /mac/ is not modified; this feature makes it possible to
-compute a "rolling MAC" of a document. The length of /digest/ is
-determined by the /digest-length/ key parameter passed to
-[[make-blake2-mac][make-blake2-mac]] or [[make-blake2-mac][make-blake2s-mac]] when /mac/ was constructed.
-
-** Poly1305 MAC
-
-Instances of Poly1305 MACs are constructed by specifying
-a secret key.
-
-
-#+NAME: make-poly1305
-#+BEGIN_SRC lisp
-(make-poly1305 key) => mac
-#+END_SRC
-
-Return a Poly1305 MAC instance with secret key /key/.
-The size of /key/ must be 32 bytes.
-
-
-#+NAME: update-poly1305
-#+BEGIN_SRC lisp
-(update-poly1305 mac data &key start end) => (values)
-#+END_SRC
-
-Update the internal state of /mac/ with the /data/ bounded by /start/
-and /end/. /data/ must be a ~(simple-array (unsigned-byte 8) (*))~.
-
-
-#+NAME: poly1305-digest
-#+BEGIN_SRC lisp
-(poly1305-digest mac) => digest
-#+END_SRC
-
-Returns the MAC (/digest/) computed by /mac/ thus far. The internal
-state of /mac/ is not modified; this feature makes it possible to
-compute a "rolling MAC" of a document. The length of /digest/ is 16
-bytes.
-
-** Skein MAC
-
-Instances of Skein MACs are constructed by specifying a secret key and
-optionally a block length and a digest-length.
-
-
-#+NAME: make-skein-mac
-#+BEGIN_SRC lisp
-(make-skein-mac key &key block-length digest-length) => mac
-#+END_SRC
-
-Return a Skein MAC instance with secret key /key/. /block-length/ can
-be 32 (to use the Skein256 hash function internally), 64 (to use
-Skein512) or 128 (to use Skein1024). /digest-length/ can be any length
-you want the computed MAC (/digest/) to be. By default, /block-length/
-is 64 and /digest-length/ is 64.
-
-
-#+NAME: update-skein-mac
-#+BEGIN_SRC lisp
-(update-skein-mac mac sequence &key start end) => mac
-#+END_SRC
-
-Update the internal state of /mac/ with the data in /sequence/ bounded
-by /start/ and /end/. /sequence/ must be a
-~(simple-array (unsigned-byte 8) (*))~.
-
-
-#+NAME: skein-mac-digest
-#+BEGIN_SRC lisp
-(skein-mac-digest mac) => digest
-#+END_SRC
-
-Returns the MAC (/digest/) computed by /mac/ thus far. The internal
-state of /mac/ is not modified; this feature makes it possible to
-compute a "rolling MAC" of a document. The length of /digest/ is
-determined by the /digest-length/ key parameter passed to
-[[make-skein-mac][make-skein-mac]] when /mac/ was constructed.
+Returns ~t~ if /name/ would be in the list returned by [[list-all-macs][list-all-macs]],
+~nil~ otherwise.
 
 * Key derivation functions
   :PROPERTIES:
@@ -1510,6 +1438,15 @@ This error is signaled when the /digest-name/ provided to
 [[make-digest][make-digest]] is not [[digest-supported-p][digest-supported-p]].
 
 
+#+NAME: unsupported-mac
+#+BEGIN_SRC lisp
+unsupported-mac
+#+END_SRC
+
+This error is signaled when the /mac-name/ provided to
+[[make-mac][make-mac]] is not [[mac-supported-p][mac-supported-p]].
+
+
 #+NAME: insufficient-buffer-space
 #+BEGIN_SRC lisp
 insufficient-buffer-space
@@ -1518,6 +1455,7 @@ insufficient-buffer-space
 This error is signaled when Ironclad needs to stuff some data into
 a buffer (e.g. when the user provides /digest/ to [[produce-digest][produce-digest]] and
 there is insufficient space).
+
 
 #+NAME: key-not-supplied
 #+BEGIN_SRC lisp
