@@ -583,4 +583,58 @@
          (emit-label last-round)
          (inst aesdeclast x0 x1)
          (inst movdqa (buffer-mem plaintext plaintext-start) x0)))))
+
+#+x86-64
+(define-vop (fast-blake2s-mixing)
+  (:translate ironclad::fast-blake2s-mixing)
+  (:policy :fast-safe)
+  (:args (va :scs (unsigned-reg) :target ra)
+         (vb :scs (unsigned-reg) :target rb)
+         (vc :scs (unsigned-reg) :target rc)
+         (vd :scs (unsigned-reg) :target rd)
+         (x :scs (unsigned-reg))
+         (y :scs (unsigned-reg)))
+  (:arg-types unsigned-num
+              unsigned-num
+              unsigned-num
+              unsigned-num
+              unsigned-num
+              unsigned-num)
+  (:results (ra :scs (unsigned-reg) :from (:argument 0))
+            (rb :scs (unsigned-reg) :from (:argument 1))
+            (rc :scs (unsigned-reg) :from (:argument 2))
+            (rd :scs (unsigned-reg) :from (:argument 3)))
+  (:result-types unsigned-num
+                 unsigned-num
+                 unsigned-num
+                 unsigned-num)
+  (:generator 1000
+    (let ((va (reg-in-size va :dword))
+          (vb (reg-in-size vb :dword))
+          (vc (reg-in-size vc :dword))
+          (vd (reg-in-size vd :dword))
+          (x (reg-in-size x :dword))
+          (y (reg-in-size y :dword))
+          (ra (reg-in-size ra :dword))
+          (rb (reg-in-size rb :dword))
+          (rc (reg-in-size rc :dword))
+          (rd (reg-in-size rd :dword)))
+      (move ra va)
+      (move rb vb)
+      (move rc vc)
+      (move rd vd)
+      (inst add ra rb)
+      (inst add ra x)
+      (inst xor rd ra)
+      (inst ror rd 16)
+      (inst add rc rd)
+      (inst xor rb rc)
+      (inst ror rb 12)
+      (inst add ra rb)
+      (inst add ra y)
+      (inst xor rd ra)
+      (inst ror rd 8)
+      (inst add rc rd)
+      (inst xor rb rc)
+      (inst ror rb 7))))
 )                        ; PROGN

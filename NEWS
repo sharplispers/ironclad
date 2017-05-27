@@ -34,6 +34,8 @@ by hand if necessary (e.g. to use a different serialization).
 
 Added a unified API for MACs.
 
+Added optimized Blake2s mixing for SBCL on x86-64 CPUs.
+
 * Version 0.34, released 2017-03-07
 
 ** bug fixes

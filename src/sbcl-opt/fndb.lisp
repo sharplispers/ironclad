@@ -83,4 +83,19 @@
   (values)
   (any)
   :overwrite-fndb-silently t)
+
+#+x86-64
+(defknown ironclad::fast-blake2s-mixing
+  ((unsigned-byte 32)
+   (unsigned-byte 32)
+   (unsigned-byte 32)
+   (unsigned-byte 32)
+   (unsigned-byte 32)
+   (unsigned-byte 32))
+  (values (unsigned-byte 32)
+          (unsigned-byte 32)
+          (unsigned-byte 32)
+          (unsigned-byte 32))
+  (any)
+  :overwrite-fndb-silently t)
 );#+sbcl
