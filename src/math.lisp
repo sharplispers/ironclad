@@ -54,11 +54,11 @@ denominator."
   "As (mod (expt n exponent) modulus), but more efficient (Montgomery ladder)."
   (declare (optimize (speed 3) (safety 0) (space 0) (debug 0))
            (type integer n exponent modulus))
-  (assert (>= exponent 0))
+  (assert (<= 0 exponent modulus))
   (assert (> modulus 1))
   (do ((r0 1)
        (r1 n)
-       (i (1- (integer-length exponent)) (1- i)))
+       (i (1- (integer-length modulus)) (1- i)))
       ((minusp i) r0)
     (declare (type fixnum i)
              (type integer r0 r1))

@@ -97,7 +97,7 @@
            (type integer e))
   (do ((r0 (vector 0 1 1))
        (r1 p)
-       (i (1- (integer-length e)) (1- i)))
+       (i 447 (1- i)))
       ((minusp i) r0)
     (declare (type ed448-point r0 r1)
              (type fixnum i))
