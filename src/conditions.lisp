@@ -107,3 +107,11 @@ for a particular mode of operation but not supplied."))
                      (invalid-padding-block condition))))
   (:documentation "Signaled when padding in a block is determined to be invalid."))
 
+(define-condition invalid-mac-parameter (ironclad-error)
+  ((mac-name :initarg :mac-name :reader mac-name)
+   (message :initarg :message :reader message))
+  (:report (lambda (condition stream)
+             (format stream "Invalid parameter for MAC ~A. ~A."
+                     (mac-name condition)
+                     (message condition))))
+  (:documentation "Signaled when an invalid parameter is provided to MAKE-MAC."))

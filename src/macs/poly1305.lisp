@@ -43,9 +43,11 @@
   (logand r #x0ffffffc0ffffffc0ffffffc0fffffff))
 
 (defun make-poly1305 (key)
-  (declare (type (simple-array (unsigned-byte 8) (32)) key))
+  (declare (type (simple-array (unsigned-byte 8) (*)) key))
   (unless (= (length key) 32)
-    (error "Key size must be 32 bytes."))
+    (error 'invalid-mac-parameter
+           :mac-name 'poly1305
+           :message "The key length must be 32 bytes"))
   (make-instance 'poly1305 :key key))
 
 (defmethod shared-initialize ((mac poly1305) slot-names

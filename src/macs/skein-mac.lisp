@@ -18,7 +18,9 @@
   (unless (or (= block-length 32)
               (= block-length 64)
               (= block-length 128))
-    (error "Block length must be 32, 64 or 128 bytes."))
+    (error 'invalid-mac-parameter
+           :mac-name 'skein-mac
+           :message "The block length must be 32, 64 or 128 bytes"))
 
   (make-instance 'skein-mac
                  :key key
