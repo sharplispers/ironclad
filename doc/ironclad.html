@@ -2,7 +2,7 @@
 <html>
 <head>
 <title>Ironclad</title>
-<!-- 2017-05-26 ven. 10:18 -->
+<!-- 2017-05-30 mar. 10:23 -->
 <meta  charset="utf-8">
 <meta  name="generator" content="Org-mode">
 <meta  name="author" content="The Ironclad developers">
@@ -2125,6 +2125,54 @@ there is insufficient space).
 <p>
 This error is signaled when a <i>:key</i> argument is not provided
 to <a href="#make-cipher">make-cipher</a>.
+</p>
+
+
+<div class="org-src-container">
+
+<pre class="src src-lisp" id="unsupported-kdf">unsupported-kdf
+</pre>
+</div>
+
+<p>
+This error is signaled when an invalid KDF name is provided
+to <a href="#make-kdf">make-kdf</a>.
+</p>
+
+
+<div class="org-src-container">
+
+<pre class="src src-lisp" id="unsupported-scrypt-cost-factors">unsupported-scrypt-cost-factors
+</pre>
+</div>
+
+<p>
+This error is signaled when invalid Scrypt cost factors are provided
+to <a href="#make-kdf">make-kdf</a>.
+</p>
+
+
+<div class="org-src-container">
+
+<pre class="src src-lisp" id="invalid-padding">invalid-padding
+</pre>
+</div>
+
+<p>
+This error is signaled when padding in a block is determined to be
+invalid.
+</p>
+
+
+<div class="org-src-container">
+
+<pre class="src src-lisp" id="invalid-mac-parameter">invalid-mac-parameter
+</pre>
+</div>
+
+<p>
+This error is signaled when an invalid parameter is provided
+to <a href="#make-mac">make-mac</a>.
 </p>
 </div>
 </div>

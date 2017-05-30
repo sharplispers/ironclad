@@ -1464,3 +1464,39 @@ key-not-supplied
 
 This error is signaled when a /:key/ argument is not provided
 to [[make-cipher][make-cipher]].
+
+
+#+NAME: unsupported-kdf
+#+BEGIN_SRC lisp
+unsupported-kdf
+#+END_SRC
+
+This error is signaled when an invalid KDF name is provided
+to [[make-kdf][make-kdf]].
+
+
+#+NAME: unsupported-scrypt-cost-factors
+#+BEGIN_SRC lisp
+unsupported-scrypt-cost-factors
+#+END_SRC
+
+This error is signaled when invalid Scrypt cost factors are provided
+to [[make-kdf][make-kdf]].
+
+
+#+NAME: invalid-padding
+#+BEGIN_SRC lisp
+invalid-padding
+#+END_SRC
+
+This error is signaled when padding in a block is determined to be
+invalid.
+
+
+#+NAME: invalid-mac-parameter
+#+BEGIN_SRC lisp
+invalid-mac-parameter
+#+END_SRC
+
+This error is signaled when an invalid parameter is provided
+to [[make-mac][make-mac]].
