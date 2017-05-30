@@ -39,7 +39,8 @@
              (type (simple-array (unsigned-byte 8) (*)) y)
              (optimize (speed 3) (safety 0) (space 0) (debug 0)))
     (when (> (length y) 255)
-      (error "The Y array is to big"))
+      (error 'ironclad-error
+             :format-control "The Y array is to big."))
     (concatenate '(simple-array (unsigned-byte 8) (*))
                  (map 'vector #'char-code "SigEd448")
                  (vector x)
@@ -171,7 +172,7 @@
         (setf x (- +ed448-q+ x)))
       (let ((p (vector x y 1)))
         (unless (ed448-on-curve-p p)
-          (error "Decoding point that is not on curve"))
+          (error 'invalid-curve-point :kind 'ed448))
         p))))
 
 (defun ed448-hash (&rest messages)
@@ -192,14 +193,22 @@
       (ed448-encode-point (ed448-scalar-mult +ed448-b+ a)))))
 
 (defmethod make-signature ((kind (eql :ed448)) &key r s &allow-other-keys)
-  (if (and r s)
-      (concatenate '(simple-array (unsigned-byte 8) (*)) r s)
-      (error "R and S must be specified")))
+  (unless r
+    (error 'missing-signature-parameter
+           :kind 'ed448
+           :parameter 'r
+           :description "first signature element"))
+  (unless s
+    (error 'missing-signature-parameter
+           :kind 'ed448
+           :parameter 's
+           :description "second signature element"))
+  (concatenate '(simple-array (unsigned-byte 8) (*)) r s))
 
 (defmethod destructure-signature ((kind (eql :ed448)) signature)
   (let ((length (length signature)))
     (if (/= length (/ +ed448-bits+ 4))
-        (error "Bad signature length")
+        (error 'invalid-signature-length :kind 'ed448)
         (let* ((middle (/ length 2))
                (r (subseq signature 0 middle))
                (s (subseq signature middle)))
@@ -223,9 +232,9 @@
 
 (defun ed448-verify (s m pk)
   (unless (= (length s) (ceiling +ed448-bits+ 4))
-    (error "Bad signature length"))
+    (error 'invalid-signature-length :kind 'ed448))
   (unless (= (length pk) (ceiling +ed448-bits+ 8))
-    (error "Bad public key length"))
+    (error 'invalid-public-key-length :kind 'ed448))
   (let* ((signature-elements (destructure-signature :ed448 s))
          (r (getf signature-elements :r))
          (rp (ed448-decode-point r))
@@ -241,12 +250,18 @@
 
 (defmethod make-public-key ((kind (eql :ed448)) &key y &allow-other-keys)
   (unless y
-    (error "The public key must be specified with the :Y keyword."))
+    (error 'missing-key-parameter
+           :kind 'ed448
+           :parameter 'y
+           :description "public key"))
   (make-instance 'ed448-public-key :y y))
 
 (defmethod make-private-key ((kind (eql :ed448)) &key x y &allow-other-keys)
   (unless x
-    (error "The private key must be specified with the :X keyword."))
+    (error 'missing-key-parameter
+           :kind 'ed448
+           :parameter 'x
+           :description "private key"))
   (make-instance 'ed448-private-key :x x :y (or y (ed448-public-key x))))
 
 (defmethod sign-message ((key ed448-private-key) message &key (start 0) end &allow-other-keys)

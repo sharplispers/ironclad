@@ -20,17 +20,38 @@
 
 (defmethod make-public-key ((kind (eql :rsa))
                             &key e n &allow-other-keys)
-  (unless (and e n)
-    (error "Must specify public exponent and modulus"))
+  (unless e
+    (error 'missing-key-parameter
+           :kind 'rsa
+           :parameter 'e
+           :description "public exponent"))
+  (unless n
+    (error 'missing-key-parameter
+           :kind 'rsa
+           :parameter 'n
+           :description "modulus"))
   (make-instance 'rsa-public-key :e e :n n))
 
 (defmethod make-private-key ((kind (eql :rsa))
                              &key d n &allow-other-keys)
-  (unless (and d n)
-    (error "Must specify private exponent and modulus"))
+  (unless d
+    (error 'missing-key-parameter
+           :kind 'rsa
+           :parameter 'd
+           :description "private exponent"))
+  (unless n
+    (error 'missing-key-parameter
+           :kind 'rsa
+           :parameter 'n
+           :description "modulus"))
   (make-instance 'rsa-private-key :d d :n n))
 
 (defmethod generate-key-pair ((kind (eql :rsa)) &key num-bits &allow-other-keys)
+  (unless num-bits
+    (error 'missing-key-parameter
+           :kind 'rsa
+           :parameter 'num-bits
+           :description "modulus size"))
   (let* ((l (floor num-bits 2))
          p q n)
     (loop
@@ -55,9 +76,17 @@
   (expt-mod msg exponent modulus))
 
 (defmethod make-message ((kind (eql :rsa)) &key m n-bits &allow-other-keys)
-  (if (and m n-bits)
-      (integer-to-octets m :n-bits n-bits)
-      (error "M and N-BITS must be specified")))
+  (unless m
+    (error 'missing-message-parameter
+           :kind 'rsa
+           :parameter 'm
+           :description "ciphertext"))
+  (unless n-bits
+    (error 'missing-message-parameter
+           :kind 'rsa
+           :parameter 'n-bits
+           :description "modulus size"))
+  (integer-to-octets m :n-bits n-bits))
 
 (defmethod destructure-message ((kind (eql :rsa)) message)
   (list :m (octets-to-integer message) :n-bits (* 8 (length message))))
@@ -84,9 +113,17 @@
          (rsa-core m (rsa-key-exponent key) (rsa-key-modulus key))))))
 
 (defmethod make-signature ((kind (eql :rsa)) &key s n-bits &allow-other-keys)
-  (if (and s n-bits)
-      (integer-to-octets s :n-bits n-bits)
-      (error "S and N-BITS must be specified")))
+  (unless s
+    (error 'missing-signature-parameter
+           :kind 'rsa
+           :parameter 's
+           :description "signature"))
+  (unless n-bits
+    (error 'missing-signature-parameter
+           :kind 'rsa
+           :parameter 'n-bits
+           :description "modulus size"))
+  (integer-to-octets s :n-bits n-bits))
 
 (defmethod destructure-signature ((kind (eql :rsa)) signature)
   (list :s (octets-to-integer signature) :n-bits (* 8 (length signature))))
@@ -104,7 +141,7 @@
 (defmethod verify-signature ((key rsa-public-key) msg signature &key (start 0) end pss &allow-other-keys)
   (let ((nbits (integer-length (rsa-key-modulus key))))
     (unless (= (* 8 (length signature)) nbits)
-      (error "Bad signature length"))
+      (error 'invalid-signature-length :kind 'rsa))
     (let* ((signature-elements (destructure-signature :rsa signature))
            (s (getf signature-elements :s)))
       (if pss

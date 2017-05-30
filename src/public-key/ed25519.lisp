@@ -173,7 +173,7 @@
         (declare (type integer w)
                  (type ed25519-point p))
         (unless (ed25519-on-curve-p p)
-          (error "Decoding point that is not on curve"))
+          (error 'invalid-curve-point :kind 'ed25519))
         p))))
 
 (defun ed25519-hash (&rest messages)
@@ -195,14 +195,22 @@
       (ed25519-encode-point (ed25519-scalar-mult +ed25519-b+ a)))))
 
 (defmethod make-signature ((kind (eql :ed25519)) &key r s &allow-other-keys)
-  (if (and r s)
-      (concatenate '(simple-array (unsigned-byte 8) (*)) r s)
-      (error "R and S must be specified")))
+  (unless r
+    (error 'missing-signature-parameter
+           :kind 'ed25519
+           :parameter 'r
+           :description "first signature element"))
+  (unless s
+    (error 'missing-signature-parameter
+           :kind 'ed25519
+           :parameter 's
+           :description "second signature element"))
+  (concatenate '(simple-array (unsigned-byte 8) (*)) r s))
 
 (defmethod destructure-signature ((kind (eql :ed25519)) signature)
   (let ((length (length signature)))
     (if (/= length (/ +ed25519-bits+ 4))
-        (error "Bad signature length")
+        (error 'invalid-signature-length :kind 'ed25519)
         (let* ((middle (/ length 2))
                (r (subseq signature 0 middle))
                (s (subseq signature middle)))
@@ -230,9 +238,9 @@
   (declare (type (simple-array (unsigned-byte 8) (*)) s m pk)
            (optimize (speed 3) (safety 0) (space 0) (debug 0)))
   (unless (= (length s) (/ +ed25519-bits+ 4))
-    (error "Bad signature length"))
+    (error 'invalid-signature-length :kind 'ed25519))
   (unless (= (length pk) (/ +ed25519-bits+ 8))
-    (error "Bad public key length"))
+    (error 'invalid-public-key-length :kind 'ed25519))
   (let* ((signature-elements (destructure-signature :ed25519 s))
          (r (getf signature-elements :r))
          (rp (ed25519-decode-point r))
@@ -248,12 +256,18 @@
 
 (defmethod make-public-key ((kind (eql :ed25519)) &key y &allow-other-keys)
   (unless y
-    (error "The public key must be specified with the :Y keyword."))
+    (error 'missing-key-parameter
+           :kind 'ed25519
+           :parameter 'y
+           :description "public key"))
   (make-instance 'ed25519-public-key :y y))
 
 (defmethod make-private-key ((kind (eql :ed25519)) &key x y &allow-other-keys)
   (unless x
-    (error "The private key must be specified with the :X keyword."))
+    (error 'missing-key-parameter
+           :kind 'ed25519
+           :parameter 'x
+           :description "private key"))
   (make-instance 'ed25519-private-key :x x :y (or y (ed25519-public-key x))))
 
 (defmethod sign-message ((key ed25519-private-key) message &key (start 0) end &allow-other-keys)

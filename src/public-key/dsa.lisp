@@ -28,24 +28,69 @@
 
 (defmethod make-public-key ((kind (eql :dsa))
                             &key p q g y &allow-other-keys)
+  (unless p
+    (error 'missing-key-parameter
+           :kind 'dsa
+           :parameter 'p
+           :description "modulus"))
+  (unless q
+    (error 'missing-key-parameter
+           :kind 'dsa
+           :parameter 'q
+           :description "subgroup modulus"))
+  (unless g
+    (error 'missing-key-parameter
+           :kind 'dsa
+           :parameter 'g
+           :description "generator"))
+  (unless y
+    (error 'missing-key-parameter
+           :kind 'dsa
+           :parameter 'y
+           :description "public key"))
   (let ((group (make-instance 'discrete-logarithm-group :p p :q q :g g)))
     (make-instance 'dsa-public-key :group group :y y)))
 
 (defmethod make-private-key ((kind (eql :dsa))
                              &key p q g y x &allow-other-keys)
-  (unless (and p q g)
-    (error "Must specify all members of the DL group for DSA"))
+  (unless p
+    (error 'missing-key-parameter
+           :kind 'dsa
+           :parameter 'p
+           :description "modulus"))
+  (unless q
+    (error 'missing-key-parameter
+           :kind 'dsa
+           :parameter 'q
+           :description "subgroup modulus"))
+  (unless g
+    (error 'missing-key-parameter
+           :kind 'dsa
+           :parameter 'g
+           :description "generator"))
+  (unless x
+    (error 'missing-key-parameter
+           :kind 'dsa
+           :parameter 'x
+           :description "private key"))
   (let ((group (make-instance 'discrete-logarithm-group :p p :q q :g g)))
     (make-instance 'dsa-private-key :group group :y y :x x)))
 
 (defmethod generate-key-pair ((kind (eql :dsa)) &key num-bits &allow-other-keys)
-  (let* ((n (cond ((< num-bits 512) (error "This DSA key is too small"))
+  (unless num-bits
+    (error 'missing-key-parameter
+           :kind 'dsa
+           :parameter 'num-bits
+           :description "modulus size"))
+  (let* ((n (cond ((< num-bits 512) (error 'ironclad-error
+                                           :format-control "NUM-BITS is too small for a DSA key."))
                   ((<= num-bits 1024) 160)
                   ((<= num-bits 2048) 224)
                   ((<= num-bits 3072) 256)
                   ((<= num-bits 7680) 384)
                   ((<= num-bits 15360) 512)
-                  (t (error "This DSA key is too big"))))
+                  (t (error 'ironclad-error
+                            :format-control "NUM-BITS is too big for a DSA key."))))
          (q (generate-safe-prime n))
          (p (loop
                for z = (logior (ash 1 (- num-bits n 1))
@@ -70,16 +115,29 @@
   (1+ (strong-random (1- q))))
 
 (defmethod make-signature ((kind (eql :dsa)) &key r s n-bits &allow-other-keys)
-  (if (and r s n-bits)
-      (concatenate '(simple-array (unsigned-byte 8) (*))
-                   (integer-to-octets r :n-bits n-bits)
-                   (integer-to-octets s :n-bits n-bits))
-      (error "R, S and N-BITS must be specified")))
+  (unless r
+    (error 'missing-signature-parameter
+           :kind 'dsa
+           :parameter 'r
+           :description "first signature element"))
+  (unless s
+    (error 'missing-signature-parameter
+           :kind 'dsa
+           :parameter 's
+           :description "second signature element"))
+  (unless n-bits
+    (error 'missing-signature-parameter
+           :kind 'dsa
+           :parameter 'n-bits
+           :description "subgroup modulus size"))
+  (concatenate '(simple-array (unsigned-byte 8) (*))
+               (integer-to-octets r :n-bits n-bits)
+               (integer-to-octets s :n-bits n-bits)))
 
 (defmethod destructure-signature ((kind (eql :dsa)) signature)
   (let ((length (length signature)))
     (if (oddp length)
-        (error "Bad signature length")
+        (error 'invalid-signature-length :kind 'dsa)
         (let* ((middle (/ length 2))
                (n-bits (* middle 8))
                (r (octets-to-integer signature :start 0 :end middle))
@@ -112,7 +170,7 @@
          (q (dsa-key-q key))
          (qbits (integer-length q)))
     (unless (= (* 4 (length signature)) qbits)
-      (error "Bad signature length"))
+      (error 'invalid-signature-length :kind 'dsa))
     (when (> (* 8 (- end start)) qbits)
       ;; Only keep the required number of bits of message
       (setf end (+ start (/ qbits 8))))

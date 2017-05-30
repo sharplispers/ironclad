@@ -2,7 +2,7 @@
 <html>
 <head>
 <title>Ironclad</title>
-<!-- 2017-05-30 mar. 10:23 -->
+<!-- 2017-05-30 mar. 14:08 -->
 <meta  charset="utf-8">
 <meta  name="generator" content="Org-mode">
 <meta  name="author" content="The Ironclad developers">
@@ -2173,6 +2173,112 @@ invalid.
 <p>
 This error is signaled when an invalid parameter is provided
 to <a href="#make-mac">make-mac</a>.
+</p>
+
+
+<div class="org-src-container">
+
+<pre class="src src-lisp" id="invalid-signature-length">invalid-signature-length
+</pre>
+</div>
+
+<p>
+This error is signaled when a signature with an invalid length is provided
+to <a href="#verify-signature">verify-signature</a> or <a href="#destructure-signature">destructure-signature</a>.
+</p>
+
+
+<div class="org-src-container">
+
+<pre class="src src-lisp" id="invalid-message-length">invalid-message-length
+</pre>
+</div>
+
+<p>
+This error is signaled when a message with an invalid length is provided
+to <a href="#encrypt-message">encrypt-message</a>, <a href="#decrypt-message">decrypt-message</a> or <a href="#destructure-message">destructure-message</a>.
+</p>
+
+
+<div class="org-src-container">
+
+<pre class="src src-lisp" id="missing-key-parameter">missing-key-parameter
+</pre>
+</div>
+
+<p>
+This error is signaled when it is determined that a parameter is
+missing in a call to <a href="#make-public-key">make-public-key</a> or <a href="#make-private-key">make-private-key</a>.
+</p>
+
+
+<div class="org-src-container">
+
+<pre class="src src-lisp" id="missing-message-parameter">missing-message-parameter
+</pre>
+</div>
+
+<p>
+This error is signaled when it is determined that a parameter is
+missing in a call to <a href="#make-message">make-message</a>.
+</p>
+
+
+<div class="org-src-container">
+
+<pre class="src src-lisp" id="missing-signature-parameter">missing-signature-parameter
+</pre>
+</div>
+
+<p>
+This error is signaled when it is determined that a parameter is
+missing in a call to <a href="#make-signature">make-signature</a>.
+</p>
+
+
+<div class="org-src-container">
+
+<pre class="src src-lisp" id="incompatible-keys">incompatible-keys
+</pre>
+</div>
+
+<p>
+This error is signaled when incompatible keys are provided to
+<a href="#diffie-hellman">diffie-hellman</a>.
+</p>
+
+
+<div class="org-src-container">
+
+<pre class="src src-lisp" id="invalid-curve-point">invalid-curve-point
+</pre>
+</div>
+
+<p>
+This error is signaled when trying to use an invalid curve point.
+</p>
+
+
+<div class="org-src-container">
+
+<pre class="src src-lisp" id="invalid-public-key-length">invalid-public-key-length
+</pre>
+</div>
+
+<p>
+This error is signaled when a public key with an invalid length is
+provided to <a href="#verify-signature">verify-signature</a>.
+</p>
+
+
+<div class="org-src-container">
+
+<pre class="src src-lisp" id="oaep-decoding-error">oaep-decoding-error
+</pre>
+</div>
+
+<p>
+This error is signaled when the OAEP decoding of a message fails.
 </p>
 </div>
 </div>

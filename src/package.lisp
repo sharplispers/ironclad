@@ -97,7 +97,12 @@
    #:unsupported-cipher #:unsupported-mode #:unsupported-digest
    #:unsupported-kdf #:unsupported-scrypt-cost-factors
    #:insufficient-buffer-space #:invalid-padding
-   #:key-not-supplied
+   #:key-not-supplied #:unsupported-mac
+   #:invalid-mac-parameter #:invalid-signature-length
+   #:invalid-message-length #:missing-key-parameter
+   #:missing-message-parameter #:missing-signature-parameter
+   #:incompatible-keys #:invalid-curve-point
+   #:invalid-public-key-length #:oaep-decoding-error
 
    ;; utilities
    #:byte-array-to-hex-string #:hex-string-to-byte-array

@@ -63,8 +63,7 @@ using the DIGEST-NAME digest (and the optional LABEL octet vector)."
                            finally (return (- i digest-len))))
            (one-byte (elt db (+ digest-len padding-len))))
       (unless (and (zerop zero-byte) (= 1 one-byte) (equalp l-hash1 l-hash2))
-        ;; FIXME: "real" ironclad error needed here
-        (error "OAEP decoding error"))
+        (error 'oaep-decoding-error))
       (subseq db (+ digest-len padding-len 1)))))
 
 (declaim (notinline pss-encode))

@@ -115,3 +115,80 @@ for a particular mode of operation but not supplied."))
                      (mac-name condition)
                      (message condition))))
   (:documentation "Signaled when an invalid parameter is provided to MAKE-MAC."))
+
+(define-condition invalid-signature-length (ironclad-error)
+  ((kind :initarg :kind :reader kind))
+  (:report (lambda (condition stream)
+             (format stream "Invalid signature length for ~A." (kind condition))))
+  (:documentation "Signaled when a signature with an invalid length is
+provided to VERIFY-SIGNATURE or DESTRUCTURE-SIGNATURE."))
+
+(define-condition invalid-message-length (ironclad-error)
+  ((kind :initarg :kind :reader kind))
+  (:report (lambda (condition stream)
+             (format stream "Invalid message length for ~A." (kind condition))))
+  (:documentation "Signaled when a message with an invalid length is
+provided to ENCRYPT-MESSAGE, DECRYPT-MESSAGE or DESTRUCTURE-MESSAGE."))
+
+(define-condition missing-key-parameter (ironclad-error)
+  ((kind :initarg :kind :reader kind)
+   (parameter :initarg :parameter :reader parameter)
+   (description :initarg :description :reader description))
+  (:report (lambda (condition stream)
+             (format stream "Missing ~A ~A for ~A key."
+                     (description condition)
+                     (parameter condition)
+                     (kind condition))))
+  (:documentation "Signaled when it is determined that a parameter is
+missing in a call to MAKE-PUBLIC-KEY or MAKE-PRIVATE-KEY."))
+
+(define-condition missing-message-parameter (ironclad-error)
+  ((kind :initarg :kind :reader kind)
+   (parameter :initarg :parameter :reader parameter)
+   (description :initarg :description :reader description))
+  (:report (lambda (condition stream)
+             (format stream "Missing ~A ~A for ~A message."
+                     (description condition)
+                     (parameter condition)
+                     (kind condition))))
+  (:documentation "Signaled when it is determined that a parameter is
+missing in a call to MAKE-MESSAGE."))
+
+(define-condition missing-signature-parameter (ironclad-error)
+  ((kind :initarg :kind :reader kind)
+   (parameter :initarg :parameter :reader parameter)
+   (description :initarg :description :reader description))
+  (:report (lambda (condition stream)
+             (format stream "Missing ~A ~A for ~A signature."
+                     (description condition)
+                     (parameter condition)
+                     (kind condition))))
+  (:documentation "Signaled when it is determined that a parameter is
+missing in a call to MAKE-SIGNATURE."))
+
+(define-condition incompatible-keys (ironclad-error)
+  ((kind :initarg :kind :reader kind))
+  (:report (lambda (condition stream)
+             (format stream "The ~A keys are not compatible because they are not in the same group."
+                     (kind condition))))
+  (:documentation "Signaled when providing keys that are not compatible to DIFFIE-HELLMAN."))
+
+(define-condition invalid-curve-point (ironclad-error)
+  ((kind :initarg :kind :reader kind))
+  (:report (lambda (condition stream)
+             (format stream "Point not on curve ~A." (kind condition))))
+  (:documentation "Signaled when trying to use an invalid curve point."))
+
+(define-condition invalid-public-key-length (ironclad-error)
+  ((kind :initarg :kind :reader kind))
+  (:report (lambda (condition stream)
+             (format stream "Invalid public key length for ~A." (kind condition))))
+  (:documentation "Signaled when a public key with an invalid length is
+provided to VERIFY-SIGNATURE."))
+
+(define-condition oaep-decoding-error (ironclad-error)
+  ()
+  (:report (lambda (condition stream)
+             (declare (ignore condition))
+             (format stream "OAEP decoding of the message failed.")))
+  (:documentation "Signaled when the OAEP decoding of a message fails."))

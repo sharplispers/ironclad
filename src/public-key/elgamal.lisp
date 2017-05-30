@@ -27,19 +27,50 @@
 
 (defmethod make-public-key ((kind (eql :elgamal))
                             &key p g y &allow-other-keys)
-  (unless (and p g y)
-    (error "P, G and Y must be specified"))
+  (unless p
+    (error 'missing-key-parameter
+           :kind 'elgamal
+           :parameter 'p
+           :description "modulus"))
+  (unless g
+    (error 'missing-key-parameter
+           :kind 'elgamal
+           :parameter 'g
+           :description "generator"))
+  (unless y
+    (error 'missing-key-parameter
+           :kind 'elgamal
+           :parameter 'y
+           :description "public key"))
   (let ((group (make-instance 'discrete-logarithm-group :p p :g g)))
     (make-instance 'elgamal-public-key :group group :y y)))
 
 (defmethod make-private-key ((kind (eql :elgamal))
                              &key p g y x &allow-other-keys)
-  (unless (and p g x)
-    (error "P, G and X must be specified"))
+  (unless p
+    (error 'missing-key-parameter
+           :kind 'elgamal
+           :parameter 'p
+           :description "modulus"))
+  (unless g
+    (error 'missing-key-parameter
+           :kind 'elgamal
+           :parameter 'g
+           :description "generator"))
+  (unless x
+    (error 'missing-key-parameter
+           :kind 'elgamal
+           :parameter 'x
+           :description "private key"))
   (let ((group (make-instance 'discrete-logarithm-group :p p :g g)))
     (make-instance 'elgamal-private-key :group group :x x :y (or y (expt-mod g x p)))))
 
 (defmethod generate-key-pair ((kind (eql :elgamal)) &key num-bits &allow-other-keys)
+  (unless num-bits
+    (error 'missing-key-parameter
+           :kind 'elgamal
+           :parameter 'num-bits
+           :description "modulus size"))
   (let* ((p (generate-safe-prime num-bits))
          (g (find-generator p))
          (x (+ 2 (strong-random (- p 3))))
@@ -60,16 +91,29 @@
      finally (return k)))
 
 (defmethod make-message ((kind (eql :elgamal)) &key c1 c2 n-bits &allow-other-keys)
-  (if (and c1 c2 n-bits)
-      (concatenate '(simple-array (unsigned-byte 8) (*))
-                   (integer-to-octets c1 :n-bits n-bits)
-                   (integer-to-octets c2 :n-bits n-bits))
-      (error "C1, C2 and N-BITS must be specified")))
+  (unless c1
+    (error 'missing-message-parameter
+           :kind 'elgamal
+           :parameter 'c1
+           :description "first ciphertext element"))
+  (unless c2
+    (error 'missing-message-parameter
+           :kind 'elgamal
+           :parameter 'c2
+           :description "second ciphertext element"))
+  (unless n-bits
+    (error 'missing-message-parameter
+           :kind 'elgamal
+           :parameter 'n-bits
+           :description "modulus size"))
+  (concatenate '(simple-array (unsigned-byte 8) (*))
+               (integer-to-octets c1 :n-bits n-bits)
+               (integer-to-octets c2 :n-bits n-bits)))
 
 (defmethod destructure-message ((kind (eql :elgamal)) message)
   (let ((length (length message)))
     (if (oddp length)
-        (error "Bad message length")
+        (error 'invalid-message-length :kind 'elgamal)
         (let* ((middle (/ length 2))
                (n-bits (* middle 8))
                (c1 (octets-to-integer message :start 0 :end middle))
@@ -86,7 +130,7 @@
          (c1 (expt-mod g k p))
          (c2 (mod (* m (expt-mod y k p)) p)))
     (unless (< m p)
-      (error "Message can't be bigger than the order of the DL group"))
+      (error 'invalid-message-length :kind 'elgamal))
     (make-message :elgamal :c1 c1 :c2 c2 :n-bits pbits)))
 
 (defun elgamal-decrypt (ciphertext key)
@@ -114,20 +158,33 @@
   (let* ((p (elgamal-key-p key))
          (end (or end (length msg))))
     (unless (= (* 4 (- end start)) (integer-length p))
-      (error "Bad ciphertext length"))
+      (error 'invalid-message-length :kind 'elgamal))
     (elgamal-decrypt (subseq msg start end) key)))
 
 (defmethod make-signature ((kind (eql :elgamal)) &key r s n-bits &allow-other-keys)
-  (if (and r s n-bits)
-      (concatenate '(simple-array (unsigned-byte 8) (*))
-                   (integer-to-octets r :n-bits n-bits)
-                   (integer-to-octets s :n-bits n-bits))
-      (error "R, S and N-BITS must be specified")))
+  (unless r
+    (error 'missing-signature-parameter
+           :kind 'elgamal
+           :parameter 'r
+           :description "first signature element"))
+  (unless s
+    (error 'missing-signature-parameter
+           :kind 'elgamal
+           :parameter 's
+           :description "second signature element"))
+  (unless n-bits
+    (error 'missing-signature-parameter
+           :kind 'elgamal
+           :parameter 'n-bits
+           :description "modulus size"))
+  (concatenate '(simple-array (unsigned-byte 8) (*))
+               (integer-to-octets r :n-bits n-bits)
+               (integer-to-octets s :n-bits n-bits)))
 
 (defmethod destructure-signature ((kind (eql :elgamal)) signature)
   (let ((length (length signature)))
     (if (oddp length)
-        (error "Bad signature length")
+        (error 'invalid-signature-length :kind 'elgamal)
         (let* ((middle (/ length 2))
                (n-bits (* middle 8))
                (r (octets-to-integer signature :start 0 :end middle))
@@ -139,7 +196,7 @@
          (p (elgamal-key-p key))
          (pbits (integer-length p)))
     (unless (< m (- p 1))
-      (error "Message can't be bigger than the order of the DL group minus 1"))
+      (error 'invalid-message-length :kind 'elgamal))
     (let* ((g (elgamal-key-g key))
            (x (elgamal-key-x key))
            (k (elgamal-generate-k p))
@@ -154,9 +211,9 @@
          (p (elgamal-key-p key))
          (pbits (integer-length p)))
     (unless (= (* 4 (length signature)) pbits)
-      (error "Bad signature length"))
+      (error 'invalid-signature-length :kind 'elgamal))
     (unless (< m (- p 1))
-      (error "Message can't be bigger than the order of the DL group minus 1"))
+      (error 'invalid-message-length :kind 'elgamal))
     (let* ((g (elgamal-key-g key))
            (y (elgamal-key-y key))
            (signature-elements (destructure-signature :elgamal signature))
@@ -173,7 +230,7 @@
         (g (elgamal-key-g private-key))
         (g1 (elgamal-key-g public-key)))
     (unless (and (= p p1) (= g g1))
-      (error "The keys are not in the same DL group"))
+      (error 'incompatible-keys :kind 'elgamal))
     (let ((pbits (integer-length p))
           (x (elgamal-key-x private-key))
           (y (elgamal-key-y public-key)))

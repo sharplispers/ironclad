@@ -120,12 +120,18 @@
 
 (defmethod make-public-key ((kind (eql :curve25519)) &key y &allow-other-keys)
   (unless y
-    (error "The public key must be specified with the :Y keyword."))
+    (error 'missing-key-parameter
+           :kind 'curve25519
+           :parameter 'y
+           :description "public key"))
   (make-instance 'curve25519-public-key :y y))
 
 (defmethod make-private-key ((kind (eql :curve25519)) &key x y &allow-other-keys)
   (unless x
-    (error "The private key must be specified with the :X keyword."))
+    (error 'missing-key-parameter
+           :kind 'curve25519
+           :parameter 'x
+           :description "private key"))
   (make-instance 'curve25519-private-key :x x :y (or y (curve25519-public-key x))))
 
 (defmethod generate-key-pair ((kind (eql :curve25519)) &key &allow-other-keys)
