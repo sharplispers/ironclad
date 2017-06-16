@@ -52,24 +52,20 @@
            :kind 'rsa
            :parameter 'num-bits
            :description "modulus size"))
-  (let* ((l (floor num-bits 2))
-         p q n)
-    (loop
-       for a = (generate-safe-prime (- num-bits l))
-       for b = (generate-safe-prime l)
-       for c = (* a b)
-       until (and (/= a b) (= num-bits (integer-length c)))
-       finally (setf p a
-                     q b
-                     n c))
-    (let* ((phi (* (1- p) (1- q)))
-           (e (loop
-                 for e = (+ 2 (strong-random (- phi 2)))
-                 until (= 1 (gcd e phi))
-                 finally (return e)))
-           (d (modular-inverse e phi)))
-      (values (make-private-key :rsa :d d :n n)
-              (make-public-key :rsa :e e :n n)))))
+  (let ((l (floor num-bits 2)))
+    (multiple-value-bind (p q n)
+        (loop for a = (generate-prime (- num-bits l))
+              for b = (generate-prime l)
+              for c = (* a b)
+              until (and (/= a b) (= num-bits (integer-length c)))
+              finally (return (values a b c)))
+      (let* ((phi (* (1- p) (1- q)))
+             (e (loop for e = (+ 2 (strong-random (- phi 2)))
+                      until (= 1 (gcd e phi))
+                      finally (return e)))
+             (d (modular-inverse e phi)))
+        (values (make-private-key :rsa :d d :n n)
+                (make-public-key :rsa :e e :n n))))))
 
 (defun rsa-core (msg exponent modulus)
   (assert (< msg modulus))
