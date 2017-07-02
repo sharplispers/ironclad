@@ -55,7 +55,9 @@
    #:pbkdf2-check-password
 
    ;; public-key encryption operations
-   #:make-public-key #:make-private-key #:generate-key-pair
+   #:make-public-key #:destructure-public-key
+   #:make-private-key #:destructure-private-key
+   #:generate-key-pair
    #:make-signature #:destructure-signature
    #:make-message #:destructure-message
    #:sign-message #:verify-signature

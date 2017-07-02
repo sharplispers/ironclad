@@ -51,6 +51,12 @@
   (let ((group (make-instance 'discrete-logarithm-group :p p :q q :g g)))
     (make-instance 'dsa-public-key :group group :y y)))
 
+(defmethod destructure-public-key ((public-key dsa-public-key))
+  (list :p (dsa-key-p public-key)
+        :q (dsa-key-q public-key)
+        :g (dsa-key-g public-key)
+        :y (dsa-key-y public-key)))
+
 (defmethod make-private-key ((kind (eql :dsa))
                              &key p q g y x &allow-other-keys)
   (unless p
@@ -74,7 +80,14 @@
            :parameter 'x
            :description "private key"))
   (let ((group (make-instance 'discrete-logarithm-group :p p :q q :g g)))
-    (make-instance 'dsa-private-key :group group :y y :x x)))
+    (make-instance 'dsa-private-key :group group :x x :y (or y (expt-mod g x p)))))
+
+(defmethod destructure-private-key ((private-key dsa-private-key))
+  (list :p (dsa-key-p private-key)
+        :q (dsa-key-q private-key)
+        :g (dsa-key-g private-key)
+        :x (dsa-key-x private-key)
+        :y (dsa-key-y private-key)))
 
 (defmethod generate-key-pair ((kind (eql :dsa)) &key num-bits &allow-other-keys)
   (unless num-bits

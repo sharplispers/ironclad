@@ -256,6 +256,9 @@
            :description "public key"))
   (make-instance 'ed448-public-key :y y))
 
+(defmethod destructure-public-key ((public-key ed448-public-key))
+  (list :y (ed448-key-y public-key)))
+
 (defmethod make-private-key ((kind (eql :ed448)) &key x y &allow-other-keys)
   (unless x
     (error 'missing-key-parameter
@@ -263,6 +266,10 @@
            :parameter 'x
            :description "private key"))
   (make-instance 'ed448-private-key :x x :y (or y (ed448-public-key x))))
+
+(defmethod destructure-private-key ((private-key ed448-private-key))
+  (list :x (ed448-key-x private-key)
+        :y (ed448-key-y private-key)))
 
 (defmethod sign-message ((key ed448-private-key) message &key (start 0) end &allow-other-keys)
   (let ((end (or end (length message)))

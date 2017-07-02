@@ -24,6 +24,8 @@ CPUs and for ECL.
 Added optimized AES encryption and decryption for SBCL on x86-64 CPUs
 with AES-NI support.
 
+Added optimized Blake2s mixing for SBCL on x86-64 CPUs.
+
 Added the constant-time-equal function to check the equality of two
 byte arrays (e.g. passwords, MACs) in constant time.
 
@@ -32,9 +34,11 @@ destructure-signature functions allowing to manage the elements of
 messages and signatures returned by encrypt-message and sign-message
 by hand if necessary (e.g. to use a different serialization).
 
-Added a unified API for MACs.
+Added the destructure-public-key and destructure-private-key functions
+(e.g. to store keys somewhere and reconstruct them later with
+make-public-key and make-private-key).
 
-Added optimized Blake2s mixing for SBCL on x86-64 CPUs.
+Added a unified API for MACs.
 
 * Version 0.34, released 2017-03-07
 

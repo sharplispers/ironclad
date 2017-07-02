@@ -18,9 +18,15 @@
   (:documentation "Return a public key of KIND, initialized according to
 the specified keyword arguments."))
 
+(defgeneric destructure-public-key (public-key)
+  (:documentation "Return a plist containing the elements of a PUBLIC-KEY."))
+
 (defgeneric make-private-key (kind &key &allow-other-keys)
   (:documentation "Return a private key of KIND, initialized according to
 the specified keyword arguments."))
+
+(defgeneric destructure-private-key (private-key)
+  (:documentation "Return a plist containing the elements of a PRIVATE-KEY."))
 
 (defgeneric generate-key-pair (kind &key num-bits &allow-other-keys)
   (:documentation "Generate a new key pair. The first returned

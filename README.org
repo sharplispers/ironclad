@@ -858,6 +858,28 @@ For RSA keys, the type of the parameters is ~integer~:
  - /e/, the public key
  - /d/, the private key
 
+*** Key destructuring
+
+The [[destructure-public-key][destructure-public-key]] and [[destructure-private-key][destructure-private-key]] functions can
+be useful if you need to store keys somewhere for future use.
+
+#+NAME: destructure-public-key
+#+BEGIN_SRC lisp
+(destructure-public-key public-key) => plist
+#+END_SRC
+
+Return the elements of a public key in a plist. The indicators of the
+plist match the /&key/ arguments of the [[make-public-key][make-public-key]] method.
+
+
+#+NAME: destructure-private-key
+#+BEGIN_SRC lisp
+(destructure-private-key private-key) => plist
+#+END_SRC
+
+Return the elements of a private key in a plist. The indicators of the
+plist match the /&key/ arguments of the [[make-private-key][make-private-key]] method.
+
 ** Digital signatures
 
 #+NAME: sign-message

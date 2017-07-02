@@ -45,6 +45,11 @@
   (let ((group (make-instance 'discrete-logarithm-group :p p :g g)))
     (make-instance 'elgamal-public-key :group group :y y)))
 
+(defmethod destructure-public-key ((public-key elgamal-public-key))
+  (list :p (elgamal-key-p public-key)
+        :g (elgamal-key-g public-key)
+        :y (elgamal-key-y public-key)))
+
 (defmethod make-private-key ((kind (eql :elgamal))
                              &key p g y x &allow-other-keys)
   (unless p
@@ -64,6 +69,12 @@
            :description "private key"))
   (let ((group (make-instance 'discrete-logarithm-group :p p :g g)))
     (make-instance 'elgamal-private-key :group group :x x :y (or y (expt-mod g x p)))))
+
+(defmethod destructure-private-key ((private-key elgamal-private-key))
+  (list :p (elgamal-key-p private-key)
+        :g (elgamal-key-g private-key)
+        :x (elgamal-key-x private-key)
+        :y (elgamal-key-y private-key)))
 
 (defmethod generate-key-pair ((kind (eql :elgamal)) &key num-bits &allow-other-keys)
   (unless num-bits

@@ -32,6 +32,10 @@
            :description "modulus"))
   (make-instance 'rsa-public-key :e e :n n))
 
+(defmethod destructure-public-key ((public-key rsa-public-key))
+  (list :e (rsa-key-exponent public-key)
+        :n (rsa-key-modulus public-key)))
+
 (defmethod make-private-key ((kind (eql :rsa))
                              &key d n &allow-other-keys)
   (unless d
@@ -45,6 +49,10 @@
            :parameter 'n
            :description "modulus"))
   (make-instance 'rsa-private-key :d d :n n))
+
+(defmethod destructure-private-key ((private-key rsa-private-key))
+  (list :d (rsa-key-exponent private-key)
+        :n (rsa-key-modulus private-key)))
 
 (defmethod generate-key-pair ((kind (eql :rsa)) &key num-bits &allow-other-keys)
   (unless num-bits

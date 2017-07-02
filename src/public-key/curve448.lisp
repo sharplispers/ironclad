@@ -126,6 +126,9 @@
            :description "public key"))
   (make-instance 'curve448-public-key :y y))
 
+(defmethod destructure-public-key ((public-key curve448-public-key))
+  (list :y (curve448-key-y public-key)))
+
 (defmethod make-private-key ((kind (eql :curve448)) &key x y &allow-other-keys)
   (unless x
     (error 'missing-key-parameter
@@ -133,6 +136,10 @@
            :parameter 'x
            :description "private key"))
   (make-instance 'curve448-private-key :x x :y (or y (curve448-public-key x))))
+
+(defmethod destructure-private-key ((private-key curve448-private-key))
+  (list :x (curve448-key-x private-key)
+        :y (curve448-key-y private-key)))
 
 (defmethod generate-key-pair ((kind (eql :curve448)) &key &allow-other-keys)
   (let ((sk (random-data (ceiling +curve448-bits+ 8))))

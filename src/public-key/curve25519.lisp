@@ -126,6 +126,9 @@
            :description "public key"))
   (make-instance 'curve25519-public-key :y y))
 
+(defmethod destructure-public-key ((public-key curve25519-public-key))
+  (list :y (curve25519-key-y public-key)))
+
 (defmethod make-private-key ((kind (eql :curve25519)) &key x y &allow-other-keys)
   (unless x
     (error 'missing-key-parameter
@@ -133,6 +136,10 @@
            :parameter 'x
            :description "private key"))
   (make-instance 'curve25519-private-key :x x :y (or y (curve25519-public-key x))))
+
+(defmethod destructure-private-key ((private-key curve25519-private-key))
+  (list :x (curve25519-key-x private-key)
+        :y (curve25519-key-y private-key)))
 
 (defmethod generate-key-pair ((kind (eql :curve25519)) &key &allow-other-keys)
   (let ((sk (random-data (/ +curve25519-bits+ 8))))
