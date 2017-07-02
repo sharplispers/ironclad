@@ -187,8 +187,8 @@
   (let ((h (ed448-hash sk)))
     (setf h (subseq h 0 (ceiling +ed448-bits+ 8)))
     (setf (ldb (byte 2 0) (elt h 0)) 0)
-    (setf (elt h (- (ceiling +ed448-bits+ 8) 2)) 0)
-    (setf (ldb (byte 1 7) (elt h (- (ceiling +ed448-bits+ 8) 1))) 1)
+    (setf (ldb (byte 1 7) (elt h (- (ceiling +ed448-bits+ 8) 2))) 1)
+    (setf (elt h (- (ceiling +ed448-bits+ 8) 1)) 0)
     (let ((a (ed448-decode-int h)))
       (ed448-encode-point (ed448-scalar-mult +ed448-b+ a)))))
 
