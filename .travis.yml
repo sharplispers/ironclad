@@ -4,13 +4,15 @@ sudo: required
 env:
   matrix:
     - LISP=sbcl
+    - LISP=sbcl32
     - LISP=ccl
+    - LISP=ccl32
     - LISP=clisp
     - LISP=allegro
 
 install:
   # Install cl-travis
-  - curl https://raw.githubusercontent.com/luismbo/cl-travis/master/install.sh | bash
+  - curl https://raw.githubusercontent.com/glv2/cl-travis/master/install.sh | bash
 
 script:
   - cl -l ironclad -l ironclad-tests
