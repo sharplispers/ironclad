@@ -15,7 +15,7 @@ install:
   - curl https://raw.githubusercontent.com/glv2/cl-travis/master/install.sh | bash
 
 script:
-  - cl -l ironclad -l ironclad-tests
+  - cl -l ironclad -l ironclad/tests
        -e '(setf *debugger-hook*
                  (lambda (&rest ignorable)
                    (declare (ignore ignorable))
