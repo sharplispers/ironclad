@@ -231,6 +231,8 @@
       (make-signature :ed448 :r rp :s (ed448-encode-int s)))))
 
 (defun ed448-verify (s m pk)
+  (declare (type (simple-array (unsigned-byte 8) (*)) s m pk)
+           (optimize (speed 3) (safety 0) (space 0) (debug 0)))
   (unless (= (length s) (ceiling +ed448-bits+ 4))
     (error 'invalid-signature-length :kind 'ed448))
   (unless (= (length pk) (ceiling +ed448-bits+ 8))
