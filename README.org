@@ -20,6 +20,9 @@
 #+HTML_HEAD: .underline { margin-top: 1.5em; margin-bottom: 1.5em; font-family: sans-serif; font-size: 1.1em; font-weight: bold; text-decoration: underline; }
 #+HTML_HEAD: </style>
 
+#+ATTR_HTML: :style width: 0; height: 0; padding: 0; margin: 0; border: 0; overflow: hidden;
+[[https://travis-ci.org/glv2/ironclad][file:https://travis-ci.org/glv2/ironclad.svg]]
+
 Ironclad is a cryptography library written entirely in Common Lisp. It
 includes support for several popular [[#ciphers][ciphers]], [[#digests][digests]], [[#message-authentication-codes][MACs]] and
 [[#public-key-cryptography][public key cryptography]] algorithms. For several implementations that
@@ -55,9 +58,9 @@ usually not safe against side channel attacks.
   :END:
 
 The current version of Ironclad is 0.34. It can be downloaded
-at [[https://github.com/froydnj/ironclad/archive/v0.34.tar.gz]].
+at [[https://github.com/glv2/ironclad/archive/v0.34.tar.gz]].
 If you are feeling adventurous, you can download a bleeding-edge version
-at [[https://github.com/froydnj/ironclad]].
+at [[https://github.com/glv2/ironclad]].
 
 It comes with an ASDF system definition, so ~(asdf:oos 'asdf:load-op :ironclad)~
 should be all that you need to get started. The testsuite can be run
@@ -73,8 +76,9 @@ Ironclad has been tested in the following implementations:
  - Allegro 8.0 x86/linux
  - Allegro 8.1 x86/linux, x86-64/linux, sparc/solaris
  - CLISP 2.41 x86/linux, x86/cygwin
- - Clozure Common Lisp 1.2 x86-64/Linux
+ - Clozure Common Lisp 1.11 x86-64/Linux
  - Clozure Common Lisp 1.10 x86-64/darwin
+ - ECL 16.1.3 x86-64/linux
 
 All included tests should pass successfully. If you use a platform not
 listed above, please send your platform information so that it can be
