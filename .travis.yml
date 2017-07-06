@@ -3,12 +3,13 @@ sudo: required
 
 env:
   matrix:
-    - LISP=sbcl
-    - LISP=sbcl32
+    - LISP=allegro
     - LISP=ccl
     - LISP=ccl32
     - LISP=clisp
-    - LISP=allegro
+    - LISP=ecl
+    - LISP=sbcl
+    - LISP=sbcl32
 
 install:
   # Install cl-travis
