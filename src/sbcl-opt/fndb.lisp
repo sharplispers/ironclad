@@ -61,6 +61,16 @@
   :overwrite-fndb-silently t)
 
 #+x86-64
+(defknown ironclad::aes-ni-generate-round-keys
+  ((simple-array (unsigned-byte 8) (*))
+   (unsigned-byte 64)
+   (simple-array (unsigned-byte 32) (*))
+   (simple-array (unsigned-byte 32) (*)))
+  (values)
+  (any)
+  :overwrite-fndb-silently t)
+
+#+x86-64
 (defknown ironclad::aes-ni-encrypt
   ((simple-array (unsigned-byte 8) (*))
    (unsigned-byte 64)

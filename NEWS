@@ -21,8 +21,8 @@ operating system's PRNG.
 Added optimized versions of some common functions for CCL on x86-64
 CPUs and for ECL.
 
-Added optimized AES encryption and decryption for SBCL on x86-64 CPUs
-with AES-NI support.
+Added optimized AES functions (round keys generation, encryption and
+decryption) for SBCL on x86-64 CPUs with AES-NI support.
 
 Added optimized Blake2s mixing for SBCL on x86-64 CPUs.
 

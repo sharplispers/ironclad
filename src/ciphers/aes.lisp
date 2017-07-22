@@ -955,23 +955,25 @@
 ) ; MACROLET
 
 (defmethod schedule-key ((cipher aes) key)
+  #+(and sbcl x86-64 aes-ni)
+  (let ((encryption-keys (allocate-round-keys key))
+        (decryption-keys (allocate-round-keys key))
+        (n-rounds (ecase (length key)
+                    (16 10)
+                    (24 12)
+                    (32 14))))
+    (declare (type aes-round-keys encryption-keys decryption-keys))
+    (aes-ni-generate-round-keys key (length key) encryption-keys decryption-keys)
+    (setf (encryption-round-keys cipher) encryption-keys
+          (decryption-round-keys cipher) decryption-keys
+          (n-rounds cipher) n-rounds)
+    cipher)
+  #-(and sbcl x86-64 aes-ni)
   (multiple-value-bind (encryption-keys n-rounds)
       (generate-round-keys-for-encryption key (allocate-round-keys key))
     (declare (type aes-round-keys encryption-keys))
     (let ((decryption-keys (copy-seq encryption-keys)))
       (generate-round-keys-for-decryption decryption-keys n-rounds)
-      #+(and sbcl x86-64 aes-ni)
-      (labels ((bswap32 (x)
-                 (logior (ash (logand x #xff000000) -24)
-                         (ash (logand x #x00ff0000) -8)
-                         (ash (logand x #x0000ff00) 8)
-                         (ash (logand x #x000000ff) 24)))
-               (bswap-keys (keys)
-                 (dotimes (i (length keys))
-                   (setf (aref keys i) (bswap32 (aref keys i))))))
-        ;; The aes-ni vops expect round keys to be in little-endian order
-        (bswap-keys encryption-keys)
-        (bswap-keys decryption-keys))
       (setf (encryption-round-keys cipher) encryption-keys
             (decryption-round-keys cipher) decryption-keys
             (n-rounds cipher) n-rounds)
