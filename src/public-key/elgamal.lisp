@@ -82,8 +82,18 @@
            :kind 'elgamal
            :parameter 'num-bits
            :description "modulus size"))
-  (let* ((p (generate-safe-prime num-bits))
-         (g (find-generator p))
+  (let* ((n (if (< num-bits 512)
+                (error 'ironclad-error
+                       :format-control "NUM-BITS is too small for an Elgamal key.")
+                256))
+         (q (generate-prime n))
+         (p (loop for z = (logior (ash 1 (- num-bits n 1))
+                                  (random-bits (- num-bits n)))
+                  for p = (1+ (* z q))
+                  until (and (= num-bits (integer-length p))
+                             (prime-p p))
+                  finally (return p)))
+         (g (find-subgroup-generator p q))
          (x (+ 2 (strong-random (- p 3))))
          (y (expt-mod g x p)))
     (values (make-private-key :elgamal :p p :g g :y y :x x)
