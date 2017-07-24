@@ -78,7 +78,7 @@
 
    ;; pseudo-random number generators
    #:list-all-prngs #:make-prng #:random-data #:read-os-random-seed
-   #:read-seed #:write-seed #:random-bits #:prng #:strong-random #:prng-reseed
+   #:read-seed #:write-seed #:random-bits #:*prng* #:strong-random #:prng-reseed
 
    ;; default OS PRNG
    #:os-prng

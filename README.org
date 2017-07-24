@@ -1051,6 +1051,10 @@ Alice's private key and Bob's public key.
   :CUSTOM_ID: pseudo-random-number-generation
   :END:
 
+The =*prng*= special variable indicates which pseudo-random number
+generator is used by default by functions that need to generate some
+random data. It defaults to a sensible OS-specific value.
+
 The vast, vast vast number of users should just use the default
 ~os-prng~ (which uses =/dev/urandom= on Unix and ~CryptGenRandom~ on
 Windows). For users who need /deterministic/,

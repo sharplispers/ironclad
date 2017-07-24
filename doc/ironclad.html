@@ -2,7 +2,7 @@
 <html>
 <head>
 <title>Ironclad</title>
-<!-- 2017-07-03 lun. 15:48 -->
+<!-- 2017-07-24 lun. 19:41 -->
 <meta  charset="utf-8">
 <meta  name="generator" content="Org-mode">
 <meta  name="author" content="The Ironclad developers">
@@ -1571,6 +1571,12 @@ Alice's private key and Bob's public key.
 <div id="outline-container-pseudo-random-number-generation" class="outline-2">
 <h2 id="pseudo-random-number-generation"><a id="sec-9" name="sec-9"></a>Pseudo-random number generation</h2>
 <div class="outline-text-2" id="text-pseudo-random-number-generation">
+
+<p>
+The <code>*prng*</code> special variable indicates which pseudo-random number
+generator is used by default by functions that need to generate some
+random data. It defaults to a sensible OS-specific value.
+</p>
 
 <p>
 The vast, vast vast number of users should just use the default
