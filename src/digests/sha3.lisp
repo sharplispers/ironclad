@@ -147,7 +147,9 @@ the content on normal form exit."
                 (type keccak-lane ,@(mapcar #'car bindings)))
        (macrolet ((state-aref (state x y &environment env)
                     (let ((entry (assoc state ',mappings)))
-                      (unless entry (error 'ironclad-error :format-control "Strange: ~S!" state))
+                      (unless entry (error 'ironclad-error
+                                           :format-control "Strange: ~S!"
+                                           :format-arguments (list state)))
                       (aref (cdr entry)
                             (eval (trivial-macroexpand-all x env))
                             (eval (trivial-macroexpand-all y env))))))
@@ -171,7 +173,9 @@ the content on normal form exit."
                 (type keccak-lane ,@(mapcar #'car bindings)))
        (macrolet ((temp-state-aref (temp x y &environment env)
                     (let ((entry (assoc temp ',mappings)))
-                      (unless entry (error 'ironclad-error :format-control "Strange: ~S!" temp))
+                      (unless entry (error 'ironclad-error
+                                           :format-control "Strange: ~S!"
+                                           :format-arguments (list temp)))
                       (aref (cdr entry)
                             (eval (trivial-macroexpand-all x env))
                             (eval (trivial-macroexpand-all y env))))))
@@ -193,7 +197,9 @@ the content on normal form exit."
                 (type keccak-lane ,@(mapcar #'car bindings)))
        (macrolet ((temp-row-aref (row x &environment env)
                     (let ((entry (assoc row ',mappings)))
-                      (unless entry (error 'ironclad-error :format-control "Strange: ~S!" row))
+                      (unless entry (error 'ironclad-error
+                                           :format-control "Strange: ~S!"
+                                           :format-arguments (list row)))
                       (aref (cdr entry)
                             (eval (trivial-macroexpand-all x env))))))
          ,@body))))

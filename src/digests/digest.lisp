@@ -29,8 +29,9 @@
              (declare (dynamic-extent buffer))
              (frob buffer 0 +buffer-size+)))))
     (t
-     (error 'ironclad-error :format-control "Unsupported stream element-type ~S for stream ~S."
-            (stream-element-type stream) stream))))
+     (error 'ironclad-error
+            :format-control "Unsupported stream element-type ~S for stream ~S."
+            :format-arguments (list (stream-element-type stream) stream)))))
 
 ;;; Storing a length at the end of the hashed data is very common and
 ;;; can be a small bottleneck when generating lots of hashes over small
