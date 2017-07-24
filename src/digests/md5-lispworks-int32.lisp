@@ -30,7 +30,7 @@
 #+ironclad-md5-lispworks-int32
 (eval-when (:compile-toplevel :load-toplevel :execute)
   (unless (fboundp (find-symbol "INT32+" '#:SYSTEM))
-    (error "It does not look like this version of Lispworks supports the SYS:INT32 API.")))
+    (error 'ironclad-error :format-control "It does not look like this version of Lispworks supports the SYS:INT32 API.")))
 
 #+ironclad-md5-lispworks-int32
 (eval-when (:compile-toplevel :load-toplevel :execute)

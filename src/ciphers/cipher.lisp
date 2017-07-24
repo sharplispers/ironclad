@@ -292,7 +292,7 @@ cipher or is not a cipher object."))
                  (if (= increment 1)
                      `(<= ,low length ,high)
                      ;; Punt.  It'd be a weird cipher implemented otherwise.
-                     (error "Need to implement the (/= INCREMENT 1) case"))))))
+                     (error 'ironclad-error :format-control "Need to implement the (/= INCREMENT 1) case"))))))
 
 (defun acceptable-key-lengths (key-length-spec)
   (ecase (car key-length-spec)
@@ -354,49 +354,49 @@ cipher or is not a cipher object."))
                (:encrypt-function
                 (if (not encrypt-function)
                     (setf encrypt-function value)
-                    (error "Specified :ENCRYPT-FUNCTION multiple times.")))
+                    (error 'ironclad-error :format-control "Specified :ENCRYPT-FUNCTION multiple times.")))
                (:decrypt-function
                 (if (not decrypt-function)
                     (setf decrypt-function value)
-                    (error "Specified :DECRYPT-FUNCTION multiple times.")))
+                    (error 'ironclad-error :format-control "Specified :DECRYPT-FUNCTION multiple times.")))
                (:crypt-function
                 (if (not crypt-function)
                     (setf crypt-function value)
-                    (error "Specified :CRYPT-FUNCTION multiple times.")))
+                    (error 'ironclad-error :format-control "Specified :CRYPT-FUNCTION multiple times.")))
                (:mode
                 (setf mode value))
                (:block-length
                 (cond
                   (block-length
-                   (error "Specified :BLOCK-LENGTH multiple times."))
+                   (error 'ironclad-error :format-control "Specified :BLOCK-LENGTH multiple times."))
                   ((or (not (integerp value))
                        (not (plusp value)))
-                   (error ":BLOCK-LENGTH must be a positive, integral number."))
+                   (error 'ironclad-error :format-control ":BLOCK-LENGTH must be a positive, integral number."))
                   (t
                    (setf block-length value))))
                (:key-length
                 (cond
                   (key-length-spec
-                   (error "Specified :KEY-LENGTH multiple times."))
+                   (error 'ironclad-error :format-control "Specified :KEY-LENGTH multiple times."))
                   ((not (consp value))
-                   (error ":KEY-LENGTH value must be a list."))
+                   (error 'ironclad-error :format-control ":KEY-LENGTH value must be a list."))
                   ((and (not (eq :fixed (car value)))
                         (not (eq :variable (car value))))
-                   (error "First element of :KEY-LENGTH spec must be either :FIXED or :VARIABLE."))
+                   (error 'ironclad-error :format-control "First element of :KEY-LENGTH spec must be either :FIXED or :VARIABLE."))
                   ((eq :fixed (car value))
                    (if (and (cdr value)
                             (every #'integerp (cdr value))
                             (every #'plusp (cdr value)))
                        (setf key-length-spec value)
                        ;;; FIXME: better error message
-                       (error "bad :FIXED specification for :KEY-LENGTH.")))
+                       (error 'ironclad-error :format-control "bad :FIXED specification for :KEY-LENGTH.")))
                   ((eq :variable (car value))
                    (if (and (cl:null (nthcdr 4 value))
                             (every #'integerp (cdr value))
                             (every #'plusp (cdr value))
                             (< (cadr value) (caddr value)))
                        (setf key-length-spec value)
-                       (error "bad :VARIABLE specification for :KEY-LENGTH."))))))
+                       (error 'ironclad-error :format-control "bad :VARIABLE specification for :KEY-LENGTH."))))))
           finally (cond
                     ((and (eq mode :block) key-length-spec encrypt-function decrypt-function)
                      (return
@@ -410,4 +410,4 @@ cipher or is not a cipher object."))
                           ,(generate-common-cipher-methods name 1 key-length-spec)
                           ,(generate-stream-cipher-forms name key-length-spec crypt-function))))
                     (t
-                     (error "Didn't specify all required fields for DEFCIPHER"))))))
+                     (error 'ironclad-error :format-control "Didn't specify all required fields for DEFCIPHER"))))))

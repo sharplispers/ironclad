@@ -27,7 +27,7 @@
 
 (defun threefish-set-tweak (cipher tweak-data)
   (unless (= (length tweak-data) 16)
-    (error "The tweak size must be 16 bytes."))
+    (error 'ironclad-error :format-control "The tweak size must be 16 bytes."))
   (let ((tweak (threefish-tweak cipher)))
     (setf (aref tweak 0) (ub64ref/le tweak-data 0)
           (aref tweak 1) (ub64ref/le tweak-data 8)

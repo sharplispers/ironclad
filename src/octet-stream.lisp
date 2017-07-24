@@ -28,7 +28,7 @@
    #+cmu ext:fundamental-binary-input-stream
    #+allegro excl:fundamental-binary-input-stream
    #-(or lispworks sbcl openmcl cmu allegro)
-   (error "octet streams not supported in this implementation")))
+   (error 'ironclad-error :format-control "octet streams not supported in this implementation")))
 
 (defvar *binary-output-stream-class*
   (quote
@@ -38,7 +38,7 @@
    #+cmu ext:fundamental-binary-output-stream
    #+allegro excl:fundamental-binary-output-stream
    #-(or lispworks sbcl openmcl cmu allegro)
-   (error "octet streams not supported in this implementation")))
+   (error 'ironclad-error :format-control "octet streams not supported in this implementation")))
 
 ;;; FIXME: how to do CMUCL support for this?
 (defvar *stream-element-type-function*
@@ -49,7 +49,7 @@
    #+cmu cl:stream-element-type
    #+allegro cl:stream-element-type
    #-(or lispworks sbcl openmcl cmu allegro)
-   (error "octet streams not supported in this implementation")))
+   (error 'ironclad-error :format-control "octet streams not supported in this implementation")))
 
 (defvar *stream-read-byte-function*
   (quote
@@ -59,7 +59,7 @@
    #+cmu ext:stream-read-byte
    #+allegro excl:stream-read-byte
    #-(or lispworks sbcl openmcl cmu allegro)
-   (error "octet streams not supported in this implementation")))
+   (error 'ironclad-error :format-control "octet streams not supported in this implementation")))
 
 (defvar *stream-write-byte-function*
   (quote
@@ -69,7 +69,7 @@
    #+cmu ext:stream-write-byte
    #+allegro excl:stream-write-byte
    #-(or lispworks sbcl openmcl cmu allegro)
-   (error "octet streams not supported in this implementation")))
+   (error 'ironclad-error :format-control "octet streams not supported in this implementation")))
 
 (defvar *stream-read-sequence-function*
   (quote
@@ -79,7 +79,7 @@
    #+cmu ext:stream-read-sequence
    #+allegro excl:stream-read-sequence
    #-(or lispworks sbcl openmcl cmu allegro)
-   (error "octet streams not supported in this implementation")))
+   (error 'ironclad-error :format-control "octet streams not supported in this implementation")))
 
 (defvar *stream-write-sequence-function*
   (quote
@@ -89,7 +89,7 @@
    #+cmu ext:stream-write-sequence
    #+allegro excl:stream-write-sequence
    #-(or lispworks sbcl openmcl cmu allegro)
-   (error "octet streams not supported in this implementation")))
+   (error 'ironclad-error :format-control "octet streams not supported in this implementation")))
 
 (defvar *stream-finish-output-function*
   (quote
@@ -99,7 +99,7 @@
    #+cmu ext:stream-finish-output
    #+allegro excl:stream-finish-output
    #-(or lispworks sbcl openmcl cmu allegro)
-   (error "octet streams not supported in this implementation")))
+   (error 'ironclad-error :format-control "octet streams not supported in this implementation")))
 
 (defvar *stream-force-output-function*
   (quote
@@ -109,7 +109,7 @@
    #+cmu ext:stream-force-output
    #+allegro excl:stream-force-output
    #-(or lispworks sbcl openmcl cmu allegro)
-   (error "octet streams not supported in this implementation")))
+   (error 'ironclad-error :format-control "octet streams not supported in this implementation")))
 
 (defvar *stream-clear-output-function*
   (quote
@@ -119,7 +119,7 @@
    #+cmu ext:stream-clear-output
    #+allegro excl:stream-clear-output
    #-(or lispworks sbcl openmcl cmu allegro)
-   (error "octet streams not supported in this implementation")))
+   (error 'ironclad-error :format-control "octet streams not supported in this implementation")))
 )
 
 

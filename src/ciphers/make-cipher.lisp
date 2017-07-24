@@ -142,7 +142,7 @@
      (unless (or (eq mode 'stream) (eq mode :stream))
        (error 'unsupported-mode :cipher (cipher cipher-info) :mode mode))
      (when padding
-       (error "padding is not supported for stream ciphers"))))
+       (error 'ironclad-error :format-control "padding is not supported for stream ciphers"))))
   cipher-info)
 
 (defun make-cipher (name &key key mode initialization-vector padding tweak)

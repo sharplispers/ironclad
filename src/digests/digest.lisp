@@ -29,7 +29,7 @@
              (declare (dynamic-extent buffer))
              (frob buffer 0 +buffer-size+)))))
     (t
-     (error "Unsupported stream element-type ~S for stream ~S."
+     (error 'ironclad-error :format-control "Unsupported stream element-type ~S for stream ~S."
             (stream-element-type stream) stream))))
 
 ;;; Storing a length at the end of the hashed data is very common and
