@@ -10,6 +10,7 @@ Fixed possible timing attack in the pbkdf2-check-password function.
 ** new features
 
 New algorithms:
+ - Ciphers: XChacha, XSalsa20
  - Diffie-Hellman: Curve25519, Curve448, Elgamal
  - Digest: JH, Groestl
  - Message authentication code: Blake2, Blake2s

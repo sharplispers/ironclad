@@ -132,6 +132,12 @@ the names of all supported ciphers. They are:
  - threefish256
  - threefish512
  - twofish
+ - xchacha
+ - xchacha/12
+ - xchacha/8
+ - xsalsa20
+ - xsalsa20/12
+ - xsalsa20/8
  - xtea
 
 /name/ can be a symbol in the ~keyword~ package or in the ~ironclad~ package;
@@ -154,6 +160,9 @@ such as AES and DES can operate in several different modes:
 /initialization-vector/ (IV) should be supplied only if /mode/ requires one.
 /initialization-vector/ should be a ~(simple-array (unsigned-byte 8) (*))~.
 The supplied IV should be the same length as the [[block-length][block-length]] of /name/.
+The Chacha and Salsa20 stream ciphers also use an initialization
+vector (nonce). It should be 8 bytes long for Chacha and Salsa20, and
+24 bytes long for XChacha and XSalsa20.
 
 /key/ is, of course, the key for the cipher.
 /key/ should be a ~(simple-array (unsigned-byte 8) (*))~.

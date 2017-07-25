@@ -2,7 +2,7 @@
 <html>
 <head>
 <title>Ironclad</title>
-<!-- 2017-07-24 lun. 19:41 -->
+<!-- 2017-07-25 mar. 18:32 -->
 <meta  charset="utf-8">
 <meta  name="generator" content="Org-mode">
 <meta  name="author" content="The Ironclad developers">
@@ -224,6 +224,18 @@ the names of all supported ciphers. They are:
 </li>
 <li>twofish
 </li>
+<li>xchacha
+</li>
+<li>xchacha/12
+</li>
+<li>xchacha/8
+</li>
+<li>xsalsa20
+</li>
+<li>xsalsa20/12
+</li>
+<li>xsalsa20/8
+</li>
 <li>xtea
 </li>
 </ul>
@@ -263,6 +275,9 @@ such as AES and DES can operate in several different modes:
 <i>initialization-vector</i> (IV) should be supplied only if <i>mode</i> requires one.
 <i>initialization-vector</i> should be a <code>(simple-array (unsigned-byte 8) (*))</code>.
 The supplied IV should be the same length as the <a href="#block-length">block-length</a> of <i>name</i>.
+The Chacha and Salsa20 stream ciphers also use an initialization
+vector (nonce). It should be 8 bytes long for Chacha and Salsa20, and
+24 bytes long for XChacha and XSalsa20.
 </p>
 
 <p>
