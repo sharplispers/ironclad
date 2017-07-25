@@ -24,6 +24,10 @@
     (declare (type chacha-state state)
              (type chacha-keystream-buffer buffer))
     (when initialization-vector
+      (when (< (length initialization-vector) 24)
+        (error 'invalid-initialization-vector
+               :cipher (class-name (class-of cipher))
+               :block-length 24))
       (setf (aref state 12) (ub32ref/le initialization-vector 0)
             (aref state 13) (ub32ref/le initialization-vector 4)
             (aref state 14) (ub32ref/le initialization-vector 8)

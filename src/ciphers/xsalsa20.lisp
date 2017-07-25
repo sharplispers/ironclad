@@ -24,6 +24,10 @@
     (declare (type salsa20-state state)
              (type salsa20-keystream-buffer buffer))
     (when initialization-vector
+      (when (< (length initialization-vector) 24)
+        (error 'invalid-initialization-vector
+               :cipher (class-name (class-of cipher))
+               :block-length 24))
       (setf (aref state 8) (ub32ref/le initialization-vector 8)
             (aref state 9) (ub32ref/le initialization-vector 12)))
     (funcall (salsa20-core-function cipher) buffer state)

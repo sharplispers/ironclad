@@ -116,6 +116,10 @@
                                      (initialization-vector nil iv-p)
                                      &allow-other-keys)
   (when initialization-vector
+    (when (< (length initialization-vector) 8)
+      (error 'invalid-initialization-vector
+             :cipher (class-name (class-of cipher))
+             :block-length 8))
     (let ((state (chacha-state cipher)))
       (declare (type chacha-state state))
       (setf (aref state 12) 0

@@ -112,6 +112,10 @@
                                      (initialization-vector nil iv-p)
                                      &allow-other-keys)
   (when initialization-vector
+    (when (< (length initialization-vector) 8)
+      (error 'invalid-initialization-vector
+             :cipher (class-name (class-of cipher))
+             :block-length 8))
     (let ((state (salsa20-state cipher)))
       (declare (type salsa20-state state))
       (setf (aref state 6) (ub32ref/le initialization-vector 0)
