@@ -75,6 +75,7 @@
                                            (:file "tea" :depends-on ("cipher"))
                                            (:file "threefish" :depends-on ("cipher"))
                                            (:file "twofish" :depends-on ("cipher"))
+                                           (:file "xchacha" :depends-on ("cipher" "chacha"))
                                            (:file "xsalsa20" :depends-on ("cipher" "salsa20"))
                                            (:file "xtea" :depends-on ("cipher"))))
                              (:module "digests"
@@ -250,6 +251,9 @@
                                            (:test-vector-file "threefish256")
                                            (:test-vector-file "threefish512")
                                            (:test-vector-file "twofish")
+                                           (:test-vector-file "xchacha")
+                                           (:test-vector-file "xchacha-12")
+                                           (:test-vector-file "xchacha-8")
                                            (:test-vector-file "xsalsa20")
                                            (:test-vector-file "xsalsa20-12")
                                            (:test-vector-file "xsalsa20-8")
