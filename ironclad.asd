@@ -75,6 +75,7 @@
                                            (:file "tea" :depends-on ("cipher"))
                                            (:file "threefish" :depends-on ("cipher"))
                                            (:file "twofish" :depends-on ("cipher"))
+                                           (:file "xsalsa20" :depends-on ("cipher" "salsa20"))
                                            (:file "xtea" :depends-on ("cipher"))))
                              (:module "digests"
                               :depends-on ("ciphers" "common" "conditions" "macro-utils" "package" "sbcl-opt")
@@ -249,6 +250,9 @@
                                            (:test-vector-file "threefish256")
                                            (:test-vector-file "threefish512")
                                            (:test-vector-file "twofish")
+                                           (:test-vector-file "xsalsa20")
+                                           (:test-vector-file "xsalsa20-12")
+                                           (:test-vector-file "xsalsa20-8")
                                            (:test-vector-file "xtea")
                                            ;; digests
                                            (:file "digests")

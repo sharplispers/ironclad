@@ -143,5 +143,7 @@
            #:threefish256 #:threefish512 #:threefish1024
            #:serpent)
   ;; supported stream ciphers
-  (:export #:arcfour #:salsa20 #:salsa20/12 #:salsa20/8
+  (:export #:arcfour
+           #:salsa20 #:salsa20/12 #:salsa20/8
+           #:xsalsa20 #:xsalsa20/12 #:xsalsa20/8
            #:chacha #:chacha/12 #:chacha/8))
