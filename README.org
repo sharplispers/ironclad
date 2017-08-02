@@ -58,9 +58,9 @@ usually not safe against side channel attacks.
   :END:
 
 The current version of Ironclad is 0.34. It can be downloaded
-at [[https://github.com/glv2/ironclad/archive/v0.34.tar.gz]].
+at [[https://github.com/sharplispers/ironclad/archive/v0.34.tar.gz]].
 If you are feeling adventurous, you can download a bleeding-edge version
-at [[https://github.com/glv2/ironclad]].
+at [[https://github.com/sharplispers/ironclad]].
 
 It comes with an ASDF system definition, so ~(asdf:oos 'asdf:load-op :ironclad)~
 should be all that you need to get started. The testsuite can be run
