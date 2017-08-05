@@ -37,7 +37,6 @@
                (:module "src"
                 :components ((:file "common" :depends-on ("package" "ccl-opt"))
                              (:file "conditions" :depends-on ("package"))
-                             (:file "kdf-common" :depends-on ("conditions" "package"))
                              (:file "macro-utils" :depends-on ("package"))
                              (:file "math" :depends-on ("package" "prng"))
                              ;; FIXME: make this depend on :FEATURE :IRONCLAD-GRAY-STREAMS
@@ -45,9 +44,6 @@
                              (:file "octet-stream" :depends-on ("common" "conditions" "package"))
                              (:file "package")
                              (:file "padding" :depends-on ("common" "package"))
-                             (:file "password-hash" :depends-on ("package" "pkcs5" "prng"))
-                             (:file "pkcs5" :depends-on ("common" "conditions" "kdf-common" "package"))
-                             (:file "scrypt" :depends-on ("kdf-common" "package" "pkcs5"))
                              (:file "util" :depends-on ("conditions" "package"))
                              (:module "ccl-opt"
                               :depends-on ("package")
@@ -102,6 +98,12 @@
                                            (:file "tiger" :depends-on ("digest"))
                                            (:file "tree-hash" :depends-on ("digest"))
                                            (:file "whirlpool" :depends-on ("digest"))))
+                             (:module "kdf"
+                              :depends-on ("ciphers" "common" "conditions" "digests" "package" "prng")
+                              :components ((:file "kdf-common")
+                                           (:file "password-hash" :depends-on ("pkcs5"))
+                                           (:file "pkcs5" :depends-on ("kdf-common"))
+                                           (:file "scrypt" :depends-on ("kdf-common" "pkcs5"))))
                              (:module "macs"
                               :depends-on ("common" "conditions" "digests" "package")
                               :components ((:file "blake2-mac" :depends-on ("mac"))
@@ -216,8 +218,6 @@
                               :depends-on ("testfuns")
                               :components ((:file "ironclad")
                                            (:file "padding")
-                                           (:file "pkcs5")
-                                           (:file "scrypt")
                                            ;; ciphers
                                            (:file "ciphers")
                                            (:file "modes")
@@ -311,6 +311,9 @@
                                            (:test-vector-file "tiger")
                                            (:test-vector-file "tree-hash")
                                            (:test-vector-file "whirlpool")
+                                           ;; kdf
+                                           (:file "pkcs5")
+                                           (:file "scrypt")
                                            ;; macs
                                            (:file "macs")
                                            (:test-vector-file "blake2-mac")
