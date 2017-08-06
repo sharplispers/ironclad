@@ -13,6 +13,7 @@ New algorithms:
  - Ciphers: XChacha, XSalsa20
  - Diffie-Hellman: Curve25519, Curve448, Elgamal
  - Digest: JH, Groestl
+ - Key derivation function: Argon2i
  - Message authentication code: Blake2, Blake2s
  - Signature: Ed448
 

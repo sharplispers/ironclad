@@ -46,7 +46,7 @@
    #:ecb #:cbc #:ctr #:ofb #:cfb #:stream
 
    ;; KDFs
-   #:pbkdf1 #:pbkdf2 #:scrypt-kdf
+   #:pbkdf1 #:pbkdf2 #:scrypt-kdf #:argon2i
    #:make-kdf #:derive-key
 
    ;; KDF convenience functions
@@ -98,6 +98,7 @@
    #:invalid-initialization-vector #:invalid-key-length
    #:unsupported-cipher #:unsupported-mode #:unsupported-digest
    #:unsupported-kdf #:unsupported-scrypt-cost-factors
+   #:unsupported-argon2i-parameters
    #:insufficient-buffer-space #:invalid-padding
    #:key-not-supplied #:unsupported-mac
    #:invalid-mac-parameter #:invalid-signature-length

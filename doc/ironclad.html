@@ -2,7 +2,7 @@
 <html>
 <head>
 <title>Ironclad</title>
-<!-- 2017-08-02 mer. 10:02 -->
+<!-- 2017-08-06 dim. 21:48 -->
 <meta  charset="utf-8">
 <meta  name="generator" content="Org-mode">
 <meta  name="author" content="The Ironclad developers">
@@ -1067,10 +1067,18 @@ Returns <code>t</code> if <i>name</i> would be in the list returned by <a href="
 <div class="outline-text-2" id="text-key-derivation-functions">
 
 <p>
-Ironclad comes with the basic PBKDF1 and PBKDF2 algorithms, as well as
-an implementation of the scrypt key derivation function as defined by
-Colin Percival's <a href="http://www.tarsnap.com/scrypt.html">The scrypt key derivation function</a>.
+Ironclad comes with a few key derivation functions:
 </p>
+<ul class="org-ul">
+<li>Argon2i
+</li>
+<li>PBKDF1
+</li>
+<li>PBKDF2
+</li>
+<li>Scrypt
+</li>
+</ul>
 
 
 <div class="org-src-container">
@@ -1082,32 +1090,37 @@ Colin Percival's <a href="http://www.tarsnap.com/scrypt.html">The scrypt key der
 <p>
 Given a key derivation function object (produced by <a href="#make-kdf">make-kdf</a>),
 a password and salt (both must be of type
-<code>(simple-array (unsigned-byte 8) (*))</code>), and number of digest iterations,
+<code>(simple-array (unsigned-byte 8) (*))</code>), and number of iterations,
 returns the password digest as a byte array of length <i>key-length</i>.
 </p>
 
 <p>
-Scrypt ignores <i>iteration-count</i> parameter.
+Scrypt ignores the <i>iteration-count</i> parameter.
 </p>
 
 
 <div class="org-src-container">
 
-<pre class="src src-lisp" id="make-kdf">(make-kdf kind &amp;key digest n r p) =&gt; kdf
+<pre class="src src-lisp" id="make-kdf">(make-kdf kind &amp;key digest n r p block-count additional-key additional-data) =&gt; kdf
 </pre>
 </div>
 
 <p>
 Returns a key derivation function instance (<i>kind</i> must either be
-<i>PBKDF1</i>, <i>PBKDF2</i> or <i>SCRYPT-KDF</i>). The PBKDF algorithms use
-<i>digest</i>. The scrypt key derivation uses cost parameters <i>N</i>, <i>r</i> and
-<i>p</i> (<i>N</i> is a CPU cost parameter that must be a power of 2, <i>r</i> and
-<i>p</i> are memory cost parameters that must be defined such that
+<i>ARGON2I</i>, <i>PBKDF1</i>, <i>PBKDF2</i> or <i>SCRYPT-KDF</i>).
+The Argon2i key derivation uses the <i>block-count</i>, <i>additional-key</i>
+and <i>additional-data</i> parameters (<i>block-count</i> is the number of 1 KiB
+memory blocks used by the function and it must be at least 8,
+<i>additional-key</i> and <i>additional-data</i> are optional).
+The PBKDF algorithms use <i>digest</i>.
+The Scrypt key derivation uses cost parameters <i>N</i>, <i>r</i> and <i>p</i> (<i>N</i>
+is a CPU cost parameter that must be a power of 2, <i>r</i> and <i>p</i> are
+memory cost parameters that must be defined such that
 <i>r</i> * <i>p</i> &lt;= 2<sup>30</sup>).
 </p>
 
 <p>
-The default parameters are <i>N</i> = 4096, <i>r</i> = 8, and <i>p</i> = 2.
+The default Scrypt parameters are <i>N</i> = 4096, <i>r</i> = 8, and <i>p</i> = 2.
 Please note that depending on the values of <i>N</i> and <i>r</i>,
 <a href="#derive-key">derive-key</a> may not be able to allocate sufficient space for its
 temporary arrays.
@@ -2210,6 +2223,18 @@ to <a href="#make-kdf">make-kdf</a>.
 
 <p>
 This error is signaled when invalid Scrypt cost factors are provided
+to <a href="#make-kdf">make-kdf</a>.
+</p>
+
+
+<div class="org-src-container">
+
+<pre class="src src-lisp" id="unsupported-argon2i-cost-factors">unsupported-argon2i-cost-factors
+</pre>
+</div>
+
+<p>
+This error is signaled when invalid Argon2i parameters are provided
 to <a href="#make-kdf">make-kdf</a>.
 </p>
 

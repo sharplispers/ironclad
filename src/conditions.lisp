@@ -85,7 +85,13 @@ for a particular mode of operation but not supplied."))
   (:report (lambda (condition stream)
              (format stream "Scrypt cost factors not supported. N=~A must be a power of two and (r=~A * p=~A) <= 2^30."
                      (cost-N condition) (cost-r condition) (cost-p condition))))
-  (:documentation "Signaled when a invalid cost factors are provided to MAKE-SCRYPT-KDF."))
+  (:documentation "Signaled when invalid Scrypt cost factors are provided to MAKE-KDF."))
+
+(define-condition unsupported-argon2i-parameters (ironclad-error)
+  ()
+  (:report (lambda (condition stream)
+             (format stream "Argon2i parameters not supported. block-count must be at least 8, key-length must be at least 4, salt must be at least 8 bytes long and iteration-count must be at least 1.")))
+  (:documentation "Signaled when invalid Argon2i parameters are provided to MAKE-KDF."))
 
 (define-condition insufficient-buffer-space (ironclad-error)
   ((buffer :initarg :buffer :reader insufficient-buffer-space-buffer)

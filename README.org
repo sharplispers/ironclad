@@ -707,9 +707,11 @@ Returns ~t~ if /name/ would be in the list returned by [[list-all-macs][list-all
   :CUSTOM_ID: key-derivation-functions
   :END:
 
-Ironclad comes with the basic PBKDF1 and PBKDF2 algorithms, as well as
-an implementation of the scrypt key derivation function as defined by
-Colin Percival's [[http://www.tarsnap.com/scrypt.html][The scrypt key derivation function]].
+Ironclad comes with a few key derivation functions:
+ - Argon2i
+ - PBKDF1
+ - PBKDF2
+ - Scrypt
 
 
 #+NAME: derive-key
@@ -719,25 +721,30 @@ Colin Percival's [[http://www.tarsnap.com/scrypt.html][The scrypt key derivation
 
 Given a key derivation function object (produced by [[make-kdf][make-kdf]]),
 a password and salt (both must be of type
-~(simple-array (unsigned-byte 8) (*))~), and number of digest iterations,
+~(simple-array (unsigned-byte 8) (*))~), and number of iterations,
 returns the password digest as a byte array of length /key-length/.
 
-Scrypt ignores /iteration-count/ parameter.
+Scrypt ignores the /iteration-count/ parameter.
 
 
 #+NAME: make-kdf
 #+BEGIN_SRC lisp
-(make-kdf kind &key digest n r p) => kdf
+(make-kdf kind &key digest n r p block-count additional-key additional-data) => kdf
 #+END_SRC
 
 Returns a key derivation function instance (/kind/ must either be
-/PBKDF1/, /PBKDF2/ or /SCRYPT-KDF/). The PBKDF algorithms use
-/digest/. The scrypt key derivation uses cost parameters /N/, /r/ and
-/p/ (/N/ is a CPU cost parameter that must be a power of 2, /r/ and
-/p/ are memory cost parameters that must be defined such that
+/ARGON2I/, /PBKDF1/, /PBKDF2/ or /SCRYPT-KDF/).
+The Argon2i key derivation uses the /block-count/, /additional-key/
+and /additional-data/ parameters (/block-count/ is the number of 1 KiB
+memory blocks used by the function and it must be at least 8,
+/additional-key/ and /additional-data/ are optional).
+The PBKDF algorithms use /digest/.
+The Scrypt key derivation uses cost parameters /N/, /r/ and /p/ (/N/
+is a CPU cost parameter that must be a power of 2, /r/ and /p/ are
+memory cost parameters that must be defined such that
 /r/ * /p/ <= 2^30).
 
-The default parameters are /N/ = 4096, /r/ = 8, and /p/ = 2.
+The default Scrypt parameters are /N/ = 4096, /r/ = 8, and /p/ = 2.
 Please note that depending on the values of /N/ and /r/,
 [[derive-key][derive-key]] may not be able to allocate sufficient space for its
 temporary arrays.
@@ -1520,6 +1527,15 @@ unsupported-scrypt-cost-factors
 #+END_SRC
 
 This error is signaled when invalid Scrypt cost factors are provided
+to [[make-kdf][make-kdf]].
+
+
+#+NAME: unsupported-argon2i-cost-factors
+#+BEGIN_SRC lisp
+unsupported-argon2i-cost-factors
+#+END_SRC
+
+This error is signaled when invalid Argon2i parameters are provided
 to [[make-kdf][make-kdf]].
 
 
