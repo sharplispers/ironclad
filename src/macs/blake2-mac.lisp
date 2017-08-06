@@ -31,15 +31,15 @@
   (declare (ignore slot-names initargs)
            (type (simple-array (unsigned-byte 8) (*)) key))
   (let ((digest-length (digest-length mac))
-        (digest (make-digest :blake2))
-        (first-block (make-array +blake2-block-size+
-                                 :element-type '(unsigned-byte 8)
-                                 :initial-element 0)))
+        (digest (make-digest :blake2)))
+    (setf (blake2-state digest) (blake2-make-initial-state digest-length (length key)))
     (when (plusp (length key))
-      ;; Process the key block
-      (replace first-block key)
-      (setf (blake2-state digest) (blake2-make-initial-state digest-length (length key)))
-      (blake2-update digest first-block 0 +blake2-block-size+ nil))
+      (let ((first-block (make-array +blake2-block-size+
+                                     :element-type '(unsigned-byte 8)
+                                     :initial-element 0)))
+        ;; Process the key block
+        (replace first-block key)
+        (blake2-update digest first-block 0 +blake2-block-size+ nil)))
     (setf (blake2-digest mac) digest)))
 
 (defun update-blake2-mac (mac sequence &key (start 0) end)
