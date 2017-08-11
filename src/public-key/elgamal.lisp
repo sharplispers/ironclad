@@ -162,7 +162,7 @@
          (message-elements (destructure-message :elgamal ciphertext))
          (c1 (getf message-elements :c1))
          (c2 (getf message-elements :c2))
-         (m (mod (* c2 (modular-inverse (expt-mod c1 x p) p)) p)))
+         (m (mod (* c2 (modular-inverse-with-blinding (expt-mod c1 x p) p)) p)))
     (integer-to-octets m)))
 
 (defmethod encrypt-message ((key elgamal-private-key) msg &key (start 0) end &allow-other-keys)
@@ -222,7 +222,7 @@
            (x (elgamal-key-x key))
            (k (elgamal-generate-k p))
            (r (expt-mod g k p))
-           (s (mod (* (- m (* r x)) (modular-inverse k (- p 1))) (- p 1))))
+           (s (mod (* (- m (* r x)) (modular-inverse-with-blinding k (- p 1))) (- p 1))))
       (if (not (zerop s))
           (make-signature :elgamal :r r :s s :n-bits pbits)
           (sign-message key msg :start start :end end)))))

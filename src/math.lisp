@@ -50,6 +50,19 @@ denominator."
                            0
                            inverse)))))
 
+(defun modular-inverse-with-blinding (N modulus)
+  "As modular-inverse, but mask N with a blinding factor before
+computing the modular inverse."
+  (declare (type (integer 1 *) modulus))
+  (declare (type (integer 0 *) n))
+  (declare (optimize (speed 3) (safety 0) (space 0) (debug 0)))
+  (let* ((b (loop for b = (+ 1 (strong-random (- modulus 1)))
+                  until (= 1 (gcd b modulus))
+                  finally (return b)))
+         (x (mod (* n b) modulus))
+         (y (modular-inverse x modulus)))
+    (mod (* y b) modulus)))
+
 (defun expt-mod (n exponent modulus)
   "As (mod (expt n exponent) modulus), but more efficient (Montgomery ladder)."
   (declare (optimize (speed 3) (safety 0) (space 0) (debug 0))

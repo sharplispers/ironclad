@@ -71,7 +71,7 @@
              (e (loop for e = (+ 2 (strong-random (- phi 2)))
                       until (= 1 (gcd e phi))
                       finally (return e)))
-             (d (modular-inverse e phi)))
+             (d (modular-inverse-with-blinding e phi)))
         (values (make-private-key :rsa :d d :n n)
                 (make-public-key :rsa :e e :n n))))))
 

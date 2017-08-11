@@ -170,7 +170,7 @@
            (x (dsa-key-x key))
            (k (dsa-generate-k q))
            (r (mod (expt-mod g k p) q))
-           (k-inverse (modular-inverse k q))
+           (k-inverse (modular-inverse-with-blinding k q))
            (s (mod (* k-inverse (+ (* x r) m)) q)))
       (assert (= (mod (* k k-inverse) q) 1))
       (if (not (or (zerop r) (zerop s)))
