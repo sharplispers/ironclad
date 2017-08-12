@@ -2,7 +2,7 @@
 <html>
 <head>
 <title>Ironclad</title>
-<!-- 2017-08-12 sam. 15:24 -->
+<!-- 2017-08-12 sam. 19:58 -->
 <meta  charset="utf-8">
 <meta  name="generator" content="Org-mode">
 <meta  name="author" content="The Ironclad developers">
@@ -1413,6 +1413,11 @@ during signature (or verification) with the PSS scheme of PKCS-1.
 (sign-message rsa-private-key message :pss t) =&gt; signature
 (verify-signature rsa-public-key message signature :pss t) =&gt; boolean
 </pre>
+
+<p>
+The functions <i>pss-encode</i> and <i>pss-decode</i> can also be used by hand if
+necessary.
+</p>
 </div>
 </div>
 
@@ -1523,6 +1528,11 @@ encryption (or decryption) with the OAEP scheme of PKCS-1.
 (encrypt-message rsa-public-key message :oaep t) =&gt; encrypted-message
 (decrypt-message rsa-private-key message :oaep t) =&gt; decrypted-message
 </pre>
+
+<p>
+The functions <i>oaep-encode</i> and <i>oaep-decode</i> can also be used by hand if
+necessary.
+</p>
 </div>
 </div>
 

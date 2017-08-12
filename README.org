@@ -936,6 +936,9 @@ during signature (or verification) with the PSS scheme of PKCS-1.
 (verify-signature rsa-public-key message signature :pss t) => boolean
 #+END_EXAMPLE
 
+The functions [[pss-encode][pss-encode]] and [[pss-decode][pss-decode]] can also be used by hand if
+necessary.
+
 *** Format of signatures
 
 [[sign-message][sign-message]] returns signatures as octet vectors. When the signature
@@ -1014,6 +1017,9 @@ encryption (or decryption) with the OAEP scheme of PKCS-1.
 (encrypt-message rsa-public-key message :oaep t) => encrypted-message
 (decrypt-message rsa-private-key message :oaep t) => decrypted-message
 #+END_EXAMPLE
+
+The functions [[oaep-encode][oaep-encode]] and [[oaep-decode][oaep-decode]] can also be used by hand if
+necessary.
 
 *** Format of messages
 
