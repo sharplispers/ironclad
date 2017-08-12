@@ -145,14 +145,8 @@
     (unless (= (* 8 (length signature)) nbits)
       (error 'invalid-signature-length :kind 'rsa))
     (let* ((signature-elements (destructure-signature :rsa signature))
-           (s (getf signature-elements :s)))
+           (s (getf signature-elements :s))
+           (m (rsa-core s (rsa-key-exponent key) (rsa-key-modulus key))))
       (if pss
-          (let ((sig (integer-to-octets (rsa-core s
-                                                  (rsa-key-exponent key)
-                                                  (rsa-key-modulus key))
-                                        :n-bits nbits)))
-            (pss-verify :sha1 (subseq msg start end) sig))
-          (let ((sig (integer-to-octets (rsa-core s
-                                                  (rsa-key-exponent key)
-                                                  (rsa-key-modulus key)))))
-            (equalp sig (subseq msg start end)))))))
+          (pss-verify :sha1 (subseq msg start end) (integer-to-octets m :n-bits nbits))
+          (= (octets-to-integer msg :start start :end end) m)))))
