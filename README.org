@@ -995,11 +995,14 @@ the class of /key/ determines the algorithm used to encrypt the message.
 
 #+NAME: decrypt-message
 #+BEGIN_SRC lisp
-(decrypt-message key message &key start end &allow-other-keys) => decrypted-message
+(decrypt-message key message &key start end n-bits &allow-other-keys) => decrypted-message
 #+END_SRC
 
 Return the /message/ between /start/ and /end/ decrypted by the /key/;
 the class of /key/ determines the algorithm used to decrypt the message.
+/n-bits/ can be used to indicate the expected size of the decrypted
+message (e.g. a small byte vector starting with zeros encrypted
+without padding, which is probably a bad idea, c.f. Padding section).
 
 *** Padding
 
@@ -1017,10 +1020,11 @@ encryption (or decryption) with the OAEP scheme of PKCS-1.
 [[encrypt-message][encrypt-message]] returns encrypted messages as octet vectors. When the
 message contains several values (e.g. the C1 and C2 values of Elgamal
 messages), the octet vector is the concatenation of these values (e.g.
-the first half of the vector is the C1 value, the second half is the
-C2 value). You can use the [[make-message][make-message]] and [[destructure-message][destructure-message]]
-functions if you need access to the elements of a message (e.g. to use
-a different kind of serialization).
+the first half of the vector is the big-endian representation of the
+C1 value, the second half is the C2 value). You can use the
+[[make-message][make-message]] and [[destructure-message][destructure-message]] functions if you need access to
+the elements of a message (e.g. to use a different kind of
+serialization).
 
 
 #+NAME: make-message

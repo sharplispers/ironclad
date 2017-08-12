@@ -58,12 +58,13 @@ from its elements."))
 an encrypted MESSAGE."))
 
 (defgeneric encrypt-message (key message &key start end &allow-other-keys)
-  (:documentation "Encrypt MESSAGE with KEY.  START and END bound the extent
-of the message.  Returns a fresh octet vector."))
+  (:documentation "Encrypt MESSAGE with KEY. START and END bound the extent
+of the message. Returns a fresh octet vector."))
 
-(defgeneric decrypt-message (key message &key start end &allow-other-keys)
-  (:documentation "Decrypt MESSAGE with KEY.  START and END bound the extent
-of the message.  Returns a fresh octet vector."))
+(defgeneric decrypt-message (key message &key start end n-bits &allow-other-keys)
+  (:documentation "Decrypt MESSAGE with KEY. START and END bound the extent
+of the message. Returns a fresh octet vector. N-BITS can be used to indicate
+the expected size of the decrypted message."))
 
 (defgeneric diffie-hellman (private-key public-key)
   (:documentation "Compute a shared secret using Alice's PRIVATE-KEY and Bob's PUBLIC-KEY"))
@@ -90,9 +91,10 @@ of the message.  Returns a fresh octet vector."))
                            sum (ash (aref octet-vec i) j)))))
         (ldb (byte n-bits 0) sum)))))
 
-(defun integer-to-octets (bignum &key (n-bits (integer-length bignum)) (big-endian t))
+(defun integer-to-octets (bignum &key n-bits (big-endian t))
   (declare (optimize (speed 3) (space 0) (safety 1) (debug 0)))
-  (let* ((bignum (ldb (byte n-bits 0) bignum))
+  (let* ((n-bits (or n-bits (integer-length bignum)))
+         (bignum (ldb (byte n-bits 0) bignum))
          (n-bytes (ceiling n-bits 8))
          (octet-vec (make-array n-bytes :element-type '(unsigned-byte 8))))
     (declare (type (simple-array (unsigned-byte 8) (*)) octet-vec))

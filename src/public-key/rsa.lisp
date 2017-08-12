@@ -105,16 +105,14 @@
                   :m (rsa-core m (rsa-key-exponent key) (rsa-key-modulus key))
                   :n-bits nbits)))
 
-(defmethod decrypt-message ((key rsa-private-key) msg &key (start 0) end oaep &allow-other-keys)
+(defmethod decrypt-message ((key rsa-private-key) msg &key (start 0) end n-bits oaep &allow-other-keys)
   (let* ((nbits (integer-length (rsa-key-modulus key)))
          (message-elements (destructure-message :rsa (subseq msg start end)))
-         (m (getf message-elements :m)))
+         (m (getf message-elements :m))
+         (d (rsa-core m (rsa-key-exponent key) (rsa-key-modulus key))))
     (if oaep
-        (oaep-decode :sha1 (integer-to-octets
-                            (rsa-core m (rsa-key-exponent key) (rsa-key-modulus key))
-                            :n-bits nbits))
-        (integer-to-octets
-         (rsa-core m (rsa-key-exponent key) (rsa-key-modulus key))))))
+        (oaep-decode :sha1 (integer-to-octets d :n-bits nbits))
+        (integer-to-octets d :n-bits n-bits))))
 
 (defmethod make-signature ((kind (eql :rsa)) &key s n-bits &allow-other-keys)
   (unless s

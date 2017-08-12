@@ -2,7 +2,7 @@
 <html>
 <head>
 <title>Ironclad</title>
-<!-- 2017-08-06 dim. 21:48 -->
+<!-- 2017-08-12 sam. 15:24 -->
 <meta  charset="utf-8">
 <meta  name="generator" content="Org-mode">
 <meta  name="author" content="The Ironclad developers">
@@ -26,7 +26,7 @@ pre.example { margin-right: 10%; margin-top: 1.5em; margin-bottom: 1.5em; border
 <h1 class="title">Ironclad</h1>
 
 <div class="figure">
-<p><a href="https://travis-ci.org/glv2/ironclad" style="width: 0; height: 0; padding: 0; margin: 0; border: 0; overflow: hidden;"><img src="https://travis-ci.org/glv2/ironclad.svg" alt="ironclad.svg" style="width: 0; height: 0; padding: 0; margin: 0; border: 0; overflow: hidden;"></a>
+<p><a href="https://travis-ci.org/sharplispers/ironclad" style="width: 0; height: 0; padding: 0; margin: 0; border: 0; overflow: hidden;"><img src="https://travis-ci.org/sharplispers/ironclad.svg" alt="ironclad.svg" style="width: 0; height: 0; padding: 0; margin: 0; border: 0; overflow: hidden;"></a>
 </p>
 </div>
 
@@ -1497,13 +1497,16 @@ the class of <i>key</i> determines the algorithm used to encrypt the message.
 
 <div class="org-src-container">
 
-<pre class="src src-lisp" id="decrypt-message">(decrypt-message key message &amp;key start end &amp;allow-other-keys) =&gt; decrypted-message
+<pre class="src src-lisp" id="decrypt-message">(decrypt-message key message &amp;key start end n-bits &amp;allow-other-keys) =&gt; decrypted-message
 </pre>
 </div>
 
 <p>
 Return the <i>message</i> between <i>start</i> and <i>end</i> decrypted by the <i>key</i>;
 the class of <i>key</i> determines the algorithm used to decrypt the message.
+<i>n-bits</i> can be used to indicate the expected size of the decrypted
+message (e.g. a small byte vector starting with zeros encrypted
+without padding, which is probably a bad idea, c.f. Padding section).
 </p>
 </div>
 
@@ -1530,10 +1533,11 @@ encryption (or decryption) with the OAEP scheme of PKCS-1.
 <a href="#encrypt-message">encrypt-message</a> returns encrypted messages as octet vectors. When the
 message contains several values (e.g. the C1 and C2 values of Elgamal
 messages), the octet vector is the concatenation of these values (e.g.
-the first half of the vector is the C1 value, the second half is the
-C2 value). You can use the <a href="#make-message">make-message</a> and <a href="#destructure-message">destructure-message</a>
-functions if you need access to the elements of a message (e.g. to use
-a different kind of serialization).
+the first half of the vector is the big-endian representation of the
+C1 value, the second half is the C2 value). You can use the
+<a href="#make-message">make-message</a> and <a href="#destructure-message">destructure-message</a> functions if you need access to
+the elements of a message (e.g. to use a different kind of
+serialization).
 </p>
 
 
