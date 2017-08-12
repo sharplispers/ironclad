@@ -75,24 +75,25 @@ of the message.  Returns a fresh octet vector."))
   (declare (type (simple-array (unsigned-byte 8) (*)) octet-vec)
            (optimize (speed 3) (space 0) (safety 1) (debug 0)))
   (let ((end (or end (length octet-vec))))
-    (multiple-value-bind (complete-bytes extra-bits)
-        (if n-bits
-            (truncate n-bits 8)
-            (values (- end start) 0))
-      (declare (ignorable complete-bytes extra-bits)) ;; TODO: don't ignore the n-bits parameter
-      (if big-endian
-          (do ((j start (1+ j))
-               (sum 0))
-              ((>= j end) sum)
-            (setf sum (+ (aref octet-vec j) (ash sum 8))))
-          (loop for i from (- end start 1) downto 0
-                for j from (1- end) downto start
-                sum (ash (aref octet-vec j) (* i 8)))))))
+    (multiple-value-bind (n-bits n-bytes)
+        (let ((size (- end start)))
+          (if n-bits
+              (values n-bits (min (ceiling n-bits 8) size))
+              (values (* 8 size) size)))
+      (let ((sum (if big-endian
+                     (loop with sum = 0
+                           for i from (- end n-bytes) below end
+                           do (setf sum (+ (ash sum 8) (aref octet-vec i)))
+                           finally (return sum))
+                     (loop for i from start below (+ start n-bytes)
+                           for j from 0 by 8
+                           sum (ash (aref octet-vec i) j)))))
+        (ldb (byte n-bits 0) sum)))))
 
-(defun integer-to-octets (bignum &key (n-bits (integer-length bignum))
-                                   (big-endian t))
+(defun integer-to-octets (bignum &key (n-bits (integer-length bignum)) (big-endian t))
   (declare (optimize (speed 3) (space 0) (safety 1) (debug 0)))
-  (let* ((n-bytes (ceiling n-bits 8))
+  (let* ((bignum (ldb (byte n-bits 0) bignum))
+         (n-bytes (ceiling n-bits 8))
          (octet-vec (make-array n-bytes :element-type '(unsigned-byte 8))))
     (declare (type (simple-array (unsigned-byte 8) (*)) octet-vec))
     (if big-endian
