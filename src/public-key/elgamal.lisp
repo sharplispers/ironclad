@@ -141,12 +141,14 @@
                (c2 (octets-to-integer message :start middle)))
           (list :c1 c1 :c2 c2 :n-bits n-bits)))))
 
-(defun elgamal-encrypt (msg key)
-  (let* ((m (octets-to-integer msg))
-         (p (elgamal-key-p key))
+(defmethod encrypt-message ((key elgamal-public-key) msg &key (start 0) end oaep &allow-other-keys)
+  (let* ((p (elgamal-key-p key))
          (pbits (integer-length p))
          (g (elgamal-key-g key))
          (y (elgamal-key-y key))
+         (m (if oaep
+                (octets-to-integer (oaep-encode :sha1 (subseq msg start end) (/ pbits 8)))
+                (octets-to-integer msg :start start :end end)))
          (k (elgamal-generate-k p))
          (c1 (expt-mod g k p))
          (c2 (mod (* m (expt-mod y k p)) p)))
@@ -154,32 +156,20 @@
       (error 'invalid-message-length :kind 'elgamal))
     (make-message :elgamal :c1 c1 :c2 c2 :n-bits pbits)))
 
-(defun elgamal-decrypt (ciphertext key n-bits)
+(defmethod decrypt-message ((key elgamal-private-key) msg &key (start 0) end n-bits oaep &allow-other-keys)
   (let* ((p (elgamal-key-p key))
          (pbits (integer-length p))
-         (x (elgamal-key-x key))
-         (message-elements (destructure-message :elgamal ciphertext))
-         (c1 (getf message-elements :c1))
-         (c2 (getf message-elements :c2))
-         (m (mod (* c2 (modular-inverse-with-blinding (expt-mod c1 x p) p)) p)))
-    (integer-to-octets m :n-bits n-bits)))
-
-(defmethod encrypt-message ((key elgamal-private-key) msg &key (start 0) end &allow-other-keys)
-  (let ((public-key (make-public-key :elgamal
-                                     :p (elgamal-key-p key)
-                                     :g (elgamal-key-g key)
-                                     :y (elgamal-key-y key))))
-    (encrypt-message public-key msg :start start :end end)))
-
-(defmethod encrypt-message ((key elgamal-public-key) msg &key (start 0) end &allow-other-keys)
-  (elgamal-encrypt (subseq msg start end) key))
-
-(defmethod decrypt-message ((key elgamal-private-key) msg &key (start 0) end n-bits &allow-other-keys)
-  (let* ((p (elgamal-key-p key))
          (end (or end (length msg))))
-    (unless (= (* 4 (- end start)) (integer-length p))
+    (unless (= (* 4 (- end start)) pbits)
       (error 'invalid-message-length :kind 'elgamal))
-    (elgamal-decrypt (subseq msg start end) key n-bits)))
+    (let* ((x (elgamal-key-x key))
+           (message-elements (destructure-message :elgamal (subseq msg start end)))
+           (c1 (getf message-elements :c1))
+           (c2 (getf message-elements :c2))
+           (m (mod (* c2 (modular-inverse-with-blinding (expt-mod c1 x p) p)) p)))
+      (if oaep
+          (oaep-decode :sha1 (integer-to-octets m :n-bits pbits))
+          (integer-to-octets m :n-bits n-bits)))))
 
 (defmethod make-signature ((kind (eql :elgamal)) &key r s n-bits &allow-other-keys)
   (unless r
