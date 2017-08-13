@@ -96,23 +96,29 @@
   (list :m (octets-to-integer message) :n-bits (* 8 (length message))))
 
 (defmethod encrypt-message ((key rsa-public-key) msg &key (start 0) end oaep &allow-other-keys)
-  (let ((nbits (integer-length (rsa-key-modulus key)))
-        (m (subseq msg start end)))
-    (when oaep
-      (setf m (oaep-encode :sha1 m (/ nbits 8))))
-    (setf m (octets-to-integer m))
-    (make-message :rsa
-                  :m (rsa-core m (rsa-key-exponent key) (rsa-key-modulus key))
-                  :n-bits nbits)))
+  (let* ((n (rsa-key-modulus key))
+         (nbits (integer-length n))
+         (e (rsa-key-exponent key))
+         (m (if oaep
+                (octets-to-integer (oaep-encode :sha1 (subseq msg start end) (/ nbits 8)))
+                (octets-to-integer msg :start start :end end))))
+    (unless (< m n)
+      (error 'invalid-message-length :kind 'rsa))
+    (make-message :rsa :m (rsa-core m e n) :n-bits nbits)))
 
 (defmethod decrypt-message ((key rsa-private-key) msg &key (start 0) end n-bits oaep &allow-other-keys)
-  (let* ((nbits (integer-length (rsa-key-modulus key)))
-         (message-elements (destructure-message :rsa (subseq msg start end)))
-         (m (getf message-elements :m))
-         (d (rsa-core m (rsa-key-exponent key) (rsa-key-modulus key))))
-    (if oaep
-        (oaep-decode :sha1 (integer-to-octets d :n-bits nbits))
-        (integer-to-octets d :n-bits n-bits))))
+  (let* ((n (rsa-key-modulus key))
+         (nbits (integer-length n))
+         (end (or end (length msg))))
+    (unless (= (* 8 (- end start)) nbits)
+      (error 'invalid-message-length :kind 'rsa))
+    (let* ((d (rsa-key-exponent key))
+           (message-elements (destructure-message :rsa (subseq msg start end)))
+           (c (getf message-elements :m))
+           (m (rsa-core c d n)))
+      (if oaep
+          (oaep-decode :sha1 (integer-to-octets m :n-bits nbits))
+          (integer-to-octets m :n-bits n-bits)))))
 
 (defmethod make-signature ((kind (eql :rsa)) &key s n-bits &allow-other-keys)
   (unless s
