@@ -127,10 +127,10 @@
                                            (:file "dsa" :depends-on ("public-key"))
                                            (:file "ed25519" :depends-on ("public-key"))
                                            (:file "ed448" :depends-on ("public-key"))
-                                           (:file "elgamal" :depends-on ("public-key"))
+                                           (:file "elgamal" :depends-on ("pkcs1" "public-key"))
                                            (:file "pkcs1" :depends-on ("public-key"))
                                            (:file "public-key")
-                                           (:file "rsa" :depends-on ("public-key"))))
+                                           (:file "rsa" :depends-on ("pkcs1" "public-key"))))
                              (:module "sbcl-opt"
                               :depends-on ("common" "package")
                               :components ((:file "fndb")
