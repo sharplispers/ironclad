@@ -33,8 +33,6 @@
           1
           46827403850823179245072216630277197565144205554125654976674165829533817101731))
 
-(defparameter *ed25519-digest* (make-digest :sha512))
-
 
 (declaim (inline ed25519-inv))
 (defun ed25519-inv (x)
@@ -178,10 +176,10 @@
 
 (defun ed25519-hash (&rest messages)
   (declare (optimize (speed 3) (safety 0) (space 0) (debug 0)))
-  (reinitialize-instance *ed25519-digest*)
-  (dolist (m messages)
-    (update-digest *ed25519-digest* m))
-  (produce-digest *ed25519-digest*))
+  (let ((digest (make-digest :sha512)))
+    (dolist (m messages)
+      (update-digest digest m))
+    (produce-digest digest)))
 
 (defun ed25519-public-key (sk)
   "Compute the public key associated to the private key SK."

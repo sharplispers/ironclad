@@ -31,7 +31,6 @@
           298819210078481492676017930443930673437544040154080242095928241372331506189835876003536878655418784733982303233503462500531545062832660
           1))
 
-(defparameter *ed448-digest* (make-digest :shake256 :output-length 114))
 
 (eval-when (:compile-toplevel :load-toplevel :execute)
   (defun ed448-dom (x y)
@@ -177,10 +176,10 @@
 
 (defun ed448-hash (&rest messages)
   (declare (optimize (speed 3) (safety 0) (space 0) (debug 0)))
-  (reinitialize-instance *ed448-digest*)
-  (dolist (m messages)
-    (update-digest *ed448-digest* m))
-  (produce-digest *ed448-digest*))
+  (let ((digest (make-digest :shake256 :output-length 114)))
+    (dolist (m messages)
+      (update-digest digest m))
+    (produce-digest digest)))
 
 (defun ed448-public-key (sk)
   "Compute the public key associated to the private key SK."
