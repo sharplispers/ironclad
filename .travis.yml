@@ -4,21 +4,36 @@ sudo: required
 env:
   matrix:
     - LISP=allegro
-    - LISP=ccl
-    - LISP=ccl32
+    - LISP=ccl-bin
     - LISP=clisp
     - LISP=ecl
-    - LISP=sbcl
-    - LISP=sbcl32
+    - LISP=sbcl-bin
+
+matrix:
+  allow_failures:
+    - env: LISP=allegro
+    - env: LISP=clisp
 
 install:
-  # Install cl-travis
-  - curl https://raw.githubusercontent.com/glv2/cl-travis/master/install.sh | bash
+  - curl -L https://raw.githubusercontent.com/snmsts/roswell/release/scripts/install-for-ci.sh | sh
 
 script:
-  - cl -l ironclad -l ironclad/tests
-       -e '(setf *debugger-hook*
-                 (lambda (&rest ignorable)
-                   (declare (ignore ignorable))
-                   (uiop:quit -1)))'
-       -e '(unless (rt:do-tests) (uiop:quit -1))'
+  # Compiling and testing can fail on Allegro CL Express Free edition
+  # because of the 50 MB heap size limitation, so let's try to split
+  # the work in two as a possible workaround...
+  - if [ "$LISP" = "allegro" ];
+    then
+      ros -e '(setf *debugger-hook*
+                  (lambda (&rest ignorable)
+                    (declare (ignore ignorable))
+                    (uiop:quit 0)))'
+          -e '(ql:quickload "ironclad/tests")';
+    else
+      true;
+    fi
+  - ros -e '(setf *debugger-hook*
+                  (lambda (&rest ignorable)
+                    (declare (ignore ignorable))
+                    (uiop:quit -1)))'
+        -e '(ql:quickload "ironclad/tests")'
+        -e '(unless (rt:do-tests) (uiop:quit -1))'
