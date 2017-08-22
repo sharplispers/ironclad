@@ -147,7 +147,7 @@
          (g (elgamal-key-g key))
          (y (elgamal-key-y key))
          (m (if oaep
-                (octets-to-integer (oaep-encode :sha1 (subseq msg start end) (/ pbits 8)))
+                (octets-to-integer (oaep-encode oaep (subseq msg start end) (/ pbits 8)))
                 (octets-to-integer msg :start start :end end)))
          (k (elgamal-generate-k p))
          (c1 (expt-mod g k p))
@@ -168,7 +168,7 @@
            (c2 (getf message-elements :c2))
            (m (mod (* c2 (modular-inverse-with-blinding (expt-mod c1 x p) p)) p)))
       (if oaep
-          (oaep-decode :sha1 (integer-to-octets m :n-bits pbits))
+          (oaep-decode oaep (integer-to-octets m :n-bits pbits))
           (integer-to-octets m :n-bits n-bits)))))
 
 (defmethod make-signature ((kind (eql :elgamal)) &key r s n-bits &allow-other-keys)

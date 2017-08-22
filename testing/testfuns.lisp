@@ -364,7 +364,8 @@
   ;; Redefine oaep-encode to use a defined seed for the test instead of a random one
   (setf (symbol-function 'ironclad::oaep-encode)
         (lambda (digest-name message num-bytes &optional label)
-          (let ((digest-len (ironclad:digest-length digest-name)))
+          (let* ((digest-name (if (eq digest-name t) :sha1 digest-name))
+                 (digest-len (ironclad:digest-length digest-name)))
             (assert (<= (length message) (- num-bytes (* 2 digest-len) 2)))
             (let* ((digest (ironclad:make-digest digest-name))
                    (label (or label (coerce #() '(vector (unsigned-byte 8)))))
@@ -411,7 +412,8 @@
   ;; Redefine pss-encode to use a defined salt for the test instead of a random one
   (setf (symbol-function 'ironclad::pss-encode)
         (lambda (digest-name message num-bytes)
-          (let ((digest-len (ironclad:digest-length digest-name)))
+          (let* ((digest-name (if (eq digest-name t) :sha1 digest-name))
+                 (digest-len (ironclad:digest-length digest-name)))
             (assert (>= num-bytes (+ (* 2 digest-len) 2)))
             (let* ((m-hash (ironclad:digest-sequence digest-name message))
                    (m1 (concatenate '(vector (unsigned-byte 8)) #(0 0 0 0 0 0 0 0) m-hash salt))

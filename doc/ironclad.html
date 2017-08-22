@@ -2,7 +2,7 @@
 <html>
 <head>
 <title>Ironclad</title>
-<!-- 2017-08-12 sam. 19:58 -->
+<!-- 2017-08-22 mar. 09:42 -->
 <meta  charset="utf-8">
 <meta  name="generator" content="Org-mode">
 <meta  name="author" content="The Ironclad developers">
@@ -1407,6 +1407,8 @@ and <code>nil</code> otherwise.
 To be secure, RSA signature requires the message to be padded.
 The <i>pss</i> key parameter is provided to pad (or unpad) the message
 during signature (or verification) with the PSS scheme of PKCS-1.
+The value of the <i>pss</i> key parameter can be either a digest name
+or <code>t</code> (which will use the sha1 digest).
 </p>
 
 <pre class="example">
@@ -1522,6 +1524,8 @@ without padding, which is probably a bad idea, c.f. Padding section).
 To be secure, RSA encryption requires the message to be padded. The
 <i>oaep</i> key parameter is provided to pad (or unpad) the message during
 encryption (or decryption) with the OAEP scheme of PKCS-1.
+The value of the <i>oaep</i> key parameter can be either a digest name
+or <code>t</code> (which will use the sha1 digest).
 </p>
 
 <pre class="example">

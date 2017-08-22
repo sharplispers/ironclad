@@ -26,7 +26,8 @@
 (defun oaep-encode (digest-name message num-bytes &optional label)
   "Return a NUM-BYTES bytes vector containing the OAEP encoding of the MESSAGE
 using the DIGEST-NAME digest (and the optional LABEL octet vector)."
-  (let ((digest-len (digest-length digest-name)))
+  (let* ((digest-name (if (eq digest-name t) :sha1 digest-name))
+         (digest-len (digest-length digest-name)))
     (assert (<= (length message) (- num-bytes (* 2 digest-len) 2)))
     (let* ((digest (make-digest digest-name))
            (label (or label (coerce #() '(vector (unsigned-byte 8)))))
@@ -44,7 +45,8 @@ using the DIGEST-NAME digest (and the optional LABEL octet vector)."
 (defun oaep-decode (digest-name message &optional label)
   "Return an octet vector containing the data that was encoded in the MESSAGE with OAEP
 using the DIGEST-NAME digest (and the optional LABEL octet vector)."
-  (let ((digest-len (digest-length digest-name)))
+  (let* ((digest-name (if (eq digest-name t) :sha1 digest-name))
+         (digest-len (digest-length digest-name)))
     (assert (>= (length message) (+ (* 2 digest-len) 2)))
     (let* ((digest (make-digest digest-name))
            (label (or label (coerce #() '(vector (unsigned-byte 8)))))
@@ -71,7 +73,8 @@ using the DIGEST-NAME digest (and the optional LABEL octet vector)."
 ;; instead of a random one. Therefore it must not be inlined or the tests
 ;; will fail.
 (defun pss-encode (digest-name message num-bytes)
-  (let ((digest-len (digest-length digest-name)))
+  (let* ((digest-name (if (eq digest-name t) :sha1 digest-name))
+         (digest-len (digest-length digest-name)))
     (assert (>= num-bytes (+ (* 2 digest-len) 2)))
     (let* ((m-hash (digest-sequence digest-name message))
            (salt (random-data digest-len))
@@ -87,8 +90,9 @@ using the DIGEST-NAME digest (and the optional LABEL octet vector)."
       (concatenate '(vector (unsigned-byte 8)) masked-db h #(188)))))
 
 (defun pss-verify (digest-name message encoded-message)
-  (let ((digest-len (digest-length digest-name))
-        (em-len (length encoded-message)))
+  (let* ((digest-name (if (eq digest-name t) :sha1 digest-name))
+         (digest-len (digest-length digest-name))
+         (em-len (length encoded-message)))
     (assert (>= em-len (+ (* 2 digest-len) 2)))
     (assert (= (elt encoded-message (- em-len 1)) 188))
     (let* ((m-hash (digest-sequence digest-name message))

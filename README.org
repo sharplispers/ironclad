@@ -930,6 +930,8 @@ and ~nil~ otherwise.
 To be secure, RSA signature requires the message to be padded.
 The /pss/ key parameter is provided to pad (or unpad) the message
 during signature (or verification) with the PSS scheme of PKCS-1.
+The value of the /pss/ key parameter can be either a digest name
+or ~t~ (which will use the sha1 digest).
 
 #+BEGIN_EXAMPLE
 (sign-message rsa-private-key message :pss t) => signature
@@ -1012,6 +1014,8 @@ without padding, which is probably a bad idea, c.f. Padding section).
 To be secure, RSA encryption requires the message to be padded. The
 /oaep/ key parameter is provided to pad (or unpad) the message during
 encryption (or decryption) with the OAEP scheme of PKCS-1.
+The value of the /oaep/ key parameter can be either a digest name
+or ~t~ (which will use the sha1 digest).
 
 #+BEGIN_EXAMPLE
 (encrypt-message rsa-public-key message :oaep t) => encrypted-message

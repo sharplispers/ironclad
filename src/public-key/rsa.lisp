@@ -100,7 +100,7 @@
          (nbits (integer-length n))
          (e (rsa-key-exponent key))
          (m (if oaep
-                (octets-to-integer (oaep-encode :sha1 (subseq msg start end) (/ nbits 8)))
+                (octets-to-integer (oaep-encode oaep (subseq msg start end) (/ nbits 8)))
                 (octets-to-integer msg :start start :end end))))
     (unless (< m n)
       (error 'invalid-message-length :kind 'rsa))
@@ -117,7 +117,7 @@
            (c (getf message-elements :m))
            (m (rsa-core c d n)))
       (if oaep
-          (oaep-decode :sha1 (integer-to-octets m :n-bits nbits))
+          (oaep-decode oaep (integer-to-octets m :n-bits nbits))
           (integer-to-octets m :n-bits n-bits)))))
 
 (defmethod make-signature ((kind (eql :rsa)) &key s n-bits &allow-other-keys)
@@ -140,7 +140,7 @@
   (let ((nbits (integer-length (rsa-key-modulus key)))
         (m (subseq msg start end)))
     (when pss
-      (setf m (pss-encode :sha1 m (/ nbits 8))))
+      (setf m (pss-encode pss m (/ nbits 8))))
     (setf m (octets-to-integer m))
     (make-signature :rsa
                     :s (rsa-core m (rsa-key-exponent key) (rsa-key-modulus key))
@@ -154,5 +154,5 @@
            (s (getf signature-elements :s))
            (m (rsa-core s (rsa-key-exponent key) (rsa-key-modulus key))))
       (if pss
-          (pss-verify :sha1 (subseq msg start end) (integer-to-octets m :n-bits nbits))
+          (pss-verify pss (subseq msg start end) (integer-to-octets m :n-bits nbits))
           (= (octets-to-integer msg :start start :end end) m)))))
