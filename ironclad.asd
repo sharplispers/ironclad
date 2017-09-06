@@ -22,9 +22,9 @@
 (defclass ironclad-source-file (asdf:cl-source-file) ())
 
 (asdf:defsystem :ironclad
-  :version "0.34"
+  :version "0.35"
   :author "Nathan Froyd <froydnj@gmail.com>"
-  :maintainer "Nathan Froyd <froydnj@gmail.com>"
+  :maintainer "Guillaume LE VAILLANT <glv@posteo.net>"
   :description "A cryptographic toolkit written in pure Common Lisp"
   :default-component-class ironclad-source-file
   :depends-on (#+sbcl sb-rotate-byte #+sbcl sb-posix nibbles)
@@ -210,7 +210,7 @@
 
 (asdf:defsystem ironclad/tests
   :depends-on (ironclad)
-  :version "0.34"
+  :version "0.35"
   :in-order-to ((asdf:test-op (asdf:load-op :ironclad/tests)))
   :components ((:module "testing"
                 :components ((:file "rt")

@@ -2,7 +2,7 @@
 <html>
 <head>
 <title>Ironclad</title>
-<!-- 2017-08-22 mar. 09:42 -->
+<!-- 2017-09-06 mer. 13:27 -->
 <meta  charset="utf-8">
 <meta  name="generator" content="Org-mode">
 <meta  name="author" content="The Ironclad developers">
@@ -93,16 +93,16 @@ usually not safe against side channel attacks.
 <div class="outline-text-2" id="text-installation">
 
 <p>
-The current version of Ironclad is 0.34. It can be downloaded
-at <a href="https://github.com/sharplispers/ironclad/archive/v0.34.tar.gz">https://github.com/sharplispers/ironclad/archive/v0.34.tar.gz</a>.
+The current version of Ironclad is 0.35. It can be downloaded
+at <a href="https://github.com/sharplispers/ironclad/archive/v0.35.tar.gz">https://github.com/sharplispers/ironclad/archive/v0.35.tar.gz</a>.
 If you are feeling adventurous, you can download a bleeding-edge version
 at <a href="https://github.com/sharplispers/ironclad">https://github.com/sharplispers/ironclad</a>.
 </p>
 
 <p>
-It comes with an ASDF system definition, so <code>(asdf:oos 'asdf:load-op :ironclad)</code>
+It comes with an ASDF system definition, so <code>(asdf:load-system "ironclad")</code>
 should be all that you need to get started. The testsuite can be run
-by substituting <code>asdf:test-op</code> for <code>asdf:load-op</code> in the form above.
+by substituting <code>asdf:test-system</code> for <code>asdf:load-system</code> in the form above.
 </p>
 
 <p>

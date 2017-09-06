@@ -57,14 +57,14 @@ usually not safe against side channel attacks.
   :CUSTOM_ID: installation
   :END:
 
-The current version of Ironclad is 0.34. It can be downloaded
-at [[https://github.com/sharplispers/ironclad/archive/v0.34.tar.gz]].
+The current version of Ironclad is 0.35. It can be downloaded
+at [[https://github.com/sharplispers/ironclad/archive/v0.35.tar.gz]].
 If you are feeling adventurous, you can download a bleeding-edge version
 at [[https://github.com/sharplispers/ironclad]].
 
-It comes with an ASDF system definition, so ~(asdf:oos 'asdf:load-op :ironclad)~
+It comes with an ASDF system definition, so ~(asdf:load-system "ironclad")~
 should be all that you need to get started. The testsuite can be run
-by substituting ~asdf:test-op~ for ~asdf:load-op~ in the form above.
+by substituting ~asdf:test-system~ for ~asdf:load-system~ in the form above.
 
 Ironclad has been tested in the following implementations:
  - SBCL x86/linux, x86-64/linux (primary development platforms)

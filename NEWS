@@ -1,16 +1,18 @@
 -*- mode: outline -*-
 
-* Changes since version 0.34
+* Version 0.35, released 2017-09-06
 
 ** bug fixes
 
-Fixed type checking of stream element-type.
+Fixed type checking of stream element-type in the
+update-digest-from-stream function.
+
 Fixed possible timing attack in the pbkdf2-check-password function.
 
 ** new features
 
 New algorithms:
- - Ciphers: XChacha, XSalsa20
+ - Cipher: XChacha, XSalsa20
  - Diffie-Hellman: Curve25519, Curve448, Elgamal
  - Digest: JH, Groestl
  - Key derivation function: Argon2i
