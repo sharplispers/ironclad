@@ -1,5 +1,9 @@
 -*- mode: outline -*-
 
+* Changes since version 0.35
+
+Added Gray streams support for ABCL and ECL.
+
 * Version 0.35, released 2017-09-06
 
 ** bug fixes

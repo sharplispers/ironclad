@@ -19,6 +19,10 @@
                    'excl:stream-write-string)
     (require "streamc.fasl")))
 
+#+ecl
+(eval-when (:compile-toplevel :load-toplevel :execute)
+  (gray::redefine-cl-functions))
+
 (eval-when (:compile-toplevel :load-toplevel :execute)
 (defvar *binary-input-stream-class*
   (quote
@@ -28,7 +32,8 @@
    #+cmu ext:fundamental-binary-input-stream
    #+allegro excl:fundamental-binary-input-stream
    #+abcl gray-streams:fundamental-binary-input-stream
-   #-(or lispworks sbcl openmcl cmu allegro abcl)
+   #+ecl gray:fundamental-binary-input-stream
+   #-(or lispworks sbcl openmcl cmu allegro abcl ecl)
    (error 'ironclad-error :format-control "octet streams not supported in this implementation")))
 
 (defvar *binary-output-stream-class*
@@ -39,7 +44,8 @@
    #+cmu ext:fundamental-binary-output-stream
    #+allegro excl:fundamental-binary-output-stream
    #+abcl gray-streams:fundamental-binary-output-stream
-   #-(or lispworks sbcl openmcl cmu allegro abcl)
+   #+ecl gray:fundamental-binary-output-stream
+   #-(or lispworks sbcl openmcl cmu allegro abcl ecl)
    (error 'ironclad-error :format-control "octet streams not supported in this implementation")))
 
 ;;; FIXME: how to do CMUCL support for this?
@@ -51,7 +57,8 @@
    #+cmu cl:stream-element-type
    #+allegro cl:stream-element-type
    #+abcl cl:stream-element-type
-   #-(or lispworks sbcl openmcl cmu allegro abcl)
+   #+ecl cl:stream-element-type
+   #-(or lispworks sbcl openmcl cmu allegro abcl ecl)
    (error 'ironclad-error :format-control "octet streams not supported in this implementation")))
 
 (defvar *stream-read-byte-function*
@@ -62,7 +69,8 @@
    #+cmu ext:stream-read-byte
    #+allegro excl:stream-read-byte
    #+abcl gray-streams:stream-read-byte
-   #-(or lispworks sbcl openmcl cmu allegro abcl)
+   #+ecl gray:stream-read-byte
+   #-(or lispworks sbcl openmcl cmu allegro abcl ecl)
    (error 'ironclad-error :format-control "octet streams not supported in this implementation")))
 
 (defvar *stream-write-byte-function*
@@ -73,7 +81,8 @@
    #+cmu ext:stream-write-byte
    #+allegro excl:stream-write-byte
    #+abcl gray-streams:stream-write-byte
-   #-(or lispworks sbcl openmcl cmu allegro abcl)
+   #+ecl gray:stream-write-byte
+   #-(or lispworks sbcl openmcl cmu allegro abcl ecl)
    (error 'ironclad-error :format-control "octet streams not supported in this implementation")))
 
 (defvar *stream-read-sequence-function*
@@ -84,7 +93,8 @@
    #+cmu ext:stream-read-sequence
    #+allegro excl:stream-read-sequence
    #+abcl gray-streams:stream-read-sequence
-   #-(or lispworks sbcl openmcl cmu allegro abcl)
+   #+ecl gray:stream-read-sequence
+   #-(or lispworks sbcl openmcl cmu allegro abcl ecl)
    (error 'ironclad-error :format-control "octet streams not supported in this implementation")))
 
 (defvar *stream-write-sequence-function*
@@ -95,7 +105,8 @@
    #+cmu ext:stream-write-sequence
    #+allegro excl:stream-write-sequence
    #+abcl gray-streams:stream-write-sequence
-   #-(or lispworks sbcl openmcl cmu allegro abcl)
+   #+ecl gray:stream-write-sequence
+   #-(or lispworks sbcl openmcl cmu allegro abcl ecl)
    (error 'ironclad-error :format-control "octet streams not supported in this implementation")))
 
 (defvar *stream-finish-output-function*
@@ -106,7 +117,8 @@
    #+cmu ext:stream-finish-output
    #+allegro excl:stream-finish-output
    #+abcl gray-streams:stream-finish-output
-   #-(or lispworks sbcl openmcl cmu allegro abcl)
+   #+ecl gray:stream-finish-output
+   #-(or lispworks sbcl openmcl cmu allegro abcl ecl)
    (error 'ironclad-error :format-control "octet streams not supported in this implementation")))
 
 (defvar *stream-force-output-function*
@@ -117,7 +129,8 @@
    #+cmu ext:stream-force-output
    #+allegro excl:stream-force-output
    #+abcl gray-streams:stream-force-output
-   #-(or lispworks sbcl openmcl cmu allegro abcl)
+   #+ecl gray:stream-force-output
+   #-(or lispworks sbcl openmcl cmu allegro abcl ecl)
    (error 'ironclad-error :format-control "octet streams not supported in this implementation")))
 
 (defvar *stream-clear-output-function*
@@ -128,7 +141,8 @@
    #+cmu ext:stream-clear-output
    #+allegro excl:stream-clear-output
    #+abcl gray-streams:stream-clear-output
-   #-(or lispworks sbcl openmcl cmu allegro abcl)
+   #+ecl gray:stream-clear-output
+   #-(or lispworks sbcl openmcl cmu allegro abcl ecl)
    (error 'ironclad-error :format-control "octet streams not supported in this implementation")))
 )
 
@@ -190,6 +204,14 @@
         (let ((end (or end (length seq))))
           ,@body))
        (t
+        (call-next-method))))
+  #+ecl
+  `(defmethod gray:stream-read-sequence ((stream ,specializer) seq &optional (start 0) end)
+     (typecase seq
+       (,type
+        (let ((end (or end (length seq))))
+          ,@body))
+       (t
         (call-next-method)))))
 
 (defmacro define-stream-write-sequence (specializer type &body body)
@@ -241,6 +263,14 @@
         (call-next-method))))
   #+abcl
   `(defmethod gray-streams:stream-write-sequence ((stream ,specializer) seq &optional (start 0) end)
+     (typecase seq
+       (,type
+        (let ((end (or end (length seq))))
+          ,@body))
+       (t
+        (call-next-method))))
+  #+ecl
+  `(defmethod gray:stream-write-sequence ((stream ,specializer) seq &optional (start 0) end)
      (typecase seq
        (,type
         (let ((end (or end (length seq))))
