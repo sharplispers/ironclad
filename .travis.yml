@@ -3,6 +3,7 @@ sudo: required
 
 env:
   matrix:
+    - LISP=abcl-bin
     - LISP=allegro
     - LISP=ccl-bin
     - LISP=clisp
@@ -11,6 +12,7 @@ env:
 
 matrix:
   allow_failures:
+    - env: LISP=abcl-bin
     - env: LISP=allegro
     - env: LISP=clisp
 
