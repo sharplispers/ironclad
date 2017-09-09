@@ -427,8 +427,7 @@ of a string output-stream."
     (unless (zerop position)
       (update-digest %digest buffer :start 0 :end position)
       (setf position 0))
-    (let ((copy (copy-digest %digest)))
-      (produce-digest copy :digest digest :digest-start digest-start))))
+    (produce-digest %digest :digest digest :digest-start digest-start)))
 
 
 ;;; encrypting and decrypting streams
