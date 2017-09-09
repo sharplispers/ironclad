@@ -1267,7 +1267,7 @@ or break them up into chunks).
 
 Ironclad includes support for several convenient stream abstractions
 based on Gray streams. Gray streams support in Ironclad is included
-for SBCL, CMUCL, OpenMCL, Lispworks, and Allegro.
+for SBCL, CMUCL, OpenMCL, Lispworks, ABCL, and Allegro.
 
 ** Octet streams
 
