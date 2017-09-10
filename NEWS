@@ -2,6 +2,13 @@
 
 * Changes since version 0.35
 
+** bug fixes
+
+Fixed stream cryptors for Chacha and Salsa20. Some bytes of the
+keystream were ignored after encrypting less than 64 bytes at once.
+
+** new features
+
 Added Gray streams support for ABCL and ECL.
 
 * Version 0.35, released 2017-09-06
