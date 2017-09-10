@@ -11,6 +11,9 @@ keystream were ignored after encrypting less than 64 bytes at once.
 
 Added Gray streams support for ABCL and ECL.
 
+Added encrypting streams and decrypting streams. Only stream ciphers
+and block ciphers in CTR mode are supported for the moment.
+
 * Version 0.35, released 2017-09-06
 
 ** bug fixes

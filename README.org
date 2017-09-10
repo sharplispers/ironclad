@@ -1330,6 +1330,56 @@ obtain a digest of all the data written to the stream.
 _Note:_ Calling [[produce-digest][produce-digest]] on a digest stream does not alter
 the internal state of the digest.
 
+
+#+NAME: with-digesting-stream
+#+BEGIN_SRC lisp
+(with-digesting-stream (var digest-name) &body body) => digest
+#+END_SRC
+
+Within /body/, /var/ is bound to a digesting stream for the
+/digest-name/ algorithm. After all the forms in /body/ have been
+executed, the digest of the data that has been written to /var/ is
+returned.
+
+** Cipher streams
+
+Cipher streams encrypt or decrypt the data written to or read from
+them according to a specific cipher algorithm.
+
+
+#+NAME: make-encrypting-stream
+#+BEGIN_SRC lisp
+(make-encrypting-stream stream cipher mode key &key initialization-vector direction padding) => stream
+#+END_SRC
+
+Make a stream wrapped around the binary stream /stream/ that encrypts
+data according to the algorithm /cipher/ initialized with a /mode/,
+a /key/ and an /initialization-vector/.
+If /direction/ is ~:input~, the data read from the created input
+stream is the encryption of the data coming from /stream/.
+If /direction/ is ~:output~, the data written to the created output
+stream is encrypted before being sent to /stream/.
+
+
+#+NAME: make-decrypting-stream
+#+BEGIN_SRC lisp
+(make-decrypting-stream stream cipher mode key &key initialization-vector direction padding) => stream
+#+END_SRC
+
+Make a stream wrapped around the binary stream /stream/ that decrypts
+data according to the algorithm /cipher/ initialized with a /mode/,
+a /key/ and an /initialization-vector/.
+If /direction/ is ~:input~, the data read from the created input
+stream is the decryption of the data coming from /stream/.
+If /direction/ is ~:output~, the data written to the created output
+stream is decrypted before being sent to /stream/.
+
+
+_Note:_ For the moment, only stream ciphers and block ciphers in CTR
+mode are supported by [[make-encrypting-stream][make-encrypting-stream]] and
+[[make-decrypting-stream][make-decrypting-stream]]. Therefore the /padding/ parameter is always
+ignored.
+
 * Utility functions
   :PROPERTIES:
   :CUSTOM_ID: utility-functions

@@ -455,6 +455,11 @@ of a string output-stream."
                                (direction :output) (padding :none))
   (declare (type stream-direction direction))
   (declare (ignorable padding))
+  (case mode
+    ((ctr :ctr) t)
+    ((stream :stream) t)
+    (t (error 'ironclad-error
+              :format-control "Encrypting streams support only CTR and STREAM modes")))
   (let* ((context (make-cipher cipher :mode mode :key key
                                :initialization-vector initialization-vector))
          (block-length (max (block-length cipher) 16))
@@ -470,6 +475,11 @@ of a string output-stream."
                                (direction :input))
   (declare (type stream-direction direction))
   (declare (ignorable padding))
+  (case mode
+    ((ctr :ctr) t)
+    ((stream :stream) t)
+    (t (error 'ironclad-error
+              :format-control "Decrypting streams support only CTR and STREAM modes")))
   (let* ((context (make-cipher cipher :mode mode :key key
                                :initialization-vector initialization-vector))
          (block-length (max (block-length cipher) 16))
@@ -480,39 +490,110 @@ of a string output-stream."
         (make-instance 'decrypting-output-stream :stream stream
                        :cipher context :buffer buffer))))
 
-;;; FIXME: padding issues
-(defun crypting-stream-read-byte (stream cryptfun)
+(defmethod #.*stream-read-byte-function* ((stream encrypting-input-stream))
   (with-slots (wrapped-stream cipher buffer n-bytes-valid position)
       stream
     (when (= position n-bytes-valid)
       (setf n-bytes-valid (read-sequence buffer wrapped-stream)
             position 0)
       (when (zerop n-bytes-valid)
-        (return-from crypting-stream-read-byte :eof))
-      (funcall cryptfun cipher buffer buffer))
+        (return-from #.*stream-read-byte-function* :eof))
+      (encrypt cipher buffer buffer :plaintext-end n-bytes-valid))
     (prog1 (aref buffer position)
       (incf position))))
 
-(defun crypting-stream-write-byte (stream byte cryptfun)
+(defmethod #.*stream-read-byte-function* ((stream decrypting-input-stream))
   (with-slots (wrapped-stream cipher buffer n-bytes-valid position)
       stream
     (when (= position n-bytes-valid)
-      (funcall cryptfun cipher buffer buffer)
-      (write-sequence buffer wrapped-stream)
-      (setf position 0))
-    (prog1 (setf (aref buffer position) byte)
+      (setf n-bytes-valid (read-sequence buffer wrapped-stream)
+            position 0)
+      (when (zerop n-bytes-valid)
+        (return-from #.*stream-read-byte-function* :eof))
+      (decrypt cipher buffer buffer :ciphertext-end n-bytes-valid))
+    (prog1 (aref buffer position)
       (incf position))))
-
-(defmethod #.*stream-read-byte-function* ((stream encrypting-input-stream))
-  (crypting-stream-read-byte stream #'encrypt))
-
-(defmethod #.*stream-read-byte-function* ((stream decrypting-input-stream))
-  (crypting-stream-read-byte stream #'decrypt))
 
 (defmethod #.*stream-write-byte-function* ((stream encrypting-output-stream) byte)
   (declare (type (unsigned-byte 8) byte))
-  (crypting-stream-write-byte stream byte #'encrypt))
+  (with-slots (wrapped-stream cipher buffer)
+      stream
+    (setf (aref buffer 0) byte)
+    (encrypt cipher buffer buffer :plaintext-end 1)
+    (write-byte (aref buffer 0) wrapped-stream)
+    byte))
 
 (defmethod #.*stream-write-byte-function* ((stream decrypting-output-stream) byte)
   (declare (type (unsigned-byte 8) byte))
-  (crypting-stream-write-byte stream byte #'decrypt))
+  (with-slots (wrapped-stream cipher buffer)
+      stream
+    (setf (aref buffer 0) byte)
+    (decrypt cipher buffer buffer :ciphertext-end 1)
+    (write-byte (aref buffer 0) wrapped-stream)
+    byte))
+
+(define-stream-read-sequence encrypting-input-stream simple-octet-vector
+  (with-slots (wrapped-stream cipher buffer n-bytes-valid position)
+      stream
+    (do ((total 0)
+         (n 0))
+        ((= start end) total)
+      (when (= position n-bytes-valid)
+        (setf n-bytes-valid (read-sequence buffer wrapped-stream)
+              position 0)
+        (incf total n-bytes-valid)
+        (when (zerop n-bytes-valid)
+          (return total))
+        (encrypt cipher buffer buffer :plaintext-end n-bytes-valid))
+      (setf n (min (- end start) (- n-bytes-valid position)))
+      (replace seq buffer :start1 start :end1 end :start2 position :end2 n-bytes-valid)
+      (incf start n)
+      (incf position n)
+      (incf total n))))
+
+(define-stream-read-sequence decrypting-input-stream simple-octet-vector
+  (with-slots (wrapped-stream cipher buffer n-bytes-valid position)
+      stream
+    (do ((total 0)
+         (n 0))
+        ((= start end) total)
+      (when (= position n-bytes-valid)
+        (setf n-bytes-valid (read-sequence buffer wrapped-stream)
+              position 0)
+        (incf total n-bytes-valid)
+        (when (zerop n-bytes-valid)
+          (return total))
+        (decrypt cipher buffer buffer :ciphertext-end n-bytes-valid))
+      (setf n (min (- end start) (- n-bytes-valid position)))
+      (replace seq buffer :start1 start :end1 end :start2 position :end2 n-bytes-valid)
+      (incf start n)
+      (incf position n)
+      (incf total n))))
+
+(define-stream-write-sequence encrypting-output-stream simple-octet-vector
+  (with-slots (wrapped-stream cipher buffer)
+      stream
+    (do ((buffer-length (length buffer))
+         (length (- end start))
+         (n 0))
+        ((zerop length))
+      (setf n (min buffer-length length))
+      (encrypt cipher seq buffer :plaintext-start start :plaintext-end (+ start n))
+      (write-sequence buffer wrapped-stream :end n)
+      (decf length n)
+      (incf start n))
+    seq))
+
+(define-stream-write-sequence decrypting-output-stream simple-octet-vector
+  (with-slots (wrapped-stream cipher buffer)
+      stream
+    (do ((buffer-length (length buffer))
+         (length (- end start))
+         (n 0))
+        ((zerop length))
+      (setf n (min buffer-length length))
+      (decrypt cipher seq buffer :ciphertext-start start :ciphertext-end (+ start n))
+      (write-sequence buffer wrapped-stream :end n)
+      (decf length n)
+      (incf start n))
+    seq))
