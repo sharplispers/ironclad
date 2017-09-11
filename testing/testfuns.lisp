@@ -152,7 +152,7 @@
     (when (mismatch result expected-digest)
       (error "fill-pointer'd ~A digest of ~S failed" digest-name input))))
 
-#+(or lispworks sbcl cmucl openmcl allegro abcl ecl)
+#+(or lispworks sbcl cmucl openmcl allegro abcl ecl clisp)
 (defun digest-test/stream (digest-name input expected-digest)
   (let* ((stream (crypto:make-digesting-stream digest-name)))
     (write-sequence input stream)
@@ -204,7 +204,7 @@
         (cons :digest-bit-test 'ignore-test)
         (cons :xof-digest-test 'ignore-test)))
 
-#+(or lispworks sbcl cmucl openmcl allegro abcl ecl)
+#+(or lispworks sbcl cmucl openmcl allegro abcl ecl clisp)
 (defparameter *digest-stream-tests*
   (list (cons :digest-test 'digest-test/stream)
         (cons :digest-bit-test 'ignore-test)

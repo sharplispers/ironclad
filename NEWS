@@ -9,7 +9,7 @@ keystream were ignored after encrypting less than 64 bytes at once.
 
 ** new features
 
-Added Gray streams support for ABCL and ECL.
+Added Gray streams support for ABCL, ECL and Clisp.
 
 Added encrypting streams and decrypting streams. Only stream ciphers
 and block ciphers in CTR mode are supported for the moment.

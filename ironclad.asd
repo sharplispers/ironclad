@@ -40,7 +40,7 @@
                              (:file "macro-utils" :depends-on ("package"))
                              (:file "math" :depends-on ("package" "prng"))
                              ;; FIXME: make this depend on :FEATURE :IRONCLAD-GRAY-STREAMS
-                             #+(or lispworks sbcl openmcl cmu allegro abcl ecl)
+                             #+(or lispworks sbcl openmcl cmu allegro abcl ecl clisp)
                              (:file "octet-stream" :depends-on ("common" "conditions" "package"))
                              (:file "package")
                              (:file "padding" :depends-on ("common" "package"))
@@ -170,7 +170,9 @@
   (list :ironclad-gray-streams)
   #+ecl
   (list :ironclad-gray-streams)
-  #-(or sbcl cmu allegro lispworks openmcl abcl ecl)
+  #+clisp
+  (list :ironclad-gray-streams)
+  #-(or sbcl cmu allegro lispworks openmcl abcl ecl clisp)
   nil)
 
 (macrolet ((do-silently (&body body)
