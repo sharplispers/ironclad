@@ -1389,7 +1389,7 @@ to them according to a specific MAC algorithm.
 
 #+NAME: make-authenticating-stream
 #+BEGIN_SRC lisp
-(defun make-authenticating-stream mac key &rest args) => stream
+(make-authenticating-stream mac key &rest args) => stream
 #+END_SRC
 
 Make a stream that computes a MAC of the data written to it according
