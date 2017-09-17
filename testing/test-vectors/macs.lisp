@@ -1,9 +1,28 @@
 ;;;; -*- mode: lisp; indent-tabs-mode: nil -*-
 (in-package :crypto-tests)
 
-(rtest:deftest :hmac (run-test-vector-file :hmac *mac-tests*) t)
-(rtest:deftest :cmac (run-test-vector-file :cmac *mac-tests*) t)
-(rtest:deftest :skein-mac (run-test-vector-file :skein-mac *mac-tests*) t)
-(rtest:deftest :poly1305 (run-test-vector-file :poly1305 *mac-tests*) t)
-(rtest:deftest :blake2-mac (run-test-vector-file :blake2-mac *mac-tests*) t)
-(rtest:deftest :blake2s-mac (run-test-vector-file :blake2s-mac *mac-tests*) t)
+#.(loop for mac in (crypto:list-all-macs)
+        collect `(rtest:deftest ,mac
+                   (run-test-vector-file ',mac *mac-tests*) t)
+          into forms
+        finally (return `(progn ,@forms)))
+
+#.(loop for mac in (crypto:list-all-macs)
+        collect `(rtest:deftest ,(intern (format nil "~A/~A" mac '#:incremental))
+                   (run-test-vector-file ',mac *mac-incremental-tests*) t)
+          into forms
+        finally (return `(progn ,@forms)))
+
+#.(if (boundp '*mac-stream-tests*)
+      (loop for mac in (crypto:list-all-macs)
+         collect `(rtest:deftest ,(intern (format nil "~A/~A" mac '#:stream))
+                      (run-test-vector-file ',mac *mac-stream-tests*) t)
+           into forms
+         finally (return `(progn ,@forms)))
+      nil)
+
+#.(loop for mac in (crypto:list-all-macs)
+        collect `(rtest:deftest ,(intern (format nil "~A/~A" mac '#:reinitialize-instance))
+                   (run-test-vector-file ',mac *mac-reinitialize-instance-tests*) t)
+          into forms
+        finally (return `(progn ,@forms)))
