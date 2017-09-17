@@ -14,6 +14,8 @@ Added Gray streams support for ABCL, ECL and Clisp.
 Added encrypting streams and decrypting streams. Only stream ciphers
 and block ciphers in CTR mode are supported for the moment.
 
+Added authenticating streams.
+
 * Version 0.35, released 2017-09-06
 
 ** bug fixes

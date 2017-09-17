@@ -614,3 +614,40 @@ of a string output-stream."
       (decf length n)
       (incf start n))
     seq))
+
+
+;;; authenticating streams
+
+(defclass authenticating-stream (#.*binary-output-stream-class*)
+  ((mac :initarg :mac :reader stream-mac)
+   (buffer :initform (make-array 64 :element-type '(unsigned-byte 8)) :reader stream-buffer)
+   (position :initform 0 :reader stream-buffer-position)))
+
+(defmethod #.*stream-element-type-function* ((stream authenticating-stream))
+  '(unsigned-byte 8))
+
+(defun make-authenticating-stream (mac key &rest args)
+  (make-instance 'authenticating-stream :mac (apply #'make-mac mac key args)))
+
+(defmethod #.*stream-write-byte-function* ((stream authenticating-stream) byte)
+  (declare (type (unsigned-byte 8) byte))
+  (with-slots (mac buffer position) stream
+    (setf (aref buffer position) byte)
+    (when (= (incf position) 64)
+      (update-mac mac buffer :start 0 :end 64)
+      (setf position 0))
+    byte))
+
+(define-stream-write-sequence authenticating-stream simple-octet-vector
+  (unless (zerop (stream-buffer-position stream))
+    (update-mac (stream-mac stream) (stream-buffer stream) :end (stream-buffer-position stream))
+    (setf (slot-value stream 'position) 0))
+  (update-mac (stream-mac stream) seq :start start :end end)
+  seq)
+
+(defmethod produce-mac ((stream authenticating-stream) &key digest (digest-start 0))
+  (with-slots (mac buffer position) stream
+    (unless (zerop position)
+      (update-mac mac buffer :start 0 :end position)
+      (setf position 0))
+    (produce-mac mac :digest digest :digest-start digest-start)))

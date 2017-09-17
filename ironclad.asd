@@ -41,7 +41,7 @@
                              (:file "math" :depends-on ("package" "prng"))
                              ;; FIXME: make this depend on :FEATURE :IRONCLAD-GRAY-STREAMS
                              #+(or lispworks sbcl openmcl cmu allegro abcl ecl clisp)
-                             (:file "octet-stream" :depends-on ("common" "conditions" "package"))
+                             (:file "octet-stream" :depends-on ("ciphers" "common" "conditions" "digests" "macs" "package"))
                              (:file "package")
                              (:file "padding" :depends-on ("common" "package"))
                              (:file "util" :depends-on ("conditions" "package"))

@@ -1382,6 +1382,48 @@ mode are supported by [[make-encrypting-stream][make-encrypting-stream]] and
 [[make-decrypting-stream][make-decrypting-stream]]. Therefore the /padding/ parameter is always
 ignored.
 
+** MAC streams
+
+MAC streams compute a message authentication code of the data written
+to them according to a specific MAC algorithm.
+
+#+NAME: make-authenticating-stream
+#+BEGIN_SRC lisp
+(defun make-authenticating-stream mac key &rest args) => stream
+#+END_SRC
+
+Make a stream that computes a MAC of the data written to it according
+to the algorithm /mac/ initialized with a /key/. The parameters used
+to create the MAC can be specified as /args/.
+[[produce-mac][produce-mac]] may be used to obtain a MAC of all the data written to the
+stream.
+
+_Note:_ Calling [[produce-mac][produce-mac]] on a MAC stream does not alter the
+internal state of the MAC.
+
+
+Example: encrypt some data and compute a MAC of the ciphertext
+#+BEGIN_EXAMPLE
+(let* ((data ...)
+       (output-stream ...)
+       (encryption-key ...)
+       (authentication-key ...)
+       (iv ...)
+       (mac-stream (make-authenticating-stream :hmac
+                                               authentication-key
+                                               :sha3))
+       (stream (make-broadcast-stream output-stream mac-stream))
+       (cipher-stream (make-encrypting-stream stream
+                                              :chacha
+                                              :stream
+                                              encryption-key
+                                              :initialization-vector iv)))
+  (write-sequence data cipher-stream)
+  ...
+  (let ((mac (produce-mac mac-stream)))
+    ...))
+#+END_EXAMPLE
+
 * Utility functions
   :PROPERTIES:
   :CUSTOM_ID: utility-functions
