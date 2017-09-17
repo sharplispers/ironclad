@@ -60,26 +60,6 @@
 
 ;;; cipher testing
 
-(defun ecb-mode-test (cipher-name hexkey hexinput hexoutput)
-  (cipher-test-guts cipher-name :ecb hexkey hexinput hexoutput))
-
-(defun ecb-tweak-mode-test (cipher-name hexkey hextweak hexinput hexoutput)
-  (cipher-test-guts cipher-name :ecb hexkey hexinput hexoutput
-                    (list :tweak hextweak)))
-
-(defun stream-mode-test (cipher-name hexkey hexinput hexoutput)
-  (cipher-test-guts cipher-name :stream hexkey hexinput hexoutput))
-
-(defun stream-nonce-mode-test (cipher-name hexkey hexiv hexinput hexoutput)
-  (cipher-test-guts cipher-name :stream hexkey hexinput hexoutput
-                    (list :initialization-vector hexiv)))
-
-(defparameter *cipher-tests*
-  (list (cons :ecb-mode-test 'ecb-mode-test)
-        (cons :ecb-tweak-mode-test 'ecb-tweak-mode-test)
-        (cons :stream-mode-test 'stream-mode-test)
-        (cons :stream-nonce-mode-test 'stream-nonce-mode-test)))
-
 (defun cipher-test-guts (cipher-name mode key input output
                          &optional extra-make-cipher-args)
   (labels ((frob-hex-string (func input)
@@ -97,6 +77,65 @@
     (unless (cipher-test 'crypto:decrypt output input)
       (error "decryption failed for ~A on key ~A, input ~A, output ~A"
              cipher-name key output input))))
+
+#+(or lispworks sbcl cmucl openmcl allegro abcl ecl clisp)
+(defun cipher-stream-test-guts (cipher-name mode key input output
+                                &optional extra-args)
+  (let* ((out-stream (crypto:make-octet-output-stream))
+         (enc-stream (apply #'crypto:make-encrypting-stream
+                            out-stream cipher-name mode key extra-args))
+         (in-stream (crypto:make-octet-input-stream output))
+         (dec-stream (apply #'crypto:make-decrypting-stream
+                            in-stream cipher-name mode key extra-args)))
+    (write-byte (aref input 0) enc-stream)
+    (write-sequence input enc-stream :start 1)
+    (let ((result (crypto:get-output-stream-octets out-stream)))
+      (when (mismatch result output)
+        (error "stream encryption failed for ~A on key ~A, input ~A, output ~A"
+               cipher-name key input output)))
+    (let ((result (copy-seq output)))
+      (setf (aref result 0) (read-byte dec-stream))
+      (read-sequence result dec-stream :start 1)
+      (when (mismatch result input)
+        (error "stream decryption failed for ~A on key ~A, input ~A, output ~A"
+               cipher-name key output input)))))
+
+(defun ecb-mode-test (cipher-name hexkey hexinput hexoutput)
+  (cipher-test-guts cipher-name :ecb hexkey hexinput hexoutput))
+
+(defun ecb-tweak-mode-test (cipher-name hexkey hextweak hexinput hexoutput)
+  (cipher-test-guts cipher-name :ecb hexkey hexinput hexoutput
+                    (list :tweak hextweak)))
+
+(defun stream-mode-test (cipher-name hexkey hexinput hexoutput)
+  (cipher-test-guts cipher-name :stream hexkey hexinput hexoutput))
+
+(defun stream-nonce-mode-test (cipher-name hexkey hexiv hexinput hexoutput)
+  (cipher-test-guts cipher-name :stream hexkey hexinput hexoutput
+                    (list :initialization-vector hexiv)))
+
+#+(or lispworks sbcl cmucl openmcl allegro abcl ecl clisp)
+(defun stream-mode-test/stream (cipher-name hexkey hexinput hexoutput)
+  (cipher-stream-test-guts cipher-name :stream hexkey hexinput hexoutput))
+
+#+(or lispworks sbcl cmucl openmcl allegro abcl ecl clisp)
+(defun stream-nonce-mode-test/stream (cipher-name hexkey hexiv hexinput hexoutput)
+  (cipher-stream-test-guts cipher-name :stream hexkey hexinput hexoutput
+                           (list :initialization-vector hexiv)))
+
+(defparameter *cipher-tests*
+  (list (cons :ecb-mode-test 'ecb-mode-test)
+        (cons :ecb-tweak-mode-test 'ecb-tweak-mode-test)
+        (cons :stream-mode-test 'stream-mode-test)
+        (cons :stream-nonce-mode-test 'stream-nonce-mode-test)))
+
+#+(or lispworks sbcl cmucl openmcl allegro abcl ecl clisp)
+(defparameter *cipher-stream-tests*
+  (list (cons :ecb-mode-test 'ignore-test)
+        (cons :ecb-tweak-mode-test 'ignore-test)
+        (cons :stream-mode-test 'stream-mode-test/stream)
+        (cons :stream-nonce-mode-test 'stream-nonce-mode-test/stream)))
+
 
 ;;; encryption mode consistency checking
 
@@ -238,7 +277,7 @@
 
 #+(or lispworks sbcl cmucl openmcl allegro abcl ecl clisp)
 (defun mac-test/stream (mac-name key data expected-digest &rest args)
-  (let* ((stream (apply #'crypto:make-authenticating-stream mac-name key args)))
+  (let ((stream (apply #'crypto:make-authenticating-stream mac-name key args)))
     (write-sequence data stream)
     (let ((result (crypto:produce-mac stream)))
       (when (mismatch result expected-digest)
