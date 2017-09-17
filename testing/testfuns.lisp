@@ -194,7 +194,9 @@
 #+(or lispworks sbcl cmucl openmcl allegro abcl ecl clisp)
 (defun digest-test/stream (digest-name input expected-digest)
   (let* ((stream (crypto:make-digesting-stream digest-name)))
-    (write-sequence input stream)
+    (when (plusp (length input))
+      (write-byte (aref input 0) stream)
+      (write-sequence input stream :start 1))
     (when (mismatch (crypto:produce-digest stream) expected-digest)
       (error "stream-y ~A digest of ~S failed" digest-name input))))
 
@@ -278,7 +280,9 @@
 #+(or lispworks sbcl cmucl openmcl allegro abcl ecl clisp)
 (defun mac-test/stream (mac-name key data expected-digest &rest args)
   (let ((stream (apply #'crypto:make-authenticating-stream mac-name key args)))
-    (write-sequence data stream)
+    (when (plusp (length data))
+      (write-byte (aref data 0) stream)
+      (write-sequence data stream :start 1))
     (let ((result (crypto:produce-mac stream)))
       (when (mismatch result expected-digest)
         (error "stream ~A mac of ~A failed on key ~A, args ~A"
