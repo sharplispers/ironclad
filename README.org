@@ -1320,12 +1320,14 @@ Example:
 
 #+NAME: make-digesting-stream
 #+BEGIN_SRC lisp
-(make-digesting-stream digest) => stream
+(make-digesting-stream digest &rest args) => stream
 #+END_SRC
 
 Make a stream that computes a digest of the data written to it
-according to the algorithm /digest/. [[produce-digest][produce-digest]] may be used to
-obtain a digest of all the data written to the stream.
+according to the algorithm /digest/. The parameters that can be used
+by some algorithms can be specified as /args/.
+[[produce-digest][produce-digest]] may be used to obtain a digest of all the data written
+to the stream.
 
 _Note:_ Calling [[produce-digest][produce-digest]] on a digest stream does not alter
 the internal state of the digest.

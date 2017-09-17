@@ -2,7 +2,7 @@
 <html>
 <head>
 <title>Ironclad</title>
-<!-- 2017-09-11 lun. 14:01 -->
+<!-- 2017-09-17 dim. 11:54 -->
 <meta  charset="utf-8">
 <meta  name="generator" content="Org-mode">
 <meta  name="author" content="The Ironclad developers">
@@ -1950,14 +1950,16 @@ Example:
 
 <div class="org-src-container">
 
-<pre class="src src-lisp" id="make-digesting-stream">(make-digesting-stream digest) =&gt; stream
+<pre class="src src-lisp" id="make-digesting-stream">(make-digesting-stream digest &amp;rest args) =&gt; stream
 </pre>
 </div>
 
 <p>
 Make a stream that computes a digest of the data written to it
-according to the algorithm <i>digest</i>. <a href="#produce-digest">produce-digest</a> may be used to
-obtain a digest of all the data written to the stream.
+according to the algorithm <i>digest</i>. The parameters that can be used
+by some algorithms can be specified as <i>args</i>.
+<a href="#produce-digest">produce-digest</a> may be used to obtain a digest of all the data written
+to the stream.
 </p>
 
 <p>

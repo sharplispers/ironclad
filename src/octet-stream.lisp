@@ -294,13 +294,6 @@
        (t
         (call-next-method)))))
 
-(defun execute-with-digesting-stream (digest fn)
-  (with-open-stream (stream (make-digesting-stream digest))
-    (funcall fn stream)
-    (produce-digest stream)))
-
-(defmacro with-digesting-stream ((var digest) &body body)
-  `(execute-with-digesting-stream ,digest (lambda (,var) ,@body)))
 
 ;;; input streams
 
@@ -410,8 +403,8 @@ of a string output-stream."
 (defmethod #.*stream-element-type-function* ((stream digesting-stream))
   '(unsigned-byte 8))
 
-(defun make-digesting-stream (digest)
-  (make-instance 'digesting-stream :digest (make-digest digest)))
+(defun make-digesting-stream (digest &rest args)
+  (make-instance 'digesting-stream :digest (apply #'make-digest digest args)))
 
 (defmethod #.*stream-write-byte-function* ((stream digesting-stream) byte)
   (declare (type (unsigned-byte 8) byte))
@@ -444,6 +437,14 @@ of a string output-stream."
       (update-digest %digest buffer :start 0 :end position)
       (setf position 0))
     (produce-digest %digest :digest digest :digest-start digest-start)))
+
+(defun execute-with-digesting-stream (digest fn)
+  (with-open-stream (stream (make-digesting-stream digest))
+    (funcall fn stream)
+    (produce-digest stream)))
+
+(defmacro with-digesting-stream ((var digest) &body body)
+  `(execute-with-digesting-stream ,digest (lambda (,var) ,@body)))
 
 
 ;;; encrypting and decrypting streams
