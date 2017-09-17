@@ -69,7 +69,7 @@ bounded by start and end, which must be numeric bounding-indices."
       :for length fixnum = (- end start)
       :for block-index fixnum = (tree-hash-block-index state) :then 0
       :for block-remaining-length fixnum = (- block-length block-index)
-      :for current-length fixnum = (min block-length length)
+      :for current-length fixnum = (min block-remaining-length length)
       :for new-index fixnum = (+ block-index current-length)
       :for new-start fixnum = (+ start current-length) :do
       (update-digest digest sequence :start start :end new-start)
