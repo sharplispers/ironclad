@@ -114,6 +114,7 @@
                                      &key (key nil key-p)
                                      (initialization-vector nil iv-p)
                                      &allow-other-keys)
+  (setf (salsa20-keystream-buffer-remaining cipher) 0)
   (when initialization-vector
     (when (< (length initialization-vector) 8)
       (error 'invalid-initialization-vector
