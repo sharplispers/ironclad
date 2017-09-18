@@ -116,12 +116,14 @@
 
    ;; streams
    #:make-octet-input-stream #:make-octet-output-stream
+   #:with-octet-input-stream #:with-octet-output-stream
    #:get-output-stream-octets
    #:make-digesting-stream
    #:execute-with-digesting-stream #:with-digesting-stream
    #:execute-with-digesting-text-stream #:with-digesting-text-stream
    #:make-encrypting-stream #:make-decrypting-stream
-   #:make-authenticating-stream)
+   #:with-encrypting-stream #:with-decrypting-stream
+   #:make-authenticating-stream #:with-authenticating-stream)
   ;; supported digests
   (:export #:whirlpool #:md2 #:md4 #:md5 #:adler32 #:crc24 #:crc32
            #:tiger #:sha1 #:sha224 #:sha256 #:sha384 #:sha512

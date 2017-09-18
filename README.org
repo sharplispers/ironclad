@@ -1282,6 +1282,7 @@ they deal in octets instead of characters.
 
 As ~make-string-input-stream~, only with octets instead of characters.
 
+
 #+NAME: make-octet-output-stream
 #+BEGIN_SRC lisp
 (make-octet-output-stream) => octet-output-stream
@@ -1297,6 +1298,27 @@ As ~make-string-output-stream~, only with octets instead of characters.
 
 As ~get-output-stream-string~, only with an octet output-steam instead
 of a string output-stream.
+
+
+#+NAME: with-octet-input-stream
+#+BEGIN_SRC lisp
+(with-octet-input-stream ((var buffer &optional (start 0) end) &body body))
+#+END_SRC
+
+Within /body/, /var/ is bound to an octet input stream. Reading from
+/var/ gives the bytes between the indexes /start/ and /end/ of
+/buffer/. The result of the last form of /body/ is returned.
+
+
+#+NAME: with-octet-output-stream
+#+BEGIN_SRC lisp
+(with-octet-output-stream ((var) &body body)) => bytes
+#+END_SRC
+
+Within /body/, /var/ is bound to an octet output stream. After all the
+forms in /body/ have been executed, the data that has been written to
+/var/ (and that hasn't been consumed by a call to
+[[get-output-stream-octets][get-output-stream-octets]] within /body/) is returned.
 
 ** Digest streams
 
@@ -1335,7 +1357,7 @@ the internal state of the digest.
 
 #+NAME: with-digesting-stream
 #+BEGIN_SRC lisp
-(with-digesting-stream (var digest-name) &body body) => digest
+(with-digesting-stream (var digest-name &rest args) &body body) => digest
 #+END_SRC
 
 Within /body/, /var/ is bound to a digesting stream for the
@@ -1382,6 +1404,24 @@ mode are supported by [[make-encrypting-stream][make-encrypting-stream]] and
 [[make-decrypting-stream][make-decrypting-stream]]. Therefore the /padding/ parameter is always
 ignored.
 
+
+#+NAME: with-encrypting-stream
+#+BEGIN_SRC lisp
+(with-encrypting-stream ((var stream cipher mode key &key initialization-vector direction padding) &body body))
+#+END_SRC
+
+Within /body/, /var/ is bound to an encrypting stream. The result of
+the last form of /body/ is returned.
+
+
+#+NAME: with-decrypting-stream
+#+BEGIN_SRC lisp
+(with-decrypting-stream ((var stream cipher mode key &key initialization-vector direction padding) &body body))
+#+END_SRC
+
+Within /body/, /var/ is bound to a decrypting stream. The result of
+the last form of /body/ is returned.
+
 ** MAC streams
 
 MAC streams compute a message authentication code of the data written
@@ -1423,6 +1463,17 @@ Example: encrypt some data and compute a MAC of the ciphertext
   (let ((mac (produce-mac mac-stream)))
     ...))
 #+END_EXAMPLE
+
+
+#+NAME: with-authenticating-stream
+#+BEGIN_SRC lisp
+(with-authenticating-stream (var mac-name key &rest args) &body body) => mac
+#+END_SRC
+
+Within /body/, /var/ is bound to an authenticating stream for the
+/mac-name/ algorithm. After all the forms in /body/ have been
+executed, the message authentication code of the data that has been
+written to /var/ is returned.
 
 * Utility functions
   :PROPERTIES:

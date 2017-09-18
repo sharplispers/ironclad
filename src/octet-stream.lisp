@@ -333,6 +333,10 @@
     (make-instance 'octet-input-stream
                    :buffer buffer :index start :end end)))
 
+(defmacro with-octet-input-stream ((var buffer &optional (start 0) end) &body body)
+  `(with-open-stream (,var (make-octet-input-stream ,buffer ,start ,end))
+     ,@body))
+
 
 ;;; output streams
 
@@ -390,6 +394,11 @@ of a string output-stream."
   (make-instance 'octet-output-stream
                  :buffer (make-array 128 :element-type '(unsigned-byte 8))))
 
+(defmacro with-octet-output-stream ((var) &body body)
+  `(with-open-stream (,var (make-octet-output-stream))
+     ,@body
+     (get-output-stream-octets ,var)))
+
 
 ;;; digesting streams
 
@@ -443,8 +452,10 @@ of a string output-stream."
     (funcall fn stream)
     (produce-digest stream)))
 
-(defmacro with-digesting-stream ((var digest) &body body)
-  `(execute-with-digesting-stream ,digest (lambda (,var) ,@body)))
+(defmacro with-digesting-stream ((var digest &rest args) &body body)
+  `(with-open-stream (,var (make-digesting-stream ,digest ,@args))
+     ,@body
+     (produce-digest ,var)))
 
 
 ;;; encrypting and decrypting streams
@@ -616,6 +627,27 @@ of a string output-stream."
     seq))
 
 
+(defmacro with-encrypting-stream ((var stream cipher mode key
+                                   &key initialization-vector
+                                     (direction :output) (padding :none))
+                                  &body body)
+  `(with-open-stream (,var (make-encrypting-stream ,stream ,cipher ,mode ,key
+                                                   :initialization-vector ,initialization-vector
+                                                   :direction ,direction
+                                                   :padding ,padding))
+     ,@body))
+
+(defmacro with-decrypting-stream ((var stream cipher mode key
+                                   &key initialization-vector
+                                     (direction :input) (padding :none))
+                                  &body body)
+  `(with-open-stream (,var (make-decrypting-stream ,stream ,cipher ,mode ,key
+                                                   :initialization-vector ,initialization-vector
+                                                   :direction ,direction
+                                                   :padding ,padding))
+     ,@body))
+
+
 ;;; authenticating streams
 
 (defclass authenticating-stream (#.*binary-output-stream-class*)
@@ -651,3 +683,8 @@ of a string output-stream."
       (update-mac mac buffer :start 0 :end position)
       (setf position 0))
     (produce-mac mac :digest digest :digest-start digest-start)))
+
+(defmacro with-authenticating-stream ((var mac key &rest args) &body body)
+  `(with-open-stream (,var (make-authenticating-stream ,mac ,key ,@args))
+     ,@body
+     (produce-mac ,var)))

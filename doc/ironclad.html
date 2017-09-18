@@ -2,7 +2,7 @@
 <html>
 <head>
 <title>Ironclad</title>
-<!-- 2017-09-17 dim. 14:40 -->
+<!-- 2017-09-18 lun. 10:54 -->
 <meta  charset="utf-8">
 <meta  name="generator" content="Org-mode">
 <meta  name="author" content="The Ironclad developers">
@@ -1899,6 +1899,7 @@ they deal in octets instead of characters.
 As <code>make-string-input-stream</code>, only with octets instead of characters.
 </p>
 
+
 <div class="org-src-container">
 
 <pre class="src src-lisp" id="make-octet-output-stream">(make-octet-output-stream) =&gt; octet-output-stream
@@ -1919,6 +1920,33 @@ As <code>make-string-output-stream</code>, only with octets instead of character
 <p>
 As <code>get-output-stream-string</code>, only with an octet output-steam instead
 of a string output-stream.
+</p>
+
+
+<div class="org-src-container">
+
+<pre class="src src-lisp" id="with-octet-input-stream">(with-octet-input-stream ((var buffer &amp;optional (start 0) end) &amp;body body))
+</pre>
+</div>
+
+<p>
+Within <i>body</i>, <i>var</i> is bound to an octet input stream. Reading from
+<i>var</i> gives the bytes between the indexes <i>start</i> and <i>end</i> of
+<i>buffer</i>. The result of the last form of <i>body</i> is returned.
+</p>
+
+
+<div class="org-src-container">
+
+<pre class="src src-lisp" id="with-octet-output-stream">(with-octet-output-stream ((var) &amp;body body)) =&gt; bytes
+</pre>
+</div>
+
+<p>
+Within <i>body</i>, <i>var</i> is bound to an octet output stream. After all the
+forms in <i>body</i> have been executed, the data that has been written to
+<i>var</i> (and that hasn't been consumed by a call to
+<a href="#get-output-stream-octets">get-output-stream-octets</a> within <i>body</i>) is returned.
 </p>
 </div>
 </div>
@@ -1970,7 +1998,7 @@ the internal state of the digest.
 
 <div class="org-src-container">
 
-<pre class="src src-lisp" id="with-digesting-stream">(with-digesting-stream (var digest-name) &amp;body body) =&gt; digest
+<pre class="src src-lisp" id="with-digesting-stream">(with-digesting-stream (var digest-name &amp;rest args) &amp;body body) =&gt; digest
 </pre>
 </div>
 
@@ -2032,6 +2060,30 @@ mode are supported by <a href="#make-encrypting-stream">make-encrypting-stream</
 <a href="#make-decrypting-stream">make-decrypting-stream</a>. Therefore the <i>padding</i> parameter is always
 ignored.
 </p>
+
+
+<div class="org-src-container">
+
+<pre class="src src-lisp" id="with-encrypting-stream">(with-encrypting-stream ((var stream cipher mode key &amp;key initialization-vector direction padding) &amp;body body))
+</pre>
+</div>
+
+<p>
+Within <i>body</i>, <i>var</i> is bound to an encrypting stream. The result of
+the last form of <i>body</i> is returned.
+</p>
+
+
+<div class="org-src-container">
+
+<pre class="src src-lisp" id="with-decrypting-stream">(with-decrypting-stream ((var stream cipher mode key &amp;key initialization-vector direction padding) &amp;body body))
+</pre>
+</div>
+
+<p>
+Within <i>body</i>, <i>var</i> is bound to a decrypting stream. The result of
+the last form of <i>body</i> is returned.
+</p>
 </div>
 </div>
 
@@ -2086,6 +2138,20 @@ Example: encrypt some data and compute a MAC of the ciphertext
   (let ((mac (produce-mac mac-stream)))
     ...))
 </pre>
+
+
+<div class="org-src-container">
+
+<pre class="src src-lisp" id="with-authenticating-stream">(with-authenticating-stream (var mac-name key &amp;rest args) &amp;body body) =&gt; mac
+</pre>
+</div>
+
+<p>
+Within <i>body</i>, <i>var</i> is bound to an authenticating stream for the
+<i>mac-name</i> algorithm. After all the forms in <i>body</i> have been
+executed, the message authentication code of the data that has been
+written to <i>var</i> is returned.
+</p>
 </div>
 </div>
 </div>
