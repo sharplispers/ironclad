@@ -26,6 +26,7 @@
   :author "Nathan Froyd <froydnj@gmail.com>"
   :maintainer "Guillaume LE VAILLANT <glv@posteo.net>"
   :description "A cryptographic toolkit written in pure Common Lisp"
+  :license "BSD 3-Clause"
   :default-component-class ironclad-source-file
   :depends-on (#+sbcl sb-rotate-byte #+sbcl sb-posix nibbles)
   :components ((:static-file "LICENSE")
