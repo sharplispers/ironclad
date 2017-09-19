@@ -21,6 +21,8 @@
   (declare (type arcfour context))
   (let ((m (arcfour-sbox context)))
     (declare (type arcfour-sbox m))
+    (setf (arcfour-x context) 0
+          (arcfour-y context) 0)
     (dotimes (i 256)
       (setf (aref m i) i))
     (let ((a 0)

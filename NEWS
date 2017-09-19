@@ -10,6 +10,8 @@ keystream were ignored after encrypting less than 64 bytes at once.
 Fixed tree hash digester. It could sometimes give a wrong result when
 fed data incrementally.
 
+Fixed Arcfour cipher reinitialization.
+
 ** new features
 
 Added Gray streams support for ABCL, ECL and Clisp.
