@@ -62,19 +62,17 @@
 
 (defun cipher-test-guts (cipher-name mode key input output
                          &optional extra-make-cipher-args)
-  (labels ((frob-hex-string (func input)
-             (let ((cipher (apply #'crypto:make-cipher cipher-name
-                                  :key key :mode mode
-                                  extra-make-cipher-args))
-                    (scratch (copy-seq input)))
-               (funcall func cipher input scratch)
-               scratch))
-           (cipher-test (func input output)
-             (not (mismatch (frob-hex-string func input) output))))
-    (unless (cipher-test 'crypto:encrypt input output)
+  (let ((cipher (apply #'crypto:make-cipher cipher-name
+                       :key key :mode mode
+                       extra-make-cipher-args))
+        (scratch (copy-seq input)))
+    (crypto:encrypt cipher input scratch)
+    (when (mismatch scratch output)
       (error "encryption failed for ~A on key ~A, input ~A, output ~A"
              cipher-name key input output))
-    (unless (cipher-test 'crypto:decrypt output input)
+    (apply #'reinitialize-instance cipher :key key extra-make-cipher-args)
+    (crypto:decrypt cipher output scratch)
+    (when (mismatch scratch input)
       (error "decryption failed for ~A on key ~A, input ~A, output ~A"
              cipher-name key output input))))
 
