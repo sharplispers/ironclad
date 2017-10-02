@@ -22,7 +22,7 @@
 (defclass ironclad-source-file (asdf:cl-source-file) ())
 
 (asdf:defsystem :ironclad
-  :version "0.35"
+  :version "0.36"
   :author "Nathan Froyd <froydnj@gmail.com>"
   :maintainer "Guillaume LE VAILLANT <glv@posteo.net>"
   :description "A cryptographic toolkit written in pure Common Lisp"
@@ -217,7 +217,7 @@
 
 (asdf:defsystem ironclad/tests
   :depends-on (ironclad)
-  :version "0.35"
+  :version "0.36"
   :in-order-to ((asdf:test-op (asdf:load-op :ironclad/tests)))
   :components ((:module "testing"
                 :components ((:file "rt")
