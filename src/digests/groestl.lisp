@@ -1367,7 +1367,7 @@
   state)
 
 (defmethod copy-digest ((state groestl) &optional copy)
-  (declare (type (or cl:null groestl) copy))
+  (declare (type (or null groestl) copy))
   (let ((copy (if copy
                   copy
                   (etypecase state
@@ -1501,7 +1501,7 @@
         ((simple-array (unsigned-byte 8) (*))
          (replace digest output :start1 digest-start :start2 (- block-size digest-length))
          digest)
-        (cl:null
+        (null
          (subseq output (- block-size digest-length)))))))
 
 (define-digest-updater groestl

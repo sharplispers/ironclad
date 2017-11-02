@@ -167,7 +167,7 @@
   state)
 
 (defmethod copy-digest ((state ripemd-160) &optional copy)
-  (declare (type (or cl:null ripemd-160) copy))
+  (declare (type (or null ripemd-160) copy))
   (cond
     (copy
      (replace (ripemd-160-regs copy) (ripemd-160-regs state))

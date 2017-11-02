@@ -196,7 +196,7 @@ PLAINTEXT."
 ;; Catch various errors.
 (defmethod verify-key (cipher key)
   ;; check the key first
-  (when (cl:null key)
+  (when (null key)
     (error 'key-not-supplied :cipher cipher))
   (unless (typep key '(vector (unsigned-byte 8)))
     (error 'type-error :datum key :expected-type '(vector (unsigned-byte 8))))
@@ -281,7 +281,7 @@ cipher or is not a cipher object."))
 
 (defun cipher-supported-p (name)
   "Return T if the cipher NAME is supported as an argument to MAKE-CIPHER."
-  (not (cl:null (%find-cipher name))))
+  (not (null (%find-cipher name))))
 
 (defun acceptable-key-lengths* (key-length-spec)
   (ecase (car key-length-spec)
@@ -391,7 +391,7 @@ cipher or is not a cipher object."))
                        ;;; FIXME: better error message
                        (error 'ironclad-error :format-control "bad :FIXED specification for :KEY-LENGTH.")))
                   ((eq :variable (car value))
-                   (if (and (cl:null (nthcdr 4 value))
+                   (if (and (null (nthcdr 4 value))
                             (every #'integerp (cdr value))
                             (every #'plusp (cdr value))
                             (< (cadr value) (caddr value)))

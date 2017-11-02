@@ -11,7 +11,7 @@
     (cond
       ;; Permit DIGEST to be NULL to indicate reinitializing the whole
       ;; instance.
-      ((cl:null digest)
+      ((null digest)
        (reinitialize-instance (kdf-digest kdf)))
       ((not (digestp digest-name))
        (error 'unsupported-digest :name digest-name))

@@ -43,7 +43,7 @@
   state)
 
 (defmethod copy-digest ((state tree-hash) &optional copy)
-  (declare (type (or cl:null tree-hash) copy))
+  (declare (type (or null tree-hash) copy))
   (cond
     (copy
      (copy-digest (tree-hash-state state) (tree-hash-state copy))
@@ -90,7 +90,7 @@ bounded by start and end, which must be numeric bounding-indices."
 
 (defun merge-tree-hash-branch (digest branch hash)
   (let ((other-hash (car branch)))
-    (if (cl:null other-hash)
+    (if (null other-hash)
         (cons hash (cdr branch)) ;; happens to work when branch is nil!
         (cons nil (merge-tree-hash-branch
                    digest
@@ -106,14 +106,14 @@ bounded by start and end, which must be numeric bounding-indices."
 
 (defmethod produce-digest ((state tree-hash) &key digest (digest-start 0))
   (when (or (not (zerop (tree-hash-block-index state)))
-            (cl:null (tree-hash-branch state)))
+            (null (tree-hash-branch state)))
     (update-tree-hash-branch state))
   (let* ((internal-state (tree-hash-state state))
          (result
           (reduce (lambda (hash2 hash1)
                     (cond
-                      ((cl:null hash2) hash1)
-                      ((cl:null hash1) hash2)
+                      ((null hash2) hash1)
+                      ((null hash1) hash2)
                       (t (combine-hash-tree-digests internal-state hash1 hash2))))
                   (tree-hash-branch state))))
     (if digest

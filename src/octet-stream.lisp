@@ -328,7 +328,7 @@
   "As MAKE-STRING-INPUT-STREAM, only with octets instead of characters."
   (declare (type simple-octet-vector buffer)
            (type index start)
-           (type (or index cl:null) end))
+           (type (or index null) end))
   (let ((end (or end (length buffer))))
     (make-instance 'octet-input-stream
                    :buffer buffer :index start :end end)))

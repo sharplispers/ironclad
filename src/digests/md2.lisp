@@ -92,7 +92,7 @@
   state)
 
 (defmethod copy-digest ((state md2) &optional copy)
-  (declare (type (or cl:null md2) copy))
+  (declare (type (or null md2) copy))
   (cond
     (copy
      (replace (md2-regs copy) (md2-regs state))

@@ -61,7 +61,7 @@
   state)
 
 (defmethod copy-digest ((state crc24) &optional copy)
-  (declare (type (or cl:null crc24) copy))
+  (declare (type (or null crc24) copy))
   (cond
     (copy
      (setf (crc24-crc copy) (crc24-crc state))
@@ -95,7 +95,7 @@
     (etypecase digest
       ((simple-array (unsigned-byte 8) (*))
        (stuff-state (crc24-crc state) digest digest-start))
-      (cl:null
+      (null
        (stuff-state (crc24-crc state)
                     (make-array 3 :element-type '(unsigned-byte 8)) 0)))))
 

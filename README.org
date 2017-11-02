@@ -118,7 +118,6 @@ the names of all supported ciphers. They are:
  - des
  - idea
  - misty1
- - null
  - rc2
  - rc5
  - rc6
@@ -135,6 +134,7 @@ the names of all supported ciphers. They are:
  - xchacha
  - xchacha/12
  - xchacha/8
+ - xor
  - xsalsa20
  - xsalsa20/12
  - xsalsa20/8

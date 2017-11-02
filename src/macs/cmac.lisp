@@ -54,7 +54,7 @@
                     &key (start 0) end)
   (declare (type (simple-array (unsigned-byte 8) (*)) sequence))
   (declare (type index start))
-  (declare (type (or index cl:null) end))
+  (declare (type (or index null) end))
   (do ((end (or end (length sequence)))
        (buffer (cmac-buffer cmac))
        (length (length (cmac-buffer cmac)))

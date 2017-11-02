@@ -143,7 +143,7 @@
   state)
 
 (defmethod copy-digest ((state ripemd-128) &optional copy)
-  (declare (type (or cl:null ripemd-128) copy))
+  (declare (type (or null ripemd-128) copy))
   (cond
     (copy
      (replace (ripemd-128-regs copy) (ripemd-128-regs state))

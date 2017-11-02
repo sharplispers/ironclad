@@ -246,7 +246,7 @@ word block of input, and updates the working state in the regs."
   state)
 
 (defmethod copy-digest ((state whirlpool) &optional copy)
-  (declare (type (or cl:null whirlpool) copy))
+  (declare (type (or null whirlpool) copy))
   (cond
     (copy
      (replace (whirlpool-regs copy) (whirlpool-regs state))

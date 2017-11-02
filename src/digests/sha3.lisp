@@ -331,7 +331,7 @@ the content on normal form exit."
   state)
 
 (defmethod copy-digest ((state sha3) &optional copy)
-  (declare (type (or cl:null sha3) copy))
+  (declare (type (or null sha3) copy))
   (let ((copy (if copy
                   copy
                   (etypecase state
@@ -432,7 +432,7 @@ the content on normal form exit."
       ((simple-array (unsigned-byte 8) (*))
        (replace digest output :start1 digest-start :end2 output-byte-length)
        digest)
-      (cl:null
+      (null
        (copy-seq output)))))
 
 (define-digest-updater sha3

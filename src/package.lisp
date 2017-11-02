@@ -2,7 +2,6 @@
 (cl:defpackage :ironclad
   (:use :cl)
   (:nicknames :crypto)
-  (:shadow null)
   (:import-from #:nibbles
                 #:ub16ref/le #:ub16ref/be
                 #:ub32ref/le #:ub32ref/be
@@ -142,7 +141,7 @@
   (:export #:blake2-mac #:blake2s-mac #:cmac #:hmac #:poly1305 #:skein-mac)
   ;; supported block ciphers
   (:export #:blowfish #:tea #:xtea #:square #:rc2 #:rc5 #:rc6 #:des #:3des
-           #:aes #:twofish #:cast5 #:idea #:misty1 #:null
+           #:aes #:twofish #:cast5 #:idea #:misty1 #:xor
            #:threefish256 #:threefish512 #:threefish1024
            #:serpent)
   ;; supported stream ciphers

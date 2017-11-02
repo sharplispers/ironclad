@@ -410,7 +410,7 @@
   state)
 
 (defmethod copy-digest ((state jh) &optional copy)
-  (declare (type (or cl:null jh) copy))
+  (declare (type (or null jh) copy))
   (let ((copy (if copy
                   copy
                   (etypecase state
@@ -505,7 +505,7 @@
         ((simple-array (unsigned-byte 8) (*))
          (replace digest output :start1 digest-start :start2 (- +jh-block-size+ digest-length))
          digest)
-        (cl:null
+        (null
          (subseq output (- +jh-block-size+ digest-length)))))))
 
 (define-digest-updater jh

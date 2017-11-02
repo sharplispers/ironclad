@@ -151,7 +151,7 @@
   state)
 
 (defmethod copy-digest ((state sha512) &optional copy)
-  (declare (type (or cl:null sha512) copy))
+  (declare (type (or null sha512) copy))
   (let ((copy (if copy
                   copy
                   (etypecase state

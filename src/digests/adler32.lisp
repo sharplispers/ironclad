@@ -20,7 +20,7 @@
   state)
 
 (defmethod copy-digest ((state adler32) &optional copy)
-  (declare (type (or cl:null adler32) copy))
+  (declare (type (or null adler32) copy))
   (cond
     (copy
      (setf (adler32-s1 copy) (adler32-s1 state)
@@ -70,7 +70,7 @@
     (etypecase digest
       ((simple-array (unsigned-byte 8) (*))
        (stuff-state state digest digest-start))
-      (cl:null
+      (null
        (stuff-state state
                     (make-array 4 :element-type '(unsigned-byte 8)) 0)))))
 

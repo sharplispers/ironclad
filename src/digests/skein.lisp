@@ -360,7 +360,7 @@
              (progn
                (replace digest output :start1 digest-start :end2 digest-length)
                digest))
-            (cl:null
+            (null
              (make-array digest-length
                          :element-type '(unsigned-byte 8)
                          :initial-contents (subseq output 0 digest-length)))))
@@ -485,7 +485,7 @@
   (%reinitialize-skein256 state 224))
 
 (defmethod copy-digest ((state skein256) &optional copy)
-  (declare (type (or cl:null skein256) copy))
+  (declare (type (or null skein256) copy))
   (let ((copy (if copy
                   copy
                   (etypecase state
@@ -645,7 +645,7 @@
   (%reinitialize-skein512 state 384))
 
 (defmethod copy-digest ((state skein512) &optional copy)
-  (declare (type (or cl:null skein512) copy))
+  (declare (type (or null skein512) copy))
   (let ((copy (if copy
                   copy
                   (etypecase state
@@ -769,7 +769,7 @@
   (%reinitialize-skein1024 state 512))
 
 (defmethod copy-digest ((state skein1024) &optional copy)
-  (declare (type (or cl:null skein1024) copy))
+  (declare (type (or null skein1024) copy))
   (let ((copy (if copy
                   copy
                   (etypecase state

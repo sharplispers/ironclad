@@ -13,7 +13,7 @@ subsequence of VECTOR between START and END.  ELEMENT-TYPE controls
 the element-type of the returned string."
   (declare (type (vector (unsigned-byte 8)) vector)
            (type fixnum start)
-           (type (or cl:null fixnum) end)
+           (type (or null fixnum) end)
            (optimize (speed 3) (safety 1)))
   (let* ((end (or end (length vector)))
          (length (- end start))
@@ -59,7 +59,7 @@ hexadecimal digits into a byte array."
 STRING contains any character whose CHAR-CODE is greater than 255."
   (declare (type string string)
            (type fixnum start)
-           (type (or cl:null fixnum) end)
+           (type (or null fixnum) end)
            (optimize (speed 3) (safety 1)))
   (let* ((length (length string))
          (vec (make-array length :element-type '(unsigned-byte 8)))

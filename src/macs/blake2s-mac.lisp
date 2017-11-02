@@ -14,7 +14,7 @@
                  :digest-length digest-length))
 
 (defmethod copy-blake2s-mac ((mac blake2s-mac) &optional copy)
-  (declare (type (or cl:null blake2s-mac) copy))
+  (declare (type (or null blake2s-mac) copy))
   (let ((copy (if copy
                   copy
                   (make-instance 'blake2s-mac

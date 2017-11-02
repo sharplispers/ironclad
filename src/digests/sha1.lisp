@@ -152,7 +152,7 @@ available."
   state)
 
 (defmethod copy-digest ((state sha1) &optional copy)
-  (declare (type (or cl:null sha1) copy))
+  (declare (type (or null sha1) copy))
   (cond
     (copy
      (replace (sha1-regs copy) (sha1-regs state))

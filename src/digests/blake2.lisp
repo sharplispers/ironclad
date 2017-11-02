@@ -174,7 +174,7 @@
   state)
 
 (defmethod copy-digest ((state blake2) &optional copy)
-  (declare (type (or cl:null blake2) copy))
+  (declare (type (or null blake2) copy))
   (let ((copy (if copy
                   copy
                   (etypecase state
@@ -266,7 +266,7 @@
         ((simple-array (unsigned-byte 8) (*))
          (replace digest output :start1 digest-start :end2 digest-length)
          digest)
-        (cl:null
+        (null
          (subseq output 0 digest-length))))))
 
 (define-digest-updater blake2

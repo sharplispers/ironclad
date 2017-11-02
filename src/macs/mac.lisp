@@ -28,7 +28,7 @@ An error will be signaled if there is insufficient room in DIGEST."))
 (defun mac-supported-p (name)
   "Return T if the mac NAME is a valid mac name."
   (and (symbolp name)
-       (not (cl:null (macp name)))))
+       (not (null (macp name)))))
 
 (defmacro defmac (name maker updater producer)
   `(progn
@@ -52,7 +52,7 @@ An error will be signaled if there is insufficient room in DIGEST."))
                        :buffer digest
                        :start digest-start
                        :length digest-size)))
-           (cl:null
+           (null
             mac-digest))))))
 
 (defun make-mac (mac-name key &rest args)

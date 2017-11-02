@@ -28,7 +28,7 @@
                  :digest-length digest-length))
 
 (defmethod copy-skein-mac ((mac skein-mac) &optional copy)
-  (declare (type (or cl:null skein-mac) copy))
+  (declare (type (or null skein-mac) copy))
   (let ((copy (if copy
                   copy
                   (make-instance 'skein-mac
