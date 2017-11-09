@@ -3,15 +3,12 @@ hey emacs, show me an -*- mode: outline -*-
 * misc
 ** cleanup octet-stream: positions are either INDEX or POSITION, not both
 The latter requires :SHADOW adjustments in Ironclad's DEFPACKAGE.
-** WRITE-SEQUENCE on crypting-streams
-** HMACING-STREAM
 
 * ciphers to add
 
 CAST6
 SEED
 MARS
-Serpent
 Camellia
 ...others?...
 
@@ -21,19 +18,6 @@ This would involve writing some simple base64 encoding and decoding.
 I'm not sure how to add this and achieve the right amount of generality
 and functionality.  Just writing an OpenPGP parser is straightforward,
 but determining what to do with the data is a little more complicated.
-
-* add {EN,DE}CRYPTING-STREAM capabilities
-
-Encrypts data written to it before writing the (now-encrypted) data to
-an underlying stream.  Of course, the equivalent functionality is
-available for decrypting.  This might finesse the current lack of
-padding functionality in the library: when the stream is closed, the
-appropriate amount and kind of padding is added.  Not sure that this is
-necessarily the right idea, although when people are encrypting data,
-they are generally doing so before writing said data someplace else.  I
-don't encrypt data in memory just for the fun of it.
-
-(These are partially written, see octet-stream.lisp.)
 
 * make a condition hierarchy for the library
 
@@ -106,8 +90,6 @@ The NESSIE project has a boatload of MAC recommendations with test
 vectors and everything.  Adding other MACs would help with cleaning up
 the MAC interface (or lack thereof).
 
-** unified interface for MAC construction, updating, etc.
-
 * add other digests
 
 Are there any other reputable hash functions?
@@ -117,20 +99,6 @@ Are there any other reputable hash functions?
 WiderWake 4+1
 SEAL (intellectual property issues, although that doesn't seem to stop
   many other crypto libraries)
-
-* add public-key crypto
-
-DSA signing and verification routines have been added as of version
-0.11.  RSA, Elgamal, elliptic-curve crypto, and others remain to be
-added.  One issue that has yet to be resolved is how to handle the
-myriad signature/encryption schemes for RSA.
-
-* random number generation
-
-Doing this right would require adding an interface to get at entropy
-sources on various operating systems.  We could just punt this out to
-the user and have an ADD-ENTROPY function that the user would need to
-call from time to time.  Very inconvenient, though.
 
 * blue-sky ideas
 
