@@ -111,6 +111,7 @@ the names of all supported ciphers. They are:
  - aes
  - arcfour (rc4)
  - blowfish
+ - camellia
  - cast5
  - chacha
  - chacha/12

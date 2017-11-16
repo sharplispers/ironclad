@@ -5,6 +5,10 @@
 Renamed NULL cipher to XOR. It's a better description of what it does,
 and it allows not having to shadow cl:null.
 
+** new features
+
+Added the Camellia block cipher.
+
 * Version 0.36, released 2017-10-02
 
 ** bug fixes

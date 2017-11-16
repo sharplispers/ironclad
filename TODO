@@ -9,7 +9,6 @@ The latter requires :SHADOW adjustments in Ironclad's DEFPACKAGE.
 CAST6
 SEED
 MARS
-Camellia
 ...others?...
 
 * add OpenPGP functions
