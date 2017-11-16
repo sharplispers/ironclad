@@ -7,7 +7,6 @@ The latter requires :SHADOW adjustments in Ironclad's DEFPACKAGE.
 * ciphers to add
 
 CAST6
-SEED
 MARS
 ...others?...
 

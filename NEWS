@@ -9,6 +9,8 @@ and it allows not having to shadow cl:null.
 
 Added the Camellia block cipher.
 
+Added the SEED block cipher.
+
 * Version 0.36, released 2017-10-02
 
 ** bug fixes

@@ -125,6 +125,7 @@ the names of all supported ciphers. They are:
  - salsa20
  - salsa20/12
  - salsa20/8
+ - seed
  - serpent
  - square
  - tea
