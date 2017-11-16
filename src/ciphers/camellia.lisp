@@ -356,7 +356,7 @@
 
 (defclass camellia (cipher 16-byte-block-mixin)
   ((round-keys :accessor round-keys
-               :type (simple-array (unsigned-byte 32) 68))
+               :type (simple-array (unsigned-byte 32) (68)))
    (grand-rounds :accessor grand-rounds
                  :type (integer 3 4))))
 
