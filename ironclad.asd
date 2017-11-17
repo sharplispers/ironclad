@@ -1,6 +1,7 @@
 ;;;; -*- mode: lisp; indent-tabs-mode: nil -*-
+
 (cl:defpackage #:ironclad-system
-  (:use :cl))
+  (:use :cl :asdf))
 
 (cl:in-package #:ironclad-system)
 
@@ -19,16 +20,17 @@
     (set-dispatch-macro-character #\# #\@ #'array-reader readtable)
     readtable))
 
-(defclass ironclad-source-file (asdf:cl-source-file) ())
+(defclass ironclad-source-file (cl-source-file) ())
 
-(asdf:defsystem :ironclad
+(defsystem "ironclad"
   :version "0.36"
   :author "Nathan Froyd <froydnj@gmail.com>"
   :maintainer "Guillaume LE VAILLANT <glv@posteo.net>"
   :description "A cryptographic toolkit written in pure Common Lisp"
   :license "BSD 3-Clause"
   :default-component-class ironclad-source-file
-  :depends-on (#+sbcl sb-rotate-byte #+sbcl sb-posix nibbles)
+  :depends-on (#+sbcl "sb-rotate-byte" #+sbcl "sb-posix" "nibbles")
+  :in-order-to ((test-op (test-op "ironclad/tests")))
   :components ((:static-file "LICENSE")
                (:static-file "NEWS")
                (:static-file "README.org")
@@ -187,40 +189,38 @@
                              ;; anyway...
                              #+sbcl (sb-ext:compiler-note #'muffle-warning))
                 ,@body)))
-(defmethod asdf:perform :around ((op asdf:compile-op) (c ironclad-source-file))
-  (let ((*readtable* *ironclad-readtable*)
-        (*print-base* 10)               ; INTERN'ing FORMAT'd symbols
-        (*print-case* :upcase)
-        #+sbcl (sb-ext:*inline-expansion-limit* (max sb-ext:*inline-expansion-limit* 1000))
-        #+cmu (ext:*inline-expansion-limit* (max ext:*inline-expansion-limit* 1000))
-        (*features* (append (ironclad-implementation-features) *features*)))
+  (defmethod perform :around ((op compile-op) (c ironclad-source-file))
+    (let ((*readtable* *ironclad-readtable*)
+          (*print-base* 10)               ; INTERN'ing FORMAT'd symbols
+          (*print-case* :upcase)
+          #+sbcl (sb-ext:*inline-expansion-limit* (max sb-ext:*inline-expansion-limit* 1000))
+          #+cmu (ext:*inline-expansion-limit* (max ext:*inline-expansion-limit* 1000))
+          (*features* (append (ironclad-implementation-features) *features*)))
+      (do-silently (call-next-method))))
+
+  (defmethod perform :around ((op load-op) (c ironclad-source-file))
     (do-silently (call-next-method))))
 
-(defmethod asdf:perform :around ((op asdf:load-op) (c ironclad-source-file))
-  (do-silently (call-next-method))))
-
-(defmethod asdf:perform :after ((op asdf:load-op)
-                                (c (eql (asdf:find-system :ironclad))))
+(defmethod perform :after ((op load-op) (c (eql (find-system "ironclad"))))
   (provide :ironclad))
 
 
 ;;; testing
 
-(defclass test-vector-file (asdf:static-file)
+(defclass test-vector-file (static-file)
   ((type :initform "testvec")))
 
 (defpackage :ironclad-tests
   (:nicknames :crypto-tests)
   (:use :cl))
 
-(defmethod asdf:perform ((op asdf:test-op)
-                         (c (eql (asdf:find-system :ironclad))))
-  (asdf:oos 'asdf:test-op 'ironclad/tests))
-
-(asdf:defsystem ironclad/tests
-  :depends-on (ironclad)
+(defsystem "ironclad/tests"
+  :depends-on ("ironclad")
   :version "0.36"
-  :in-order-to ((asdf:test-op (asdf:load-op :ironclad/tests)))
+  :in-order-to ((test-op (load-op "ironclad/tests")))
+  :perform (test-op (o s)
+             (or (funcall (intern "DO-TESTS" (find-package "RTEST")))
+                 (error "TEST-OP failed for IRONCLAD/TESTS")))
   :components ((:module "testing"
                 :components ((:file "rt")
                              (:file "testfuns" :depends-on ("rt"))
@@ -350,8 +350,3 @@
                                            (:test-vector-file "elgamal-sig")
                                            (:test-vector-file "rsa-enc")
                                            (:test-vector-file "rsa-sig")))))))
-
-(defmethod asdf:perform ((op asdf:test-op)
-                         (c (eql (asdf:find-system :ironclad/tests))))
-  (or (funcall (intern "DO-TESTS" (find-package "RTEST")))
-      (error "TEST-OP failed for IRONCLAD/TESTS")))

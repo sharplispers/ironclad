@@ -291,6 +291,7 @@
          (result1 (progn
                     (crypto:update-mac mac data)
                     (crypto:produce-mac mac))))
+    (declare (ignorable result1))
     (reinitialize-instance mac :key key)
     (let ((result2 (progn
                      (crypto:update-mac mac data)
