@@ -110,6 +110,7 @@ the names of all supported ciphers. They are:
  - 3des
  - aes
  - arcfour (rc4)
+ - aria
  - blowfish
  - camellia
  - cast5
