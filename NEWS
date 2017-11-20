@@ -13,6 +13,8 @@ Added the SEED block cipher.
 
 Added the ARIA block cipher.
 
+Added the Sosemanuk stream cipher.
+
 * Version 0.36, released 2017-10-02
 
 ** bug fixes

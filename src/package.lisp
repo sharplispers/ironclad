@@ -149,4 +149,5 @@
            #:salsa20 #:salsa20/12 #:salsa20/8
            #:xsalsa20 #:xsalsa20/12 #:xsalsa20/8
            #:chacha #:chacha/12 #:chacha/8
-           #:xchacha #:xchacha/12 #:xchacha/8))
+           #:xchacha #:xchacha/12 #:xchacha/8
+           #:sosemanuk))
