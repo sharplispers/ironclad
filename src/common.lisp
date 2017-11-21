@@ -535,7 +535,6 @@ behavior."
         do (setf (aref block i) (nibbles:ub64ref/be buffer j)))
   (values))
 
-(declaim (notinline xor-block))
 (defun xor-block (block-length input-block1 input-block2 input-block2-start
                                output-block output-block-start)
   (declare (type (simple-array (unsigned-byte 8) (*)) input-block1 input-block2 output-block))
@@ -574,12 +573,13 @@ behavior."
           (zerop (mod block-length sb-vm:n-word-bytes)))
      (let ((accessor (ecase sb-vm:n-word-bits
                        (32 'nibbles:ub32ref/le)
-                       (64 'nibbles:ub64ref/le))))
-       `(loop for i from 0 below ,block-length by ,sb-vm:n-word-bytes
-              do (setf (,accessor ,output-block (+ ,output-block-start i))
-                       (logxor (,accessor ,input-block1 i)
+                       (64 'nibbles:ub64ref/le)))
+           (i (gensym)))
+       `(loop for ,i from 0 below ,block-length by ,sb-vm:n-word-bytes
+              do (setf (,accessor ,output-block (+ ,output-block-start ,i))
+                       (logxor (,accessor ,input-block1 ,i)
                                (,accessor ,input-block2
-                                          (+ ,input-block2-start i)))))))
+                                          (+ ,input-block2-start ,i)))))))
     (t
      form)))
 
