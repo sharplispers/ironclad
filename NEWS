@@ -1,6 +1,6 @@
 -*- mode: outline -*-
 
-* Changes since version 0.36
+* Version 0.37, released 2017-11-23
 
 Renamed NULL cipher to XOR. It's a better description of what it does,
 and it allows not having to shadow cl:null.
