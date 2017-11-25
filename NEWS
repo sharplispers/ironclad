@@ -1,5 +1,9 @@
 -*- mode: outline -*-
 
+* Changes since version 0.37
+
+Optimized the Poly1305 MAC.
+
 * Version 0.37, released 2017-11-23
 
 Renamed NULL cipher to XOR. It's a better description of what it does,
