@@ -2,6 +2,13 @@
 
 * Changes since version 0.37
 
+** bug fixes
+
+Fixed possible floating point exception when using strong-random with
+a very large integer limit.
+
+** new features
+
 Optimized the Poly1305 MAC.
 
 * Version 0.37, released 2017-11-23
