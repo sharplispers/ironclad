@@ -45,7 +45,8 @@
                  (vector x)
                  (vector (length y))
                  y)))
-(defconst +ed448-dom+ (ed448-dom 0 #())) ; Ed448 (x = 0), no context (y = #())
+;; Ed448 (x = 0), no context (y = #())
+(defconst +ed448-dom+ (ed448-dom 0 (make-array 0 :element-type '(unsigned-byte 8))))
 
 (declaim (inline ed448-inv))
 (defun ed448-inv (x)
