@@ -76,28 +76,36 @@
         :x (elgamal-key-x private-key)
         :y (elgamal-key-y private-key)))
 
-(defmethod generate-key-pair ((kind (eql :elgamal)) &key num-bits &allow-other-keys)
-  (unless num-bits
-    (error 'missing-key-parameter
-           :kind 'elgamal
-           :parameter 'num-bits
-           :description "modulus size"))
-  (let* ((n (if (< num-bits 512)
-                (error 'ironclad-error
-                       :format-control "NUM-BITS is too small for an Elgamal key.")
-                256))
-         (q (generate-prime n))
-         (p (loop for z = (logior (ash 1 (- num-bits n 1))
-                                  (random-bits (- num-bits n)))
-                  for p = (1+ (* z q))
-                  until (and (= num-bits (integer-length p))
-                             (prime-p p))
-                  finally (return p)))
-         (g (find-subgroup-generator p q))
-         (x (+ 2 (strong-random (- p 3))))
-         (y (expt-mod g x p)))
-    (values (make-private-key :elgamal :p p :g g :y y :x x)
-            (make-public-key :elgamal :p p :g g :y y))))
+(defmethod generate-key-pair ((kind (eql :elgamal)) &key num-bits compatible-with-key &allow-other-keys)
+  (if compatible-with-key
+      (let* ((p (elgamal-key-p compatible-with-key))
+             (g (elgamal-key-g compatible-with-key))
+             (x (+ 2 (strong-random (- p 3))))
+             (y (expt-mod g x p)))
+        (values (make-private-key :elgamal :p p :g g :y y :x x)
+                (make-public-key :elgamal :p p :g g :y y)))
+      (progn
+        (unless num-bits
+          (error 'missing-key-parameter
+                 :kind 'elgamal
+                 :parameter 'num-bits
+                 :description "modulus size"))
+        (let* ((n (if (< num-bits 512)
+                      (error 'ironclad-error
+                             :format-control "NUM-BITS is too small for an Elgamal key.")
+                      256))
+               (q (generate-prime n))
+               (p (loop for z = (logior (ash 1 (- num-bits n 1))
+                                        (random-bits (- num-bits n)))
+                        for p = (1+ (* z q))
+                        until (and (= num-bits (integer-length p))
+                                   (prime-p p))
+                        finally (return p)))
+               (g (find-subgroup-generator p q))
+               (x (+ 2 (strong-random (- p 3))))
+               (y (expt-mod g x p)))
+          (values (make-private-key :elgamal :p p :g g :y y :x x)
+                  (make-public-key :elgamal :p p :g g :y y))))))
 
 (declaim (notinline elgamal-generate-k))
 ;; In the tests, this function is redefined to use a constant value

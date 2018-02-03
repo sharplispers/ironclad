@@ -818,10 +818,19 @@ Diffie-Hellman key exchange:
 (generate-key-pair kind &key num-bits &allow-other-keys) => private-key, public-key
 #+END_SRC
 
-Return a key pair according to /kind/. If /kind/ is ~:dsa~, ~:elgamal~
-or ~:rsa~, the /num-bits/ key argument indicating the size of the keys
-to generate must be specified. The generation of DSA, Elgamal and RSA
-key pairs can take a very long time.
+Return a key pair according to /kind/. The generation of DSA, Elgamal
+and RSA key pairs can take some time. If /kind/ is ~:dsa~ or ~:rsa~,
+the /num-bits/ key argument indicating the size of the keys to
+generate must be specified. If /kind/ is ~:elgamal~, /num-bits/ must
+be specified unless /compatible-with-key/ is specified, in which case
+the group parameters are taken from the specified key instead of being
+generated.
+
+For example, if Alice wants to generate a key pair for
+a Diffie-Hellman exchange with Bob's Elgamal key pair:
+#+BEGIN_EXAMPLE
+(generate-key-pair :elgamal :compatible-with-key bob-public-key)
+#+END_EXAMPLE
 
 *** Key construction
 
@@ -1078,7 +1087,8 @@ plist match the /&key/ arguments of the [[make-message][make-message]] method.
 #+END_SRC
 
 Return a secret shared by two users Alice and Bob, computed from
-Alice's private key and Bob's public key.
+Alice's private key and Bob's public key (these keys must be
+compatible, i.e. have the same group parameters).
 
 * Pseudo-random number generation
   :PROPERTIES:

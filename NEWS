@@ -7,9 +7,15 @@
 Fixed possible floating point exception when using strong-random with
 a very large integer limit.
 
+Fixed possible array type issue when compiling +ED448-DOM+.
+
 ** new features
 
 Optimized the Poly1305 MAC.
+
+Add a COMPATIBLE-WITH-KEY keyword to GENERATE-KEY-PAIR for Elgamal
+keys, to generate compatible Elgamal key pairs for a Diffie-Hellman
+exchange more easily.
 
 * Version 0.37, released 2017-11-23
 

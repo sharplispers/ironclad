@@ -30,8 +30,9 @@ the specified keyword arguments."))
 
 (defgeneric generate-key-pair (kind &key num-bits &allow-other-keys)
   (:documentation "Generate a new key pair. The first returned
-value is the secret key, the second value is the public key.
-If KIND is :RSA, :ELGAMAL or :DSA, NUM-BITS must be specified."))
+value is the secret key, the second value is the public key. If KIND
+is :RSA or :DSA, NUM-BITS must be specified. If /kind/ is :ELGAMAL,
+NUM-BITS must be specified unless COMPATIBLE-WITH-KEY is specified."))
 
 (defgeneric make-signature (kind &key &allow-other-keys)
   (:documentation "Build the octet vector representing a signature
