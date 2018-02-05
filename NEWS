@@ -9,6 +9,9 @@ a very large integer limit.
 
 Fixed possible array type issue when compiling +ED448-DOM+.
 
+Fixed bug where read-sequence was returning an invalid value for
+encrypting-input-stream and decrypting-input-stream.
+
 ** new features
 
 Optimized the Poly1305 MAC.
