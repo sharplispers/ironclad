@@ -490,7 +490,7 @@ of a string output-stream."
               :format-control "Encrypting streams support only CTR and STREAM modes")))
   (let* ((context (make-cipher cipher :mode mode :key key
                                :initialization-vector initialization-vector))
-         (block-length (max (block-length cipher) 16))
+         (block-length (max (block-length cipher) 4096))
          (buffer (make-array block-length :element-type '(unsigned-byte 8))))
     (if (eq direction :input)
         (make-instance 'encrypting-input-stream :stream stream
@@ -510,7 +510,7 @@ of a string output-stream."
               :format-control "Decrypting streams support only CTR and STREAM modes")))
   (let* ((context (make-cipher cipher :mode mode :key key
                                :initialization-vector initialization-vector))
-         (block-length (max (block-length cipher) 16))
+         (block-length (max (block-length cipher) 4096))
          (buffer (make-array block-length :element-type '(unsigned-byte 8))))
     (if (eq direction :input)
         (make-instance 'decrypting-input-stream :stream stream
