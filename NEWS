@@ -1,5 +1,11 @@
 -*- mode: outline -*-
 
+* Changes since version 0.38
+
+** bug fixes
+
+Fixed Poly1305 returning a bad MAC when calling produce-mac several times.
+
 * Version 0.38, released 2018-02-20
 
 ** bug fixes
