@@ -217,15 +217,14 @@
   (:use :cl))
 
 (defsystem "ironclad/tests"
-  :depends-on ("ironclad")
+  :depends-on ("ironclad" "rt")
   :version "0.38"
   :in-order-to ((test-op (load-op "ironclad/tests")))
   :perform (test-op (o s)
              (or (funcall (intern "DO-TESTS" (find-package "RTEST")))
                  (error "TEST-OP failed for IRONCLAD/TESTS")))
   :components ((:module "testing"
-                :components ((:file "rt")
-                             (:file "testfuns" :depends-on ("rt"))
+                :components ((:file "testfuns")
                              (:module "test-vectors"
                               :depends-on ("testfuns")
                               :components ((:file "ironclad")
