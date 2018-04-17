@@ -6,6 +6,8 @@
 
 Fixed Poly1305 returning a bad MAC when calling produce-mac several times.
 
+Fixed tree-hash returning a bad hash when calling produce-digest several times.
+
 * Version 0.38, released 2018-02-20
 
 ** bug fixes
