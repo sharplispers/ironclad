@@ -195,6 +195,7 @@
     (when (plusp (length input))
       (write-byte (aref input 0) stream)
       (write-sequence input stream :start 1))
+    (crypto:produce-digest stream) ; Calling produce-digest twice should not give a wrong hash
     (when (mismatch (crypto:produce-digest stream) expected-digest)
       (error "stream-y ~A digest of ~S failed" digest-name input))))
 
@@ -281,6 +282,7 @@
     (when (plusp (length data))
       (write-byte (aref data 0) stream)
       (write-sequence data stream :start 1))
+    (crypto:produce-mac stream) ; Calling produce-mac twice should not give a wrong MAC
     (let ((result (crypto:produce-mac stream)))
       (when (mismatch result expected-digest)
         (error "stream ~A mac of ~A failed on key ~A, args ~A"
