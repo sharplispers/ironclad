@@ -37,6 +37,7 @@
    #:mac-supported-p #:list-all-macs
    #:mode-supported-p #:list-all-modes
    #:block-length #:digest-length #:key-lengths
+   #:keystream-position
 
    ;; high-level block cipher operators
    #:make-cipher #:encrypt #:decrypt #:encrypt-in-place #:decrypt-in-place

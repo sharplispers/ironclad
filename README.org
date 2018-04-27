@@ -266,6 +266,39 @@ Return a list of valid key lengths for /cipher/.
 Return the number of octets /cipher/ processes at a time. This
 function always returns 1 for stream ciphers.
 
+** Key stream position
+
+Block ciphers in CTR mode and some stream ciphers have the ability to change the
+current position within the key stream in constant time instead of having to
+consume all the bytes until the desired position is reached.
+
+#+NAME: keystream-position
+#+BEGIN_SRC lisp
+(keystream-position cipher &optional position) => number or boolean
+#+END_SRC
+
+Return or change the current /position/ within the key stream of a /cipher/.
+When /position/ is not supplied, [[keystream-position][keystream-position]] returns the current position
+in the key stream, or /nil/ if it can't be determined. When /position/ is
+supplied, the key stream position of the /cipher/ is set to that /position/ if
+possible. [[keystream-position][keystream-position]] returns /t/ if the repositioning is performed
+successfully, or /nil/ otherwise.
+
+[[keystream-position][keystream-position]] can be used with the following ciphers:
+ - all the block ciphers (aes, twofish, etc.) in CTR mode
+ - chacha
+ - chacha/12
+ - chacha/8
+ - salsa20
+ - salsa20/12
+ - salsa20/8
+ - xchacha
+ - xchacha/12
+ - xchacha/8
+ - xsalsa20
+ - xsalsa20/12
+ - xsalsa20/8
+
 * Digests
   :PROPERTIES:
   :CUSTOM_ID: digests

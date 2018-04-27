@@ -112,6 +112,23 @@
   (cipher-test-guts cipher-name :stream hexkey hexinput hexoutput
                     (list :initialization-vector hexiv)))
 
+(defun keystream-test (cipher-name key iv keystream)
+  (let* ((mode (if (= 1 (crypto:block-length cipher-name)) :stream :ctr))
+         (cipher (crypto:make-cipher cipher-name :key key :mode mode :initialization-vector iv))
+         (buffer (make-array 1000 :element-type '(unsigned-byte 8) :initial-element 0)))
+    (crypto:keystream-position cipher 100)
+    (crypto:encrypt-in-place cipher buffer :start 100 :end 213)
+    (crypto:keystream-position cipher 500)
+    (crypto:encrypt-in-place cipher buffer :start 500 :end 1000)
+    (crypto:keystream-position cipher 213)
+    (crypto:encrypt-in-place cipher buffer :start 213 :end 500)
+    (crypto:keystream-position cipher 0)
+    (crypto:encrypt-in-place cipher buffer :end 100)
+    (crypto:keystream-position cipher 765)
+    (when (or (/= (crypto:keystream-position cipher) 765)
+              (mismatch buffer keystream))
+      (error "getting/setting key stream position failed for ~A on key ~A" cipher-name key))))
+
 #+(or lispworks sbcl cmucl openmcl allegro abcl ecl clisp)
 (defun stream-mode-test/stream (cipher-name hexkey hexinput hexoutput)
   (cipher-stream-test-guts cipher-name :stream hexkey hexinput hexoutput))
@@ -125,14 +142,16 @@
   (list (cons :ecb-mode-test 'ecb-mode-test)
         (cons :ecb-tweak-mode-test 'ecb-tweak-mode-test)
         (cons :stream-mode-test 'stream-mode-test)
-        (cons :stream-nonce-mode-test 'stream-nonce-mode-test)))
+        (cons :stream-nonce-mode-test 'stream-nonce-mode-test)
+        (cons :keystream-test 'keystream-test)))
 
 #+(or lispworks sbcl cmucl openmcl allegro abcl ecl clisp)
 (defparameter *cipher-stream-tests*
   (list (cons :ecb-mode-test 'ignore-test)
         (cons :ecb-tweak-mode-test 'ignore-test)
         (cons :stream-mode-test 'stream-mode-test/stream)
-        (cons :stream-nonce-mode-test 'stream-nonce-mode-test/stream)))
+        (cons :stream-nonce-mode-test 'stream-nonce-mode-test/stream)
+        (cons :keystream-test 'ignore-test)))
 
 
 ;;; encryption mode consistency checking

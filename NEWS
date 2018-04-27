@@ -1,5 +1,12 @@
 -*- mode: outline -*-
 
+* Changes since version 0.39
+
+** new features
+
+Add ability to get or set the current position in the key stream for block
+ciphers in CTR mode and stream cipher of the Chacha and Salsa20 families.
+
 * Version 0.39, released 2018-04-19
 
 ** bug fixes

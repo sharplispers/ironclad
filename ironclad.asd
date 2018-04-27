@@ -63,6 +63,7 @@
                                            (:file "cipher")
                                            (:file "des" :depends-on ("cipher"))
                                            (:file "idea" :depends-on ("cipher"))
+                                           (:file "keystream" :depends-on ("cipher" "chacha" "modes" "salsa20"))
                                            (:file "make-cipher" :depends-on ("cipher"))
                                            (:file "misty1" :depends-on ("cipher"))
                                            (:file "modes" :depends-on ("cipher"))
