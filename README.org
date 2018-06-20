@@ -57,8 +57,8 @@ usually not safe against side channel attacks.
   :CUSTOM_ID: installation
   :END:
 
-The current version of Ironclad is 0.39. It can be downloaded
-at [[https://github.com/sharplispers/ironclad/archive/v0.39.tar.gz]].
+The current version of Ironclad is 0.40. It can be downloaded
+at [[https://github.com/sharplispers/ironclad/archive/v0.40.tar.gz]].
 If you are feeling adventurous, you can download a bleeding-edge version
 at [[https://github.com/sharplispers/ironclad]].
 
