@@ -350,6 +350,10 @@ by calling [[list-all-digests][list-all-digests]]. They are:
  - jh/224
  - jh/256
  - jh/384
+ - keccak
+ - keccak/224
+ - keccak/256
+ - keccak/384
  - md2
  - md4
  - md5

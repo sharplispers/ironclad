@@ -1,5 +1,11 @@
 -*- mode: outline -*-
 
+* Changes since version 0.40
+
+** new features
+
+Added the original Keccak digests (SHA3 with a different padding).
+
 * Version 0.40, released 2018-06-20
 
 ** new features
