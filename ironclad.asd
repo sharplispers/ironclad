@@ -5,21 +5,6 @@
 
 (cl:in-package #:ironclad-system)
 
-;;; easy-to-type readmacro for creating s-boxes and the like
-
-(defun array-reader (stream subchar arg)
-  (declare (ignore subchar))
-  (let ((array-data (read stream nil stream nil))
-        (array-element-type `(unsigned-byte ,arg)))
-    ;; FIXME: need to make this work for multi-dimensional arrays
-    `(make-array ,(length array-data) :element-type ',array-element-type
-                :initial-contents ',array-data)))
-
-(defparameter *ironclad-readtable*
-  (let ((readtable (copy-readtable nil)))
-    (set-dispatch-macro-character #\# #\@ #'array-reader readtable)
-    readtable))
-
 (defclass ironclad-source-file (cl-source-file) ())
 
 (defsystem "ironclad"
@@ -193,8 +178,7 @@
                              #+sbcl (sb-ext:compiler-note #'muffle-warning))
                 ,@body)))
   (defmethod perform :around ((op compile-op) (c ironclad-source-file))
-    (let ((*readtable* *ironclad-readtable*)
-          (*print-base* 10)               ; INTERN'ing FORMAT'd symbols
+    (let ((*print-base* 10)               ; INTERN'ing FORMAT'd symbols
           (*print-case* :upcase)
           #+sbcl (sb-ext:*inline-expansion-limit* (max sb-ext:*inline-expansion-limit* 1000))
           #+cmu (ext:*inline-expansion-limit* (max ext:*inline-expansion-limit* 1000))

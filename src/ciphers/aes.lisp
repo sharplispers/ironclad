@@ -5,6 +5,7 @@
 ;;; key sizes is supported.
 
 (in-package :crypto)
+(in-ironclad-readtable)
 
 #+(and sbcl x86-64)
 (eval-when (:compile-toplevel :load-toplevel :execute)

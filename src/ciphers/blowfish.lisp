@@ -2,6 +2,7 @@
 ;;;; blowfish.lisp -- implementation of Bruce Schneier's Blowfish block cipher
 
 (in-package :crypto)
+(in-ironclad-readtable)
 
 (defconst +blowfish-n-rounds+ 16)
 

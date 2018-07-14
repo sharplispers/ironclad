@@ -2,6 +2,7 @@
 ;;; sha512.lisp -- implementation of SHA-384/512 from NIST
 
 (in-package :crypto)
+(in-ironclad-readtable)
 
 (define-digest-registers (sha384 :endian :big :size 8 :digest-registers 6)
   (a #xCBBB9D5DC1059ED8)

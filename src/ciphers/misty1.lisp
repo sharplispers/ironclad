@@ -2,6 +2,7 @@
 ;;;; misty1.lisp -- implementation of the MISTY1 block cipher from RFC 2994
 
 (in-package :crypto)
+(in-ironclad-readtable)
 
 
 ;;; required tables

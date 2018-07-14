@@ -2,6 +2,7 @@
 ;;;; crc32.lisp
 
 (in-package :crypto)
+(in-ironclad-readtable)
 
 (declaim (type (simple-array (unsigned-byte 32) (256)) +crc32-table+))
 (defconst +crc32-table+

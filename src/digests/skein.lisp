@@ -2,6 +2,7 @@
 ;;;; skein.lisp -- implementation of the Skein hash functions
 
 (in-package :crypto)
+(in-ironclad-readtable)
 
 
 ;;; Parameter identifiers
