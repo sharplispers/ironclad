@@ -129,45 +129,6 @@
                               :components ((:file "fndb")
                                            (:file "x86oid-vm" :depends-on ("fndb"))))))))
 
-(defun ironclad-implementation-features ()
-  #+sbcl
-  (list* sb-c:*backend-byte-order*
-         (if (= sb-vm:n-word-bits 32)
-             :32-bit
-             :64-bit)
-         :ironclad-fast-mod32-arithmetic
-         :ironclad-gray-streams
-         (when (member :x86-64 *features*)
-           '(:ironclad-fast-mod64-arithmetic)))
-  #+cmu
-  (list (c:backend-byte-order c:*target-backend*)
-        (if (= vm:word-bits 32)
-            :32-bit
-            :64-bit)
-        :ironclad-fast-mod32-arithmetic
-        :ironclad-gray-streams)
-  #+allegro
-  (list :ironclad-gray-streams)
-  #+lispworks
-  (list :ironclad-gray-streams
-        ;; Disable due to problem reports from Lispworks users and
-        ;; non-obviousness of the fix.
-        #+nil
-        (when (not (member :lispworks4 *features*))
-          '(:ironclad-md5-lispworks-int32)))
-  #+openmcl
-  (list* :ironclad-gray-streams
-         (when (member :x86-64 *features*)
-           '(:ironclad-fast-mod64-arithmetic)))
-  #+abcl
-  (list :ironclad-gray-streams)
-  #+ecl
-  (list :ironclad-gray-streams)
-  #+clisp
-  (list :ironclad-gray-streams)
-  #-(or sbcl cmu allegro lispworks openmcl abcl ecl clisp)
-  nil)
-
 (macrolet ((do-silently (&body body)
              `(handler-bind ((style-warning #'muffle-warning)
                              ;; It's about as fast as we can make it,
@@ -181,8 +142,7 @@
     (let ((*print-base* 10)               ; INTERN'ing FORMAT'd symbols
           (*print-case* :upcase)
           #+sbcl (sb-ext:*inline-expansion-limit* (max sb-ext:*inline-expansion-limit* 1000))
-          #+cmu (ext:*inline-expansion-limit* (max ext:*inline-expansion-limit* 1000))
-          (*features* (append (ironclad-implementation-features) *features*)))
+          #+cmu (ext:*inline-expansion-limit* (max ext:*inline-expansion-limit* 1000)))
       (do-silently (call-next-method))))
 
   (defmethod perform :around ((op load-op) (c ironclad-source-file))
