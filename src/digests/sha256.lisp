@@ -2,6 +2,7 @@
 ;;;; sha256.lisp -- implementation of SHA-2/256 from NIST
 
 (in-package :crypto)
+(in-ironclad-readtable)
 
 (define-digest-registers (sha224 :endian :big :digest-registers 7)
   (a #xc1059ed8)

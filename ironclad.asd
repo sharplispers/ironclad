@@ -5,21 +5,6 @@
 
 (cl:in-package #:ironclad-system)
 
-;;; easy-to-type readmacro for creating s-boxes and the like
-
-(defun array-reader (stream subchar arg)
-  (declare (ignore subchar))
-  (let ((array-data (read stream nil stream nil))
-        (array-element-type `(unsigned-byte ,arg)))
-    ;; FIXME: need to make this work for multi-dimensional arrays
-    `(make-array ,(length array-data) :element-type ',array-element-type
-                :initial-contents ',array-data)))
-
-(defparameter *ironclad-readtable*
-  (let ((readtable (copy-readtable nil)))
-    (set-dispatch-macro-character #\# #\@ #'array-reader readtable)
-    readtable))
-
 (defclass ironclad-source-file (cl-source-file) ())
 
 (defsystem "ironclad"
@@ -144,45 +129,6 @@
                               :components ((:file "fndb")
                                            (:file "x86oid-vm" :depends-on ("fndb"))))))))
 
-(defun ironclad-implementation-features ()
-  #+sbcl
-  (list* sb-c:*backend-byte-order*
-         (if (= sb-vm:n-word-bits 32)
-             :32-bit
-             :64-bit)
-         :ironclad-fast-mod32-arithmetic
-         :ironclad-gray-streams
-         (when (member :x86-64 *features*)
-           '(:ironclad-fast-mod64-arithmetic)))
-  #+cmu
-  (list (c:backend-byte-order c:*target-backend*)
-        (if (= vm:word-bits 32)
-            :32-bit
-            :64-bit)
-        :ironclad-fast-mod32-arithmetic
-        :ironclad-gray-streams)
-  #+allegro
-  (list :ironclad-gray-streams)
-  #+lispworks
-  (list :ironclad-gray-streams
-        ;; Disable due to problem reports from Lispworks users and
-        ;; non-obviousness of the fix.
-        #+nil
-        (when (not (member :lispworks4 *features*))
-          '(:ironclad-md5-lispworks-int32)))
-  #+openmcl
-  (list* :ironclad-gray-streams
-         (when (member :x86-64 *features*)
-           '(:ironclad-fast-mod64-arithmetic)))
-  #+abcl
-  (list :ironclad-gray-streams)
-  #+ecl
-  (list :ironclad-gray-streams)
-  #+clisp
-  (list :ironclad-gray-streams)
-  #-(or sbcl cmu allegro lispworks openmcl abcl ecl clisp)
-  nil)
-
 (macrolet ((do-silently (&body body)
              `(handler-bind ((style-warning #'muffle-warning)
                              ;; It's about as fast as we can make it,
@@ -193,12 +139,10 @@
                              #+sbcl (sb-ext:compiler-note #'muffle-warning))
                 ,@body)))
   (defmethod perform :around ((op compile-op) (c ironclad-source-file))
-    (let ((*readtable* *ironclad-readtable*)
-          (*print-base* 10)               ; INTERN'ing FORMAT'd symbols
+    (let ((*print-base* 10)               ; INTERN'ing FORMAT'd symbols
           (*print-case* :upcase)
           #+sbcl (sb-ext:*inline-expansion-limit* (max sb-ext:*inline-expansion-limit* 1000))
-          #+cmu (ext:*inline-expansion-limit* (max ext:*inline-expansion-limit* 1000))
-          (*features* (append (ironclad-implementation-features) *features*)))
+          #+cmu (ext:*inline-expansion-limit* (max ext:*inline-expansion-limit* 1000)))
       (do-silently (call-next-method))))
 
   (defmethod perform :around ((op load-op) (c ironclad-source-file))

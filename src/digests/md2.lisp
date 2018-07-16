@@ -2,6 +2,7 @@
 ;;;; md2.lisp -- the MD2 message digest algorithm from RFC 1319
 
 (in-package :crypto)
+(in-ironclad-readtable)
 
 (defconst +md2-permutation+
 #8@(41 46 67 201 162 216 124 1 61 54 84 161 236 240 6

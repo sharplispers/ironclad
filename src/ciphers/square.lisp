@@ -4,6 +4,7 @@
 ;;; based on a public domain implementation by Paulo Baretto (FIXME!)
 
 (in-package :crypto)
+(in-ironclad-readtable)
 
 (declaim (type (simple-array (unsigned-byte 8) (256))
                alogtable logtable))
