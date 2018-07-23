@@ -182,7 +182,6 @@
              :32-bit
              :64-bit)
          :ironclad-fast-mod32-arithmetic
-         :ironclad-gray-streams
          (when (member :x86-64 *features*)
            '(:ironclad-fast-mod64-arithmetic)))
   #+cmu
@@ -190,28 +189,21 @@
         (if (= vm:word-bits 32)
             :32-bit
             :64-bit)
-        :ironclad-fast-mod32-arithmetic
-        :ironclad-gray-streams)
-  #+allegro
-  (list :ironclad-gray-streams)
+        :ironclad-fast-mod32-arithmetic)
   #+lispworks
-  (list :ironclad-gray-streams
-        ;; Disable due to problem reports from Lispworks users and
+  (list ;; Disable due to problem reports from Lispworks users and
         ;; non-obviousness of the fix.
         #+nil
         (when (not (member :lispworks4 *features*))
           '(:ironclad-md5-lispworks-int32)))
   #+openmcl
-  (list* :ironclad-gray-streams
-         (when (member :x86-64 *features*)
-           '(:ironclad-fast-mod64-arithmetic)))
-  #+abcl
-  (list :ironclad-gray-streams)
+  (list* (when (member :x86-64 *features*)
+           '(:ironclad-fast-mod32-arithmetic
+             :ironclad-fast-mod64-arithmetic)))
   #+ecl
-  (list :ironclad-gray-streams)
-  #+clisp
-  (list :ironclad-gray-streams)
-  #-(or sbcl cmu allegro lispworks openmcl abcl ecl clisp)
+  (list :ironclad-fast-mod32-arithmetic
+        :ironclad-fast-mod64-arithmetic)
+  #-(or sbcl cmu lispworks openmcl ecl)
   nil)
 
 (dolist (f (ironclad-implementation-features))
