@@ -122,6 +122,7 @@ the names of all supported ciphers. They are:
  - chacha/8
  - des
  - idea
+ - kuznyechik
  - misty1
  - rc2
  - rc5
