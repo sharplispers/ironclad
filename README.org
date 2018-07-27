@@ -69,6 +69,10 @@ by substituting ~asdf:test-system~ for ~asdf:load-system~ in the form above.
 If you are using [[https://www.quicklisp.org][Quicklisp]] to manage your libraries, just use
 ~(ql:quickload "ironclad")~.
 
+When Ironclad is loaded, its functions are in the ~ironclad~ package (e.g.
+~(ironclad:make-cipher ...)~). If you prefer, you can also use the ~crypto~
+nickname (e.g. ~(crypto:make-cipher ...)~).
+
 Ironclad has been tested in the following implementations:
  - SBCL x86/linux, x86-64/linux (primary development platforms)
  - SBCL x86-64/solaris, x86/darwin
