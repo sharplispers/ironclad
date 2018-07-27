@@ -1147,7 +1147,8 @@
      (streebog-xlps ,ki ,data ,data)))
 
 (defun streebog-add512 (x y r)
-  (declare (type (simple-array (unsigned-byte 64) (8)) x y r))
+  (declare (type (simple-array (unsigned-byte 64) (8)) x y r)
+           (optimize (speed 3) (space 0) (safety 0) (debug 0)))
   (let ((cf 0)
         (of 0)
         (tmp 0))
@@ -1164,7 +1165,8 @@
   (values))
 
 (defun streebog-g (h n m)
-  (declare (type (simple-array (unsigned-byte 64) (8)) h n m))
+  (declare (type (simple-array (unsigned-byte 64) (8)) h n m)
+           (optimize (speed 3) (space 0) (safety 0) (debug 0)))
   (let ((ki (make-array 8 :element-type '(unsigned-byte 64)
                           :initial-element 0))
         (data (make-array 8 :element-type '(unsigned-byte 64)
