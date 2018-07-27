@@ -260,8 +260,7 @@
     ;; Get output
     (let ((output (make-array +blake2-block-size+ :element-type '(unsigned-byte 8) :initial-element 0)))
       (dotimes (i 8)
-        (dotimes (j 8)
-          (setf (aref output (+ (* i 8) j)) (ldb (byte 8 (* j 8)) (aref blake2-state i)))))
+        (setf (ub64ref/le output (* i 8)) (aref blake2-state i)))
       (etypecase digest
         ((simple-array (unsigned-byte 8) (*))
          (replace digest output :start1 digest-start :end2 digest-length)
