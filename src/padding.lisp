@@ -5,20 +5,6 @@
 
 (defclass padding () ())
 
-(defgeneric add-padding-bytes (padding text start block-offset block-size)
-  (:documentation "Add padding to the block in TEXT beginning at position
-START.  Padding is done according to PADDING and assumes that text
-prior to BLOCK-OFFSET is user-supplied.
-
-This function assumes that the portion of TEXT from START to
- (+ START BLOCK-SIZE) is writable."))
-
-(defgeneric count-padding-bytes (padding text start block-size)
-  (:documentation "Return the number of bytes of padding in the block in
-TEXT beginning at START.  The padding algorithm used for the block is
-PADDING."))
-
-
 ;;; PKCS7 padding
 
 (defclass pkcs7-padding (padding) ())

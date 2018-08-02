@@ -4,18 +4,6 @@
 (in-package :crypto)
 
 
-(defgeneric update-mac (mac thing &key &allow-other-keys)
-  (:documentation "Update the internal state of MAC with THING.
-The exact method is determined by the type of THING."))
-
-(defgeneric produce-mac (mac &key digest digest-start)
-  (:documentation "Return the hash of the data processed by
-MAC so far.
-
-If DIGEST is provided, the hash will be placed into DIGEST starting at
-DIGEST-START. DIGEST must be a (SIMPLE-ARRAY (UNSIGNED-BYTE 8) (*)).
-An error will be signaled if there is insufficient room in DIGEST."))
-
 (defun macp (sym)
   (get sym '%make-mac))
 

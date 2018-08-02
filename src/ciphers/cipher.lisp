@@ -190,9 +190,6 @@ PLAINTEXT."
      (declare (type index plaintext-start ciphertext-start length))
      ,@body))
 
-(defgeneric verify-key (cipher key)
-  (:documentation "Return T if KEY is a valid encryption key for CIPHER."))
-
 ;; Catch various errors.
 (defmethod verify-key (cipher key)
   ;; check the key first
@@ -203,10 +200,6 @@ PLAINTEXT."
   ;; hmmm, the key looks OK.  what about the cipher?
   (unless (member cipher (list-all-ciphers))
     (error 'unsupported-cipher :name cipher)))
-
-(defgeneric schedule-key (cipher key)
-  (:documentation "Schedule KEY for CIPHER, filling CIPHER with any
-round keys, etc. needed for encryption and decryption."))
 
 (defmethod schedule-key :before ((cipher cipher) key)
   (verify-key cipher key))
@@ -230,26 +223,12 @@ round keys, etc. needed for encryption and decryption."))
 (defun (setf %find-cipher) (cipher-info name)
   (setf (get (massage-symbol name) '%cipher-info) cipher-info))
 
-(defgeneric key-lengths (cipher)
-  (:documentation "Return a list of possible lengths of a key for
-CIPHER.  CIPHER may either be a cipher name as accepted by
-MAKE-CIPHER or a cipher object as returned by MAKE-CIPHER.  NIL
-is returned if CIPHER does not name a known cipher or is not a
-cipher object."))
-
 (defmethod key-lengths (cipher)
   (let ((cipher-info (%find-cipher cipher)))
     (and cipher-info (%key-lengths cipher-info))))
 
 (defmethod key-lengths ((cipher cipher))
   (key-lengths (class-name (class-of cipher))))
-
-(defgeneric block-length (cipher)
-  (:documentation "Return the number of bytes in an encryption or
-decryption block for CIPHER.  CIPHER may either be a cipher name
-as accepted by MAKE-CIPHER or a cipher object as returned by
-MAKE-CIPHER.  NIL is returned if CIPHER does not name a known
-cipher or is not a cipher object."))
 
 (defmethod block-length ((cipher symbol))
   (let ((cipher-info (%find-cipher (massage-symbol cipher))))

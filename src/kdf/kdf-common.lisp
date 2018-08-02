@@ -1,8 +1,6 @@
 ;;;; -*- mode: lisp; indent-tabs-mode: nil -*-
 (in-package :crypto)
 
-(defgeneric derive-key (kdf passphrase salt iteration-count key-length))
-
 (defclass pbkdf1 ()
   ((digest :reader kdf-digest)))
 

@@ -3,24 +3,6 @@
 
 (in-package :crypto)
 
-(defgeneric encrypted-message-length (cipher mode length
-                                      &optional handle-final-block)
-  (:documentation "Return the length a message of LENGTH would be if it
-were to be encrypted (decrypted) with CIPHER in MODE.  HANDLE-FINAL-BLOCK
-indicates whether we are encrypting up to and including the final block
- (so that short blocks may be taken into account, if applicable).
-
-Note that this computation may involve MODE's state."))
-
-(defgeneric mode-crypt-functions (cipher mode)
-  (:documentation "Returns two functions that perform encryption and
-decryption, respectively, with CIPHER in MODE.  The lambda list of each
-function is (IN OUT IN-START IN-END OUT-START HANDLE-FINAL-BLOCK).
-HANDLE-FINAL-BLOCK is as in ENCRYPT and DECRYPT; the remaining parameters
-should be self-explanatory.  Each function, when called, returns two values:
-the number of octets processed from IN and the number of octets processed
-from OUT.  Note that for some cipher modes, IN and OUT may be different."))
-
 (defclass encryption-mode ()
   ((encrypt-function :reader encrypt-function)
    (decrypt-function :reader decrypt-function)))

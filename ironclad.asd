@@ -25,18 +25,19 @@
                (:module "src"
                 :components ((:file "common" :depends-on ("package" "ccl-opt"))
                              (:file "conditions" :depends-on ("package"))
+                             (:file "generic" :depends-on ("package"))
                              (:file "macro-utils" :depends-on ("package"))
                              (:file "math" :depends-on ("package" "prng"))
                              #+(or lispworks sbcl openmcl cmu allegro abcl ecl clisp)
                              (:file "octet-stream" :depends-on ("ciphers" "common" "conditions" "digests" "macs" "package"))
                              (:file "package")
-                             (:file "padding" :depends-on ("common" "package"))
+                             (:file "padding" :depends-on ("common" "generic" "package"))
                              (:file "util" :depends-on ("conditions" "package"))
                              (:module "ccl-opt"
                               :depends-on ("package")
                               :components ((:file "x86oid-vm")))
                              (:module "ciphers"
-                              :depends-on ("common" "conditions" "macro-utils" "package" "sbcl-opt")
+                              :depends-on ("common" "conditions" "generic" "macro-utils" "package" "sbcl-opt")
                               :components ((:file "aes" :depends-on ("cipher"))
                                            (:file "arcfour" :depends-on ("cipher"))
                                            (:file "aria" :depends-on ("cipher"))
@@ -68,7 +69,7 @@
                                            (:file "xsalsa20" :depends-on ("cipher" "salsa20"))
                                            (:file "xtea" :depends-on ("cipher"))))
                              (:module "digests"
-                              :depends-on ("ciphers" "common" "conditions" "macro-utils" "package" "sbcl-opt")
+                              :depends-on ("ciphers" "common" "conditions" "generic" "macro-utils" "package" "sbcl-opt")
                               :components ((:file "adler32" :depends-on ("digest"))
                                            (:file "blake2" :depends-on ("digest"))
                                            (:file "blake2s" :depends-on ("digest"))
@@ -93,14 +94,14 @@
                                            (:file "tree-hash" :depends-on ("digest"))
                                            (:file "whirlpool" :depends-on ("digest"))))
                              (:module "kdf"
-                              :depends-on ("ciphers" "common" "conditions" "digests" "macs" "package" "prng")
+                              :depends-on ("ciphers" "common" "conditions" "digests" "generic" "macs" "package" "prng")
                               :components ((:file "argon2i" :depends-on ("kdf-common"))
                                            (:file "kdf-common")
                                            (:file "password-hash" :depends-on ("pkcs5"))
                                            (:file "pkcs5" :depends-on ("kdf-common"))
                                            (:file "scrypt" :depends-on ("kdf-common" "pkcs5"))))
                              (:module "macs"
-                              :depends-on ("common" "conditions" "digests" "package")
+                              :depends-on ("common" "conditions" "digests" "generic" "package")
                               :components ((:file "blake2-mac" :depends-on ("mac"))
                                            (:file "blake2s-mac" :depends-on ("mac"))
                                            (:file "cmac" :depends-on ("mac"))
@@ -109,13 +110,13 @@
                                            (:file "poly1305" :depends-on ("mac"))
                                            (:file "skein-mac" :depends-on ("mac"))))
                              (:module "prng"
-                              :depends-on ("ciphers" "conditions" "digests" "package")
+                              :depends-on ("ciphers" "conditions" "digests" "generic" "package")
                               :components ((:file "fortuna" :depends-on ("prng" "generator"))
                                            (:file "generator" :depends-on ("prng"))
                                            (:file "os-prng" :depends-on ("prng"))
                                            (:file "prng")))
                              (:module "public-key"
-                              :depends-on ("conditions" "digests" "math" "package" "prng")
+                              :depends-on ("conditions" "digests" "generic" "math" "package" "prng")
                               :components ((:file "curve25519" :depends-on ("public-key"))
                                            (:file "curve448" :depends-on ("public-key"))
                                            (:file "dsa" :depends-on ("public-key"))

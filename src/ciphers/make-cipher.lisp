@@ -6,8 +6,6 @@
 
 ;;; Validity of modes for ciphers.
 
-(defgeneric valid-mode-for-cipher-p (cipher mode))
-
 (defmethod valid-mode-for-cipher-p (cipher mode)
   nil)
 

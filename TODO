@@ -22,15 +22,6 @@ but determining what to do with the data is a little more complicated.
 Some conditions have been added as of 0.7, but there probably need to be
 more, with helpful messages along the way.
 
-* move generic function definitions to their own file
-
-There's a lot of generic function definitions floating around as of
-version 0.5 and there are likely to be many more as the library grows.
-Perhaps the DEFGENERIC forms should be moved into their own file;
-such a change would make the source tree cleaner and provide a good
-starting point for people interested in examining the library's
-functionality.
-
 * add functional version of encryption and decryption
 
 {ENCRYPT,DECRYPT}-MESSAGE would be perfect for this; although they were

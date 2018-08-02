@@ -10,14 +10,6 @@
 
 (defun list-all-prngs () (copy-list '(:os :fortuna :fortuna-generator)))
 
-(defgeneric make-prng (name &key seed)
-  (:documentation "Create a new NAME-type random number generator,
-  seeding it from SEED.  If SEED is a pathname or namestring, read data
-  from the indicated file; if it is sequence of bytes, use those bytes
-  directly; if it is :RANDOM then read from /dev/random; if it
-  is :URANDOM then read from /dev/urandom; if it is NIL then the
-  generator is not seeded."))
-
 (defmethod make-prng :around (name &key (seed :random))
   (let ((prng (call-next-method)))
     (unless (find name '(:os :fortuna-generator))
@@ -31,20 +23,8 @@
         (t (error 'ironclad-error :format-control "SEED must be an octet vector, pathname indicator, :random or :urandom"))))
     prng))
 
-(defgeneric prng-random-data (num-bytes prng)
-  (:documentation "Generate NUM-BYTES bytes using PRNG"))
-
 (defun random-data (num-bytes &optional (prng *prng*))
   (prng-random-data num-bytes prng))
-
-(defgeneric prng-reseed (seed prng)
-  (:documentation "Reseed PRNG with SEED; SEED must
-  be (PRNG-SEED-LENGTH PRNG) bytes long.")
-  (:method (seed prng) (declare (ignorable seed prng))))
-
-(defgeneric prng-seed-length (prng)
-  (:documentation "Length of seed required by PRNG-RESEED.")
-  (:method (prng) (declare (ignorable prng)) 0))
 
 (defun read-os-random-seed (source &optional (prng *prng*))
   (let* ((seed-length (prng-seed-length prng))
