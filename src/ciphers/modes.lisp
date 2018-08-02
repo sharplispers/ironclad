@@ -63,7 +63,7 @@ from OUT.  Note that for some cipher modes, IN and OUT may be different."))
 (defun list-all-modes ()
   (copy-seq *supported-modes*))
 
-(defmethod encrypt-message (cipher msg &key (start 0) (end (length msg)))
+(defmethod encrypt-message (cipher msg &key (start 0) (end (length msg)) &allow-other-keys)
   (let* ((length (- end start))
          (encrypted-length (encrypted-message-length cipher (mode cipher)
                                                      length t))
@@ -73,6 +73,20 @@ from OUT.  Note that for some cipher modes, IN and OUT may be different."))
              :plaintext-start start :plaintext-end end
              :handle-final-block t)
     encrypted-message))
+
+(defmethod decrypt-message (cipher msg &key (start 0) (end (length msg)) n-bits &allow-other-keys)
+  (let* ((length (- end start))
+         (decrypted-length (or n-bits length))
+         (decrypted-message (make-array decrypted-length
+                                        :element-type '(unsigned-byte 8))))
+    (multiple-value-bind (bytes-consumed bytes-produced)
+        (decrypt cipher msg decrypted-message
+                 :ciphertext-start start :ciphertext-end end
+                 :handle-final-block t)
+      (declare (ignore bytes-consumed))
+      (if (< bytes-produced decrypted-length)
+          (subseq decrypted-message 0 bytes-produced)
+          decrypted-message))))
 
 (defun increment-counter-block (block n)
   (declare (type simple-octet-vector block)

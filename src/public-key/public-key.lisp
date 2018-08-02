@@ -58,14 +58,14 @@ from its elements."))
   (:documentation "Return a plist containing the elements of
 an encrypted MESSAGE."))
 
-(defgeneric encrypt-message (key message &key start end &allow-other-keys)
-  (:documentation "Encrypt MESSAGE with KEY. START and END bound the extent
-of the message. Returns a fresh octet vector."))
+(defgeneric encrypt-message (cipher-or-key message &key start end &allow-other-keys)
+  (:documentation "Encrypt a MESSAGE with a CIPHER or a public KEY. START and
+END bound the extent of the message. Returns a fresh octet vector."))
 
-(defgeneric decrypt-message (key message &key start end n-bits &allow-other-keys)
-  (:documentation "Decrypt MESSAGE with KEY. START and END bound the extent
-of the message. Returns a fresh octet vector. N-BITS can be used to indicate
-the expected size of the decrypted message."))
+(defgeneric decrypt-message (cipher-or-key message &key start end n-bits &allow-other-keys)
+  (:documentation "Decrypt a MESSAGE with a CIPHER or a private KEY. START and
+END bound the extent of the message. Returns a fresh octet vector. N-BITS can be
+used to indicate the expected size of the decrypted message."))
 
 (defgeneric diffie-hellman (private-key public-key)
   (:documentation "Compute a shared secret using Alice's PRIVATE-KEY and Bob's PUBLIC-KEY"))

@@ -34,7 +34,7 @@ CIPHERTEXT."
   "Decrypt the data in CIPHERTEXT between CIPHERTEXT-START and
 CIPHERTEXT-END according to CIPHER.  Places the decrypted data in
 PLAINTEXT, beginning at PLAINTEXT-START.  Less data than
- (- CIPHERTEXT-END CIPHERTEXT-START) may be encrypted, depending on the
+ (- CIPHERTEXT-END CIPHERTEXT-START) may be decrypted, depending on the
 alignment constraints of CIPHER and the amount of space available in
 PLAINTEXT."
   (check-type ciphertext vector)

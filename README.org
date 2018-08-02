@@ -239,6 +239,23 @@ equal to the length of the data specified in the call to
 [[encrypt-in-place][encrypt-in-place]] or [[decrypt-in-place][decrypt-in-place]]. This subtlely is also present in
 [[encrypt][encrypt]] or [[decrypt][decrypt]].
 
+
+#+BEGIN_SRC lisp
+(encrypt-message cipher message &key start end &allow-other-keys) => encrypted-message
+#+END_SRC
+
+Return the /message/ between /start/ and /end/ encrypted with the /cipher/; the
+class of /cipher/ determines the algorithm used to encrypt the message.
+
+
+#+BEGIN_SRC lisp
+(decrypt-message cipher message &key start end n-bits &allow-other-keys) => decrypted-message
+#+END_SRC
+
+Return the /message/ between /start/ and /end/ decrypted by the /cipher/; the
+class of /cipher/ determines the algorithm used to decrypt the message. /n-bits/
+can be used to indicate the expected size of the decrypted message.
+
 ** Inquiry functions
 
 #+NAME: list-all-ciphers
