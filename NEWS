@@ -1,5 +1,12 @@
 -*- mode: outline -*-
 
+* Changes since version 0.41
+
+** new features
+
+The encrypt-message and decrypt-message methods can be used with ciphers (in
+addition to public or private keys).
+
 * Version 0.41, released 2018-07-30
 
 ** new features
