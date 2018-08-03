@@ -1,6 +1,24 @@
 ;;;; -*- mode: lisp; indent-tabs-mode: nil -*-
 #+sbcl
-(in-package :sb-vm)
+(defpackage "IRONCLAD-VM"
+  ;; more recent SBCL exports various symbols making this package
+  ;; definition more concise. This is the backward-compatible way.
+  (:use #:common-lisp
+        #:sb-c     ; for DEFINE-VOP and SC-IS
+        #:sb-assem ; for INST, GEN-LABEL
+        #:sb-vm)   ; for primtype names, SCs, constants
+  (:shadow #:ea) ; in case SB-VM exports it
+  (:import-from #:sb-vm
+                #+x86-64 #:reg-in-size ; soon to disappear, don't use
+                #:make-ea
+                #:positive-fixnum #:unsigned-num
+                #:descriptor-reg #:unsigned-reg #:double-reg #:immediate
+                #:simple-array-unsigned-byte-8
+                #:simple-array-unsigned-byte-32
+                #+x86-64 #:simple-array-unsigned-byte-64
+                #+x86-64 #:rax-offset #+x86-64 #:rcx-offset))
+
+#+sbcl (in-package "IRONCLAD-VM")
 
 #+(and sbcl (or x86 x86-64))
 (progn

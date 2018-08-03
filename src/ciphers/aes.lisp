@@ -11,6 +11,7 @@
 (eval-when (:compile-toplevel :load-toplevel :execute)
   (defun aes-ni-support-p ()
     (aes-ni-support-p))
+  (compile 'aes-ni-support-p)
   (when (aes-ni-support-p)
     (pushnew :aes-ni *features*)))
 
