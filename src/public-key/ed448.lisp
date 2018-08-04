@@ -271,7 +271,8 @@
     (declare (type (simple-array (unsigned-byte 8) (*)) r)
              (type integer s h)
              (type ed448-point rp a res1 res2))
-    (ed448-point-equal res1 res2)))
+    (and (< s +ed448-l+)
+         (ed448-point-equal res1 res2))))
 
 (defmethod make-public-key ((kind (eql :ed448)) &key y &allow-other-keys)
   (unless y
