@@ -2,10 +2,16 @@
 
 * Changes since version 0.41
 
+** bug fixes
+
+Fixed loading with SBCL versions newer than 1.4.10
+
 ** new features
 
 The encrypt-message and decrypt-message methods can be used with ciphers (in
 addition to public or private keys).
+
+Some optimizations for ed25519 and ed448.
 
 * Version 0.41, released 2018-07-30
 
