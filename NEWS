@@ -6,6 +6,9 @@
 
 Fixed loading with SBCL versions newer than 1.4.10
 
+Fixed wrong decryption when using the decrypt-in-place function with a block
+cipher in CFB mode.
+
 ** new features
 
 The encrypt-message and decrypt-message methods can be used with ciphers (in

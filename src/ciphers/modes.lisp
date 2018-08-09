@@ -240,8 +240,8 @@
                            do (when (zerop iv-position)
                                 (funcall function cipher iv 0 iv 0))
                               (let ((b (logxor (aref in i) (aref iv iv-position))))
-                                (setf (aref out j) b)
                                 (setf (aref iv iv-position) (aref in i))
+                                (setf (aref out j) b)
                                 (setf iv-position (mod (1+ iv-position) ,block-length-expr)))
                            finally (return
                                      (let ((n-bytes-processed (- in-end in-start)))
