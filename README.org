@@ -181,8 +181,8 @@ vector (nonce). It should be 8 bytes long for Chacha and Salsa20, and
 
 If /padding/ is supplied, the specified padding method will be used by [[encrypt][encrypt]]
 and [[decrypt][decrypt]] to handle short blocks when the ~:handle-final-block~ argument is
-supplied. /padding/ will only be used if the mode is ECB or CBC.
-The possible values for /padding/ are ~:pkcs7~ and ~:ansi-x923~.
+supplied. /padding/ will only be used if the mode is ECB or CBC. The possible
+values for /padding/ are ~:pkcs7~, ~:ansi-x923~ and ~:iso-7816-4~.
 
 If the cipher can use a tweak (e.g. threefish), it can be specified
 with the /tweak/ key parameter.

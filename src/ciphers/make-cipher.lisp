@@ -101,6 +101,8 @@
        (setf (padding (mode cipher)) (make-instance 'pkcs7-padding)))
       ((:ansi-x923 ansi-x923)
        (setf (padding (mode cipher)) (make-instance 'ansi-x923-padding)))
+      ((:iso-7816-4 iso-7816-4)
+       (setf (padding (mode cipher)) (make-instance 'iso-7816-4-padding)))
       ((nil)
        (setf (padding (mode cipher)) nil))
       (t
