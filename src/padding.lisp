@@ -22,5 +22,5 @@
   (declare (type index start))
   (let ((n-padding-bytes (aref text (1- (+ start block-size)))))
     (when (> n-padding-bytes block-size)
-      (error 'invalid-padding :padding-name 'pkcs7 :block text))
+      (error 'invalid-padding :name 'pkcs7 :block text))
     n-padding-bytes))

@@ -156,12 +156,11 @@
                                        :buffer out
                                        :start out-start
                                        :length ,block-length-expr))
-                              (when (plusp n-bytes-remaining)
-                                (replace out in
-                                         :start1 out-start
-                                         :start2 offset :end2 (+ offset n-bytes-remaining))
-                                (incf offset n-bytes-remaining))
-                              (add-padding-bytes padding out out-start n-bytes-remaining ,block-length-expr)
+                              (replace out in
+                                       :start1 out-start
+                                       :start2 offset :end2 (+ offset n-bytes-remaining))
+                              (add-padding-bytes padding out out-start
+                                                 n-bytes-remaining ,block-length-expr)
                               (funcall efun cipher out out-start out out-start)
                               (values (+ n-bytes-processed n-bytes-remaining)
                                       (+ n-bytes-processed ,block-length-expr)))
@@ -181,15 +180,17 @@
                                (incf offset ,block-length-expr)
                                (incf out-start ,block-length-expr))
                       (let ((n-bytes-processed (- offset in-start)))
-                        (if (and handle-final-block padding)
+                        (if (and handle-final-block
+                                 padding
+                                 (= (- in-end offset) ,block-length-expr))
                             (let ((n-bytes-remaining 0))
-                              (when (= (- in-end offset) ,block-length-expr)
-                                (funcall dfun cipher in offset temp-block 0)
-                                (let ((n-padding-bytes (count-padding-bytes padding temp-block 0 ,block-length-expr)))
-                                  (setf n-bytes-remaining (- ,block-length-expr n-padding-bytes))
-                                  (replace out temp-block
-                                           :start1 out-start
-                                           :start2 0 :end2 n-bytes-remaining)))
+                              (funcall dfun cipher in offset temp-block 0)
+                              (setf n-bytes-remaining (- ,block-length-expr
+                                                         (count-padding-bytes padding temp-block
+                                                                              0 ,block-length-expr)))
+                              (replace out temp-block
+                                       :start1 out-start
+                                       :start2 0 :end2 n-bytes-remaining)
                               (values (+ n-bytes-processed ,block-length-expr)
                                       (+ n-bytes-processed n-bytes-remaining)))
                             (values n-bytes-processed n-bytes-processed)))))))))
@@ -216,45 +217,85 @@
                   (declare (type (simple-octet-vector ,block-length-expr) iv))
                   (declare (inline xor-block))
                   (values
-                    (mode-lambda
-                     (loop with offset of-type index = in-start
-                           while (<= offset (- in-end ,block-length-expr))
-                           do (xor-block ,block-length-expr iv in offset
-                                  out out-start)
+                   (mode-lambda
+                    (let ((offset in-start)
+                          (padding (padding mode)))
+                      (declare (type index offset))
+                      (loop while (<= offset (- in-end ,block-length-expr))
+                            do (xor-block ,block-length-expr iv in offset out out-start)
+                               (funcall efun cipher out out-start out out-start)
+                               (replace iv out
+                                        :start1 0 :end1 ,block-length-expr
+                                        :start2 out-start)
+                               (incf offset ,block-length-expr)
+                               (incf out-start ,block-length-expr))
+                      (let ((n-bytes-processed (- offset in-start)))
+                        (if (and handle-final-block padding)
+                            (let ((n-bytes-remaining (- in-end offset)))
+                              (when (< (- (length out) out-start) ,block-length-expr)
+                                (error 'insufficient-buffer-space
+                                       :buffer out
+                                       :start out-start
+                                       :length ,block-length-expr))
+                              (replace out in
+                                       :start1 out-start
+                                       :start2 offset :end2 (+ offset n-bytes-remaining))
+                              (add-padding-bytes padding out out-start
+                                                 n-bytes-remaining ,block-length-expr)
+                              (xor-block ,block-length-expr iv out out-start out out-start)
                               (funcall efun cipher out out-start out out-start)
-                              (replace iv out :start1 0 :end1 ,block-length-expr
+                              (replace iv out
+                                       :start1 0 :end1 ,block-length-expr
                                        :start2 out-start)
-                              (incf offset ,block-length-expr)
-                              (incf out-start ,block-length-expr)
-                           finally (return
-                                     (let ((n-bytes-processed (- offset in-start)))
-                                       (values n-bytes-processed n-bytes-processed)))))
-                    (mode-lambda
-                     (let ((temp-block (make-array ,block-length-expr
-                                                   :element-type '(unsigned-byte 8))))
-                       (declare (type (simple-octet-vector ,block-length-expr) temp-block))
-                       (declare (dynamic-extent temp-block))
-                       (declare (inline xor-block))
-                       (loop with offset of-type index = in-start
-                             while (<= offset (- in-end ,block-length-expr))
-                             do (replace temp-block in :start1 0 :end1 ,block-length-expr
-                                         :start2 offset)
-                                (funcall dfun cipher in offset out out-start)
-                                (xor-block ,block-length-expr iv out out-start
-                                    out out-start)
-                                (replace iv temp-block :end1 ,block-length-expr
-                                         :end2 ,block-length-expr)
-                                (incf offset ,block-length-expr)
-                                (incf out-start ,block-length-expr)
-                             finally (return
-                                       (let ((n-bytes-processed (- offset in-start)))
-                                         (values n-bytes-processed n-bytes-processed))))))))))
+                              (values (+ n-bytes-processed n-bytes-remaining)
+                                      (+ n-bytes-processed ,block-length-expr)))
+                            (values n-bytes-processed n-bytes-processed)))))
+                   (mode-lambda
+                    (let ((temp-block (make-array ,block-length-expr
+                                                  :element-type '(unsigned-byte 8)))
+                          (offset in-start)
+                          (padding (padding mode)))
+                      (declare (type (simple-octet-vector ,block-length-expr) temp-block))
+                      (declare (dynamic-extent temp-block))
+                      (declare (type index offset))
+                      (declare (inline xor-block))
+                      (loop while (if (and handle-final-block padding)
+                                      (< offset (- in-end ,block-length-expr))
+                                      (<= offset (- in-end ,block-length-expr)))
+                            do (replace temp-block in
+                                        :start1 0 :end1 ,block-length-expr
+                                        :start2 offset)
+                               (funcall dfun cipher in offset out out-start)
+                               (xor-block ,block-length-expr iv out out-start out out-start)
+                               (replace iv temp-block
+                                        :end1 ,block-length-expr
+                                        :end2 ,block-length-expr)
+                               (incf offset ,block-length-expr)
+                               (incf out-start ,block-length-expr))
+                      (let ((n-bytes-processed (- offset in-start)))
+                        (if (and handle-final-block
+                                 padding
+                                 (= (- in-end offset) ,block-length-expr))
+                            (let ((n-bytes-remaining 0))
+                              (funcall dfun cipher in offset temp-block 0)
+                              (xor-block ,block-length-expr iv temp-block 0 temp-block 0)
+                              (setf n-bytes-remaining (- ,block-length-expr
+                                                         (count-padding-bytes padding temp-block
+                                                                              0 ,block-length-expr)))
+                              (replace out temp-block
+                                       :start1 out-start
+                                       :start2 0 :end2 n-bytes-remaining)
+                              (values (+ n-bytes-processed ,block-length-expr)
+                                      (+ n-bytes-processed n-bytes-remaining)))
+                            (values n-bytes-processed n-bytes-processed)))))))))
            (message-length (cipher-specializer block-length-expr)
              `(defmethod encrypted-message-length ((cipher ,cipher-specializer)
                                                    (mode cbc-mode) length
                                                    &optional handle-final-block)
-                (declare (ignore handle-final-block))
-                (* (truncate length ,block-length-expr) ,block-length-expr))))
+                (let ((encrypted-length (* (truncate length ,block-length-expr) ,block-length-expr)))
+                  (if (and handle-final-block (padding mode))
+                      (+ encrypted-length ,block-length-expr)
+                      encrypted-length)))))
   (define-mode-function mode-crypt message-length))
 
 
