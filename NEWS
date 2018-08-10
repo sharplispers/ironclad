@@ -4,8 +4,8 @@
 
 ** new features
 
-Added support for PKCS7 padding when encrypting or decrypting in ECB
-or CBC mode.
+Added support for PKCS7 and ANSI X.923 padding when encrypting or decrypting in
+ECB or CBC mode.
 
 Added support for CFB, CFB8 and OFB modes to cipher streams.
 

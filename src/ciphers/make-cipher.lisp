@@ -99,6 +99,8 @@
     (case padding
       ((:pkcs7 pkcs7)
        (setf (padding (mode cipher)) (make-instance 'pkcs7-padding)))
+      ((:ansi-x923 ansi-x923)
+       (setf (padding (mode cipher)) (make-instance 'ansi-x923-padding)))
       ((nil)
        (setf (padding (mode cipher)) nil))
       (t

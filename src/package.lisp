@@ -46,7 +46,7 @@
    #:ecb #:cbc #:ctr #:ofb #:cfb #:stream
 
    ;; block cipher padding
-   #:pkcs7
+   #:pkcs7 #:ansi-x923
 
    ;; KDFs
    #:pbkdf1 #:pbkdf2 #:scrypt-kdf #:argon2i
