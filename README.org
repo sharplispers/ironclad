@@ -1450,7 +1450,7 @@ them according to a specific cipher algorithm.
 
 #+NAME: make-encrypting-stream
 #+BEGIN_SRC lisp
-(make-encrypting-stream stream cipher mode key &key initialization-vector direction padding) => stream
+(make-encrypting-stream stream cipher mode key &key initialization-vector direction) => stream
 #+END_SRC
 
 Make a stream wrapped around the binary stream /stream/ that encrypts
@@ -1464,7 +1464,7 @@ stream is encrypted before being sent to /stream/.
 
 #+NAME: make-decrypting-stream
 #+BEGIN_SRC lisp
-(make-decrypting-stream stream cipher mode key &key initialization-vector direction padding) => stream
+(make-decrypting-stream stream cipher mode key &key initialization-vector direction) => stream
 #+END_SRC
 
 Make a stream wrapped around the binary stream /stream/ that decrypts
@@ -1476,15 +1476,13 @@ If /direction/ is ~:output~, the data written to the created output
 stream is decrypted before being sent to /stream/.
 
 
-_Note:_ For the moment, only stream ciphers and block ciphers in CTR
-mode are supported by [[make-encrypting-stream][make-encrypting-stream]] and
-[[make-decrypting-stream][make-decrypting-stream]]. Therefore the /padding/ parameter is always
-ignored.
+_Note:_ Only stream ciphers and block ciphers in CTR, CFB, CFB8 or OFB mode are
+supported by [[make-encrypting-stream][make-encrypting-stream]] and [[make-decrypting-stream][make-decrypting-stream]].
 
 
 #+NAME: with-encrypting-stream
 #+BEGIN_SRC lisp
-(with-encrypting-stream ((var stream cipher mode key &key initialization-vector direction padding) &body body))
+(with-encrypting-stream ((var stream cipher mode key &key initialization-vector direction) &body body))
 #+END_SRC
 
 Within /body/, /var/ is bound to an encrypting stream. The result of
@@ -1493,7 +1491,7 @@ the last form of /body/ is returned.
 
 #+NAME: with-decrypting-stream
 #+BEGIN_SRC lisp
-(with-decrypting-stream ((var stream cipher mode key &key initialization-vector direction padding) &body body))
+(with-decrypting-stream ((var stream cipher mode key &key initialization-vector direction) &body body))
 #+END_SRC
 
 Within /body/, /var/ is bound to a decrypting stream. The result of

@@ -465,7 +465,6 @@ of a string output-stream."
    (buffer :initarg :buffer :reader stream-buffer)
    (n-bytes-valid :initform 0 :reader stream-n-bytes-valid)
    (position :initform 0 :reader stream-buffer-position)
-   (padding :initarg :padding :reader stream-padding)
    (wrapped-stream :initarg :stream :reader stream-wrapped-stream)))
 
 (defmethod #.*stream-element-type-function* ((stream crypting-stream))
@@ -478,16 +477,11 @@ of a string output-stream."
 
 (deftype stream-direction () '(member :input :output))
 
-(defun make-encrypting-stream (stream cipher mode key
-                               &key initialization-vector
-                               (direction :output) (padding :none))
+(defun make-encrypting-stream (stream cipher mode key &key initialization-vector (direction :output))
   (declare (type stream-direction direction))
-  (declare (ignorable padding))
-  (case mode
-    ((ctr :ctr) t)
-    ((stream :stream) t)
-    (t (error 'ironclad-error
-              :format-control "Encrypting streams support only CTR and STREAM modes")))
+  (unless (member mode '(ctr :ctr cfb :cfb cfb8 :cfb8 ofb :ofb stream :stream))
+    (error 'ironclad-error
+           :format-control "Encrypting streams support only CTR, CFB, CFB8, OFB and STREAM modes"))
   (let* ((context (make-cipher cipher :mode mode :key key
                                :initialization-vector initialization-vector))
          (block-length (max (block-length cipher) 4096))
@@ -498,16 +492,11 @@ of a string output-stream."
         (make-instance 'encrypting-output-stream :stream stream
                        :cipher context :buffer buffer))))
 
-(defun make-decrypting-stream (stream cipher mode key
-                               &key initialization-vector (padding :none)
-                               (direction :input))
+(defun make-decrypting-stream (stream cipher mode key &key initialization-vector (direction :input))
   (declare (type stream-direction direction))
-  (declare (ignorable padding))
-  (case mode
-    ((ctr :ctr) t)
-    ((stream :stream) t)
-    (t (error 'ironclad-error
-              :format-control "Decrypting streams support only CTR and STREAM modes")))
+  (unless (member mode '(ctr :ctr cfb :cfb cfb8 :cfb8 ofb :ofb stream :stream))
+    (error 'ironclad-error
+           :format-control "Decrypting streams support only CTR, CFB, CFB8, OFB and STREAM modes"))
   (let* ((context (make-cipher cipher :mode mode :key key
                                :initialization-vector initialization-vector))
          (block-length (max (block-length cipher) 4096))
@@ -622,23 +611,19 @@ of a string output-stream."
 
 
 (defmacro with-encrypting-stream ((var stream cipher mode key
-                                   &key initialization-vector
-                                     (direction :output) (padding :none))
+                                   &key initialization-vector (direction :output))
                                   &body body)
   `(with-open-stream (,var (make-encrypting-stream ,stream ,cipher ,mode ,key
                                                    :initialization-vector ,initialization-vector
-                                                   :direction ,direction
-                                                   :padding ,padding))
+                                                   :direction ,direction))
      ,@body))
 
 (defmacro with-decrypting-stream ((var stream cipher mode key
-                                   &key initialization-vector
-                                     (direction :input) (padding :none))
+                                   &key initialization-vector (direction :input))
                                   &body body)
   `(with-open-stream (,var (make-decrypting-stream ,stream ,cipher ,mode ,key
                                                    :initialization-vector ,initialization-vector
-                                                   :direction ,direction
-                                                   :padding ,padding))
+                                                   :direction ,direction))
      ,@body))
 
 
