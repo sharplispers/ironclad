@@ -21,6 +21,9 @@
   (declare (type simple-octet-vector text))
   (declare (type index start))
   (let ((n-padding-bytes (aref text (1- (+ start block-size)))))
-    (when (> n-padding-bytes block-size)
+    (declare (type (unsigned-byte 8) n-padding-bytes))
+    (when (or (> n-padding-bytes block-size)
+              (not (loop for i from (- block-size n-padding-bytes) below block-size
+                         always (= (aref text (+ start i)) n-padding-bytes))))
       (error 'invalid-padding :name 'pkcs7 :block text))
     n-padding-bytes))
