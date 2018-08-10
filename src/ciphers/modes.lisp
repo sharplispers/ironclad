@@ -20,12 +20,6 @@
 (defclass ctr-mode (encryption-mode inititialization-vector-mixin)
   ((keystream-blocks :accessor keystream-blocks :initform 0)))
 
-#+nil
-(defclass padded-cipher-mode (encryption-mode)
-  ((buffer :reader buffer)
-   (buffer-index :accessor buffer-index :initform 0)
-   (sub-mode :reader sub-mode :initarg :sub-mode)))
-
 (defmethod print-object ((object encryption-mode) stream)
   (print-unreadable-object (object stream :identity t)
     (format stream "~A" (class-name (class-of object)))))
@@ -34,12 +28,6 @@
   (multiple-value-bind (efun dfun) (mode-crypt-functions cipher mode)
     (setf (slot-value mode 'encrypt-function) efun
           (slot-value mode 'decrypt-function) dfun)))
-
-#+nil
-(defmethod initialize-instance :after ((mode padded-cipher-mode)
-                                       &key buffer-length)
-  (setf (slot-value mode 'buffer)
-        (make-array buffer-length :element-type '(unsigned-byte 8))))
 
 (defvar *supported-modes* (list :ecb :cbc :ofb :cfb :cfb8 :ctr))
 
@@ -100,19 +88,6 @@
              (type (mod #.most-positive-fixnum) carry))
     (setf (aref block i) (logand sub #xff)))
   (values))
-
-;;; Only really works on big-endian processors...
-#+nil
-(defun increment-counter-block (block)
-  (let ((words (truncate (length block) sb-vm:n-word-bytes))
-        (carry 1))
-    (loop for i from (1- words) downto 0
-          until (zerop carry) do
-          (let ((word (sb-kernel:%vector-raw-bits block i)))
-            (multiple-value-setq (word carry)
-              (sb-bignum:%add-with-carry word 0 carry))
-            (setf (sb-kernel:%vector-raw-bits block i) word)))
-    (values)))
 
 ;;; This way is kind of ugly, but I don't know a better way.
 (macrolet ((define-mode-function (&rest mode-definition-funs &environment env)
@@ -501,118 +476,6 @@
                 ;; We can encrypt the whole thing.
                 length)))
   (define-mode-function mode-crypt message-length))
-
-
-;;; Padded modes
-
-#+nil
-(macrolet ((encrypt (cipher-specializer block-length-expr)
-             `(defmethod encrypt-with-mode ((cipher ,cipher-specializer)
-                                            (mode padded-cipher-mode)
-                                            plaintext ciphertext
-                                            plaintext-start plaintext-end
-                                            ciphertext-start handle-final-block)
-                (declare (type simple-octet-vector plaintext ciphertext))
-                (declare (type index plaintext-start plaintext-end ciphertext-start))
-                (declare (ignorable handle-final-block))
-                (let* ((buffer (buffer mode))
-                       (sub-mode (sub-mode mode))
-                       (buffer-index (buffer-index mode))
-                       (amount (- ,block-length-expr buffer-index))
-                       (plaintext-length (- plaintext-end plaintext-start))
-                       (n-bytes-encrypted 0))
-                  (declare (type (simple-octet-vector ,block-length-expr) buffer))
-                  (when (> plaintext-length amount)
-                    (replace buffer plaintext :start1 buffer-index
-                             :end1 ,block-length-expr
-                             :start2 plaintext-start)
-                    (encrypt-with-mode cipher sub-mode plaintext ciphertext
-                                       plaintext-start plaintext-end
-                                       ciphertext-start nil)
-                    (setf buffer-index 0)
-                    (decf plaintext-length amount)
-                    (incf plaintext-start amount)
-                    (incf n-bytes-encrypted amount)
-                    (loop while (> plaintext-length ,block-length-expr)
-                          do (encrypt-with-mode cipher sub-mode
-                                     plaintext ciphertext
-                                     plaintext-start
-                                     (+ plaintext-start
-                                                 ,block-length-expr)
-                                     (+ ciphertext-start
-                                                  n-bytes-encrypted)
-                                     nil)
-                             (decf plaintext-length ,block-length-expr)
-                             (incf plaintext-start ,block-length-expr)
-                             (incf n-bytes-encrypted ,block-length-expr)))
-                  (replace buffer plaintext :start2 plaintext-start
-                           :end2 plaintext-end)
-                  (setf (buffer-index mode) plaintext-length)
-                  (values (+ n-bytes-encrypted plaintext-length)
-                          n-bytes-encrypted))))
-           (decrypt (cipher-specializer block-length-expr)
-             `(defmethod decrypt-with-mode ((cipher ,cipher-specializer)
-                                            (mode padded-cipher-mode)
-                                            ciphertext plaintext
-                                            ciphertext-start ciphertext-end
-                                            plaintext-start handle-final-block)
-                (declare (type simple-octet-vector plaintext ciphertext))
-                (declare (type index ciphertext-start ciphertext-end plaintext-start))
-                (declare (ignorable handle-final-block))
-                (let* ((buffer (buffer mode))
-                       (sub-mode (sub-mode mode))
-                       (buffer-index (buffer-index mode))
-                       (amount (- ,block-length-expr buffer-index))
-                       (ciphertext-length (- ciphertext-end ciphertext-start))
-                       (n-bytes-decrypted 0))
-                  (when (> ciphertext-length amount)
-                    (replace buffer ciphertext :start1 buffer-index
-                             :end1 ,block-length-expr
-                             :start2 ciphertext-start)
-                    (decrypt-with-mode cipher sub-mode ciphertext plaintext
-                                       ciphertext-start ciphertext-end
-                                       plaintext-start nil)
-                    (setf buffer-index 0)
-                    (decf ciphertext-length amount)
-                    (incf ciphertext-start amount)
-                    (incf n-bytes-decrypted amount)
-                    (loop while (> ciphertext-length ,block-length-expr)
-                          do (decrypt-with-mode cipher sub-mode
-                                     ciphertext plaintext
-                                     ciphertext-start
-                                     (+ ciphertext-start
-                                                  ,block-length-expr)
-                                     (+ ciphertext-start
-                                                  n-bytes-decrypted) nil)
-                             (decf ciphertext-length ,block-length-expr)
-                             (incf ciphertext-start ,block-length-expr)
-                             (incf n-bytes-decrypted ,block-length-expr)))
-                  (replace buffer ciphertext :start2 ciphertext-start
-                           :end2 ciphertext-end)
-                  (setf (buffer-index mode) ciphertext-length)
-                  (values (+ n-bytes-decrypted ciphertext-length)
-                          n-bytes-decrypted))))
-           (message-length (cipher-specializer block-length-expr)
-             `(defmethod encrypted-message-length ((cipher ,cipher-specializer)
-                                                   (mode padded-cipher-mode)
-                                                   length
-                                                   &optional handle-final-block)
-                (let* ((buffer-index (buffer-index mode))
-                       (total-amount (+ buffer-index length)))
-                  (cond
-                    (handle-final-block
-                     ;; Calculate how much padding we will need.
-                     (multiple-value-bind (full-blocks leftover)
-                         (ceiling total-amount ,block-length-expr)
-                       (declare (ignore leftover))
-                       (* full-blocks ,block-length-expr)))
-                    (t
-                     ;; Return the number of full blocks we will encrypt.
-                     (multiple-value-bind (full-blocks leftover)
-                         (floor total-amount ,block-length-expr)
-                       (declare (ignore leftover))
-                       (* full-blocks ,block-length-expr))))))))
-  (define-mode-function encrypt decrypt message-length))
 
 (defmethod mode-crypt-functions (cipher (mode stream-mode))
   (flet ((stream-crypt-function (function)
