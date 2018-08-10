@@ -22,15 +22,6 @@ but determining what to do with the data is a little more complicated.
 Some conditions have been added as of 0.7, but there probably need to be
 more, with helpful messages along the way.
 
-* add functional version of encryption and decryption
-
-{ENCRYPT,DECRYPT}-MESSAGE would be perfect for this; although they were
-originally conceived for public-key operations (and therefore they have
-to return a fresh octet vector), they make perfect candidates for
-providing functional interfaces to encryption and decryption as well.
-Figuring out short block interfaces for this and padding issues,
-however, will be a little tricky.
-
 * remove generic function calls from inner loops
 
 ENCRYPT-WITH-MODE, by virtue of calling <CIPHER>-ENCRYPT-BLOCK on
@@ -57,15 +48,6 @@ of ENCRYPT-FINAL-BLOCK interface so we would know when to perform the
 ciphertext stealing)
 PCBC, for all those Lispers who want to implement Kerberos 4
 OpenPGP CFB
-
-* add padding primitives
-
-This should be combined, somehow, with an ENCRYPT-FINAL-BLOCK generic
-function.  This lets the caller do padding and encryption in one shot.
-
-An alternative to ENCRYPT-FINAL-BLOCK is to provide a
-:PROCESS-FINAL-BLOCK argument to {ENCRYPT,DECRYPT}, which seems cleaner
-and easier to add.
 
 * efficient 32-bit implementations of SHA2-{512,384}
 
