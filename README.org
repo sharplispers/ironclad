@@ -179,15 +179,10 @@ vector (nonce). It should be 8 bytes long for Chacha and Salsa20, and
 /key/ is, of course, the key for the cipher.
 /key/ should be a ~(simple-array (unsigned-byte 8) (*))~.
 
-If /padding/ is supplied, the specified padding method will be used by
-[[encrypt][encrypt]] and [[decrypt][decrypt]] to handle short blocks when the
-~:handle-final-block~ argument is supplied. Depending on the mode
-specified, /padding/ may be ignored (e.g. OFB and CFB modes do not
-care about short blocks; neither do stream ciphers).
-
-_Note:_ /padding/ is currently ignored in all modes (and, by
-extension, so is ~:handle-final-block~). This oversight is expected to
-be corrected in a future release.
+If /padding/ is supplied, the specified padding method will be used by [[encrypt][encrypt]]
+and [[decrypt][decrypt]] to handle short blocks when the ~:handle-final-block~ argument is
+supplied. /padding/ will only be used if the mode is ECB or CBC.
+Currently, the only supported value for /padding/ is ~:pkcs7~.
 
 If the cipher can use a tweak (e.g. threefish), it can be specified
 with the /tweak/ key parameter.
@@ -1707,6 +1702,15 @@ unsupported-mode
 
 This error is signaled when the /mode/ provided to
 [[make-cipher][make-cipher]] is not /mode-supported-p/.
+
+
+#+NAME: unsupported-padding
+#+BEGIN_SRC lisp
+unsupported-padding
+#+END_SRC
+
+This error is signaled when the /padding/ provided to [[make-cipher][make-cipher]] is not
+supported.
 
 
 #+NAME: unsupported-digest
