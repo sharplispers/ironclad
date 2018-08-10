@@ -9,14 +9,18 @@
 
 (defclass pkcs7-padding (padding) ())
 
-(defmethod add-padding-bytes ((padding pkcs7-padding) text start
-                              block-offset block-size)
+(defmethod add-padding-bytes ((padding pkcs7-padding) text start block-offset block-size)
   (declare (type simple-octet-vector text))
   (declare (type index start block-offset))
-  (let* ((n-padding-bytes (- block-size block-offset))
-         (pad-byte (if (zerop n-padding-bytes) block-size n-padding-bytes)))
-    (declare (type (unsigned-byte 8) pad-byte))
-    (loop for i from (+ start block-offset)
-          for j from 0 below n-padding-bytes
-          do (setf (aref text i) pad-byte))
+  (let ((n-padding-bytes (- block-size block-offset)))
+    (declare (type (unsigned-byte 8) n-padding-bytes))
+    (fill text n-padding-bytes :start (+ start block-offset) :end (+ start block-size))
     (values)))
+
+(defmethod count-padding-bytes ((padding pkcs7-padding) text start block-size)
+  (declare (type simple-octet-vector text))
+  (declare (type index start))
+  (let ((n-padding-bytes (aref text (1- (+ start block-size)))))
+    (when (> n-padding-bytes block-size)
+      (error 'invalid-padding :padding-name 'pkcs7 :block text))
+    n-padding-bytes))

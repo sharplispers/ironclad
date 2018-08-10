@@ -249,12 +249,11 @@ class of /cipher/ determines the algorithm used to encrypt the message.
 
 
 #+BEGIN_SRC lisp
-(decrypt-message cipher message &key start end n-bits &allow-other-keys) => decrypted-message
+(decrypt-message cipher message &key start end &allow-other-keys) => decrypted-message
 #+END_SRC
 
 Return the /message/ between /start/ and /end/ decrypted by the /cipher/; the
-class of /cipher/ determines the algorithm used to decrypt the message. /n-bits/
-can be used to indicate the expected size of the decrypted message.
+class of /cipher/ determines the algorithm used to decrypt the message.
 
 ** Inquiry functions
 

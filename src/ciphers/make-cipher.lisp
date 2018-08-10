@@ -62,7 +62,8 @@
        (make-extended-mode 'cfb8-mode))
       ((:ctr ctr)
        (make-extended-mode 'ctr-mode))
-      (:stream (make-instance 'stream-mode :cipher cipher))
+      ((:stream stream)
+       (make-instance 'stream-mode :cipher cipher))
       (t
        (error 'unsupported-mode :mode mode))))))
 
@@ -71,11 +72,11 @@
 
 ;;; This is where all the work gets done.
 (defmethod shared-initialize :after ((cipher cipher) slot-names
-                              &rest initargs
-                              &key (key nil key-p) (mode nil mode-p)
-                              (padding nil padding-p)
-                              (initialization-vector nil iv-p)
-                              &allow-other-keys)
+                                     &rest initargs
+                                     &key (key nil key-p) (mode nil mode-p)
+                                       (padding nil padding-p)
+                                       (initialization-vector nil iv-p)
+                                     &allow-other-keys)
   (declare (ignorable padding padding-p iv-p initargs))
   ;; We always want to check that we have a valid key when we initialize
   ;; a cipher (what good is an unkeyed cipher?).  We want to check for
@@ -86,29 +87,22 @@
   (when (and (or (not (initialized-p cipher)) mode-p)
              (not (valid-mode-for-cipher-p cipher mode)))
     ;; FIXME: (CLASS-NAME (CLASS-OF ...)) is not quite right.
-    (error 'unsupported-mode :mode mode
-           :cipher (class-name (class-of cipher))))
+    (error 'unsupported-mode :mode mode :cipher (class-name (class-of cipher))))
   (when (and iv-p
              (not mode-p))
     (setq mode (mode-name cipher)))
   (when (or mode-p iv-p)
     (setf (slot-value cipher 'mode-name) mode)
     (let ((mode-instance (make-mode-for-cipher cipher mode initialization-vector)))
-      (typecase (mode cipher)
-        #+nil
-        (padded-mode
-         (setf (mode (mode cipher)) mode-instance))
-        (t
-         (setf (mode cipher) mode-instance)))))
-  #+nil
-  (when padding-p
-    (typecase (mode cipher)
-      (padded-mode
-       (setf (padding (mode cipher)) padding))
+      (setf (mode cipher) mode-instance)))
+  (when (and padding-p (mode cipher) (typep (mode cipher) 'padded-mode))
+    (case padding
+      ((:pkcs7 pkcs7)
+       (setf (padding (mode cipher)) (make-instance 'pkcs7-padding)))
+      ((nil)
+       (setf (padding (mode cipher)) nil))
       (t
-       (setf (padding (mode cipher))
-             (make-instance 'padded-mode :mode mode :padding padding
-                            :buffer-length (block-length cipher))))))
+       (error 'unsupported-padding :name padding))))
   cipher)
 
 (defmethod initialize-instance :after ((cipher cipher)

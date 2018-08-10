@@ -45,6 +45,9 @@
    ;; arguments to (MAKE-CIPHER ... :MODE X)
    #:ecb #:cbc #:ctr #:ofb #:cfb #:stream
 
+   ;; block cipher padding
+   #:pkcs7
+
    ;; KDFs
    #:pbkdf1 #:pbkdf2 #:scrypt-kdf #:argon2i
    #:make-kdf #:derive-key
@@ -96,7 +99,8 @@
    ;; conditions
    #:ironclad-error #:initialization-vector-not-supplied
    #:invalid-initialization-vector #:invalid-key-length
-   #:unsupported-cipher #:unsupported-mode #:unsupported-digest
+   #:unsupported-cipher #:unsupported-mode #:unsupported-padding
+   #:unsupported-digest
    #:unsupported-kdf #:unsupported-scrypt-cost-factors
    #:unsupported-argon2i-parameters
    #:insufficient-buffer-space #:invalid-padding

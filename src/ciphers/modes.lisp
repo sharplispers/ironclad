@@ -6,18 +6,21 @@
 (defclass encryption-mode ()
   ((encrypt-function :reader encrypt-function)
    (decrypt-function :reader decrypt-function)))
-(defclass ecb-mode (encryption-mode) ())
+(defclass padded-mode ()
+  ((padding :accessor padding :initform nil)))
+(defclass ecb-mode (encryption-mode padded-mode) ())
 (defclass stream-mode (encryption-mode) ())
 (defclass inititialization-vector-mixin ()
   ((iv :reader iv :initarg :initialization-vector)
    (position :accessor iv-position :initform 0)))
-(defclass cbc-mode (encryption-mode inititialization-vector-mixin) ())
+(defclass cbc-mode (encryption-mode inititialization-vector-mixin padded-mode) ())
 (defclass ofb-mode (encryption-mode inititialization-vector-mixin) ())
 (defclass cfb-mode (encryption-mode inititialization-vector-mixin) ())
 (defclass cfb8-mode (encryption-mode inititialization-vector-mixin) ())
 (defclass ctr-mode (encryption-mode inititialization-vector-mixin)
   ((keystream-blocks :accessor keystream-blocks :initform 0)))
 
+#+nil
 (defclass padded-cipher-mode (encryption-mode)
   ((buffer :reader buffer)
    (buffer-index :accessor buffer-index :initform 0)
@@ -32,6 +35,7 @@
     (setf (slot-value mode 'encrypt-function) efun
           (slot-value mode 'decrypt-function) dfun)))
 
+#+nil
 (defmethod initialize-instance :after ((mode padded-cipher-mode)
                                        &key buffer-length)
   (setf (slot-value mode 'buffer)
@@ -43,30 +47,28 @@
   (member name *supported-modes*))
 
 (defun list-all-modes ()
-  (copy-seq *supported-modes*))
+  (sort (copy-seq *supported-modes*) #'string<))
 
-(defmethod encrypt-message (cipher msg &key (start 0) (end (length msg)) &allow-other-keys)
+(defmethod encrypt-message (cipher message &key (start 0) (end (length message)) &allow-other-keys)
   (let* ((length (- end start))
          (encrypted-length (encrypted-message-length cipher (mode cipher)
                                                      length t))
          (encrypted-message (make-array encrypted-length
                                         :element-type '(unsigned-byte 8))))
-    (encrypt cipher msg encrypted-message
+    (encrypt cipher message encrypted-message
              :plaintext-start start :plaintext-end end
              :handle-final-block t)
     encrypted-message))
 
-(defmethod decrypt-message (cipher msg &key (start 0) (end (length msg)) n-bits &allow-other-keys)
+(defmethod decrypt-message (cipher message &key (start 0) (end (length message)) &allow-other-keys)
   (let* ((length (- end start))
-         (decrypted-length (or n-bits length))
-         (decrypted-message (make-array decrypted-length
-                                        :element-type '(unsigned-byte 8))))
+         (decrypted-message (make-array length :element-type '(unsigned-byte 8))))
     (multiple-value-bind (bytes-consumed bytes-produced)
-        (decrypt cipher msg decrypted-message
+        (decrypt cipher message decrypted-message
                  :ciphertext-start start :ciphertext-end end
                  :handle-final-block t)
       (declare (ignore bytes-consumed))
-      (if (< bytes-produced decrypted-length)
+      (if (< bytes-produced length)
           (subseq decrypted-message 0 bytes-produced)
           decrypted-message))))
 
@@ -134,25 +136,71 @@
 (macrolet ((mode-crypt (cipher-specializer block-length-expr)
              `(defmethod mode-crypt-functions ((cipher ,cipher-specializer)
                                                (mode ecb-mode))
-                (flet ((ecb-crypt-function (function)
-                         (declare (type function function))
-                         (mode-lambda
-                          (loop with offset of-type index = in-start
-                                while (<= offset (- in-end ,block-length-expr))
-                                do (funcall function cipher in offset out out-start)
-                                   (incf offset ,block-length-expr)
-                                   (incf out-start ,block-length-expr)
-                                finally (return
-                                          (let ((n-bytes-processed (- offset in-start)))
-                                            (values n-bytes-processed n-bytes-processed)))))))
-                  (values (ecb-crypt-function (encrypt-function cipher))
-                          (ecb-crypt-function (decrypt-function cipher))))))
+                (let ((efun (encrypt-function cipher))
+                      (dfun (decrypt-function cipher)))
+                  (declare (type function efun dfun))
+                  (values
+                   (mode-lambda
+                    (let ((offset in-start)
+                          (padding (padding mode)))
+                      (declare (type index offset))
+                      (loop while (<= offset (- in-end ,block-length-expr))
+                            do (funcall efun cipher in offset out out-start)
+                               (incf offset ,block-length-expr)
+                               (incf out-start ,block-length-expr))
+                      (let ((n-bytes-processed (- offset in-start)))
+                        (if (and handle-final-block padding)
+                            (let ((n-bytes-remaining (- in-end offset)))
+                              (when (< (- (length out) out-start) ,block-length-expr)
+                                (error 'insufficient-buffer-space
+                                       :buffer out
+                                       :start out-start
+                                       :length ,block-length-expr))
+                              (when (plusp n-bytes-remaining)
+                                (replace out in
+                                         :start1 out-start
+                                         :start2 offset :end2 (+ offset n-bytes-remaining))
+                                (incf offset n-bytes-remaining))
+                              (add-padding-bytes padding out out-start n-bytes-remaining ,block-length-expr)
+                              (funcall efun cipher out out-start out out-start)
+                              (values (+ n-bytes-processed n-bytes-remaining)
+                                      (+ n-bytes-processed ,block-length-expr)))
+                            (values n-bytes-processed n-bytes-processed)))))
+                   (mode-lambda
+                    (let ((temp-block (make-array ,block-length-expr
+                                                  :element-type '(unsigned-byte 8)))
+                          (offset in-start)
+                          (padding (padding mode)))
+                      (declare (type (simple-octet-vector ,block-length-expr) temp-block))
+                      (declare (dynamic-extent temp-block))
+                      (declare (type index offset))
+                      (loop while (if (and handle-final-block padding)
+                                      (< offset (- in-end ,block-length-expr))
+                                      (<= offset (- in-end ,block-length-expr)))
+                            do (funcall dfun cipher in offset out out-start)
+                               (incf offset ,block-length-expr)
+                               (incf out-start ,block-length-expr))
+                      (let ((n-bytes-processed (- offset in-start)))
+                        (if (and handle-final-block padding)
+                            (let ((n-bytes-remaining 0))
+                              (when (= (- in-end offset) ,block-length-expr)
+                                (funcall dfun cipher in offset temp-block 0)
+                                (let ((n-padding-bytes (count-padding-bytes padding temp-block 0 ,block-length-expr)))
+                                  (setf n-bytes-remaining (- ,block-length-expr n-padding-bytes))
+                                  (replace out temp-block
+                                           :start1 out-start
+                                           :start2 0 :end2 n-bytes-remaining)))
+                              (values (+ n-bytes-processed ,block-length-expr)
+                                      (+ n-bytes-processed n-bytes-remaining)))
+                            (values n-bytes-processed n-bytes-processed)))))))))
            (message-length (cipher-specializer block-length-expr)
              `(defmethod encrypted-message-length ((cipher ,cipher-specializer)
                                                    (mode ecb-mode) length
                                                    &optional handle-final-block)
-                (declare (ignore handle-final-block))
-                (* (truncate length ,block-length-expr) ,block-length-expr))))
+                (let ((encrypted-length (* (truncate length ,block-length-expr) ,block-length-expr)))
+                  (if (and handle-final-block (padding mode))
+                      (+ encrypted-length ,block-length-expr)
+                      encrypted-length)))))
   (define-mode-function mode-crypt message-length))
 
 
@@ -416,6 +464,7 @@
 
 ;;; Padded modes
 
+#+nil
 (macrolet ((encrypt (cipher-specializer block-length-expr)
              `(defmethod encrypt-with-mode ((cipher ,cipher-specializer)
                                             (mode padded-cipher-mode)

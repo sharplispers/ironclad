@@ -57,6 +57,13 @@ for a particular mode of operation but not supplied."))
                          (mode condition)))))
   (:documentation "Signaled when an invalid mode name is provided to MAKE-CIPHER."))
 
+(define-condition unsupported-padding (ironclad-error)
+  ((padding :initarg :name :reader padding))
+  (:report (lambda (condition stream)
+             (format stream "Padding ~A is not a supported padding"
+                     (padding condition))))
+  (:documentation "Signaled when an invalid padding name is provided to MAKE-CIPHER."))
+
 (define-condition unsupported-digest (ironclad-error)
   ((digest :initarg :name :reader digest))
   (:report (lambda (condition stream)
