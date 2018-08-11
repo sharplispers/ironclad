@@ -7,13 +7,6 @@
 (in-package :crypto)
 (in-ironclad-readtable)
 
-#+(and sbcl x86-64)
-(eval-when (:compile-toplevel :load-toplevel :execute)
-  (defun aes-ni-support-p ()
-    (aes-ni-support-p))
-  (compile 'aes-ni-support-p)
-  (when (aes-ni-support-p)
-    (pushnew :aes-ni *features*)))
 
 ;;; FIXME: is it work it to combine these into one large array and
 ;;; subscript into that rather than having separate arrays?  CMUCL

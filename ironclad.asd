@@ -129,7 +129,8 @@
                                            (:file "rsa" :depends-on ("pkcs1" "public-key"))))
                              (:module "sbcl-opt"
                               :depends-on ("common" "package")
-                              :components ((:file "fndb")
+                              :components ((:file "cpu-features" :depends-on ("fndb" "x86oid-vm"))
+                                           (:file "fndb")
                                            (:file "x86oid-vm" :depends-on ("fndb"))))))))
 
 (macrolet ((do-silently (&body body)

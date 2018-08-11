@@ -54,6 +54,13 @@
   (any) :overwrite-fndb-silently t)
 
 #+x86-64
+(defknown ironclad::pclmulqdq-support-p
+  ()
+  (boolean)
+  (any)
+  :overwrite-fndb-silently t)
+
+#+x86-64
 (defknown ironclad::aes-ni-support-p
   ()
   (boolean)

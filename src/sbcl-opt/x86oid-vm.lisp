@@ -448,6 +448,18 @@
         (inst movdqa (nth-xmm-mem buffer 3) x3)))))
 
 #+x86-64
+(define-vop (pclmulqdq-support-p)
+  (:translate ironclad::pclmulqdq-support-p)
+  (:policy :fast-safe)
+  (:conditional :c)
+  (:temporary (:sc unsigned-reg :offset rax-offset) eax)
+  (:temporary (:sc unsigned-reg :offset rcx-offset) ecx)
+  (:generator 10
+    (inst mov eax 1)
+    (inst cpuid)
+    (inst bt ecx 1)))
+
+#+x86-64
 (define-vop (aes-ni-support-p)
   (:translate ironclad::aes-ni-support-p)
   (:policy :fast-safe)
