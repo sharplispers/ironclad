@@ -89,12 +89,16 @@
                              (ironclad:blake2-mac 64)
                              (ironclad:blake2s-mac 32)
                              (ironclad:cmac 32)
+                             (ironclad:gmac 32)
                              (ironclad:hmac 32)
                              (ironclad:poly1305 32)
                              (ironclad:skein-mac 64)))
                (key (ironclad:random-data key-length))
+               (iv (case mac-name
+                     (ironclad:gmac (ironclad:random-data 12))))
                (extra-args (case mac-name
                              (ironclad:cmac '(:aes))
+                             (ironclad:gmac (list :aes iv))
                              (ironclad:hmac '(:sha256))))
                (mac (apply #'ironclad:make-mac mac-name key extra-args))
                (buffer (make-array 32768 :element-type '(unsigned-byte 8)))

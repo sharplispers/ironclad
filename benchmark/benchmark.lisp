@@ -118,6 +118,7 @@
 
       (format file "* Message authentication codes~%~%")
       (format file "CMAC: AES~%")
+      (format file "GMAC: AES~%")
       (format file "HMAC: SHA256~%")
       (format file "SKEIN-MAC: SKEIN512~%~%")
       (format file "Hashing speed in bytes per second~%~%")
