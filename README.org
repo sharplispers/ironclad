@@ -630,6 +630,7 @@ integrity is required, but the secrecy of the data is not paramount.
 Ironclad provides different kinds of MACs:
  - HMAC, specified in [[http://www.ietf.org/rfc/rfc2109.txt][RFC 2104]]
  - CMAC, specified in [[http://www.ietf.org/rfc/rfc4493.txt][RFC 4493]] and NIST document 800-38B
+ - GMAC, specified in NIST document 800-38D
  - Blake2 and Blake2s MAC
  - Poly1305 MAC
  - Skein MAC
