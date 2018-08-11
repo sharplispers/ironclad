@@ -101,11 +101,12 @@
                                            (:file "pkcs5" :depends-on ("kdf-common"))
                                            (:file "scrypt" :depends-on ("kdf-common" "pkcs5"))))
                              (:module "macs"
-                              :depends-on ("common" "conditions" "digests" "generic" "package")
+                              :depends-on ("ciphers" "common" "conditions" "digests" "generic" "package")
                               :components ((:file "blake2-mac" :depends-on ("mac"))
                                            (:file "blake2s-mac" :depends-on ("mac"))
                                            (:file "cmac" :depends-on ("mac"))
                                            (:file "hmac" :depends-on ("mac"))
+                                           (:file "gmac" :depends-on ("mac"))
                                            (:file "mac")
                                            (:file "poly1305" :depends-on ("mac"))
                                            (:file "skein-mac" :depends-on ("mac"))))
@@ -290,6 +291,7 @@
                                            (:test-vector-file "blake2s-mac")
                                            (:test-vector-file "cmac")
                                            (:test-vector-file "hmac")
+                                           (:test-vector-file "gmac")
                                            (:test-vector-file "poly1305")
                                            (:test-vector-file "skein-mac")
                                            ;; prng

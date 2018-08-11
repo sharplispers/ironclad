@@ -647,6 +647,7 @@ MACs can be found by calling [[list-all-macs][list-all-macs]]. They are:
  - blake2s-mac
  - cmac
  - hmac
+ - gmac
  - poly1305
  - skein-mac
 
@@ -659,6 +660,7 @@ Some MACs take extra arguments that can be specified in /args/.
 (make-mac :blake2-mac key &key digest-length)
 (make-mac :blake2s-mac key &key digest-length)
 (make-mac :cmac key cipher-name)
+(make-mac :gmac key cipher-name initialization-vector)
 (make-mac :hmac key digest-name)
 (make-mac :poly1305 key)
 (make-mac :skein-mac key &key block-length digest-length)
@@ -674,6 +676,10 @@ When making a CMAC, /cipher-name/ must have a [[block-length][block-length]] of 
 8 or 16; this restriction is satisfied by many ciphers in Ironclad
 with the notable exception of stream ciphers. /key/ must be an
 acceptable key for /cipher-name/.
+
+When making a GMAC, /cipher-name/ must have a [[block-length][block-length]] of 16. /key/ must be
+an acceptable key for /cipher-name/. The length of /initialization-vector/ must
+be 12 bytes.
 
 When making a Poly1305, the length of the /key/ passed to [[make-mac][make-mac]]
 must be 32 bytes.

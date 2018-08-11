@@ -145,7 +145,8 @@
            #:jh #:jh/384 #:jh/256 #:jh/224
            #:streebog #:streebog/256)
   ;; supported macs
-  (:export #:blake2-mac #:blake2s-mac #:cmac #:hmac #:poly1305 #:skein-mac)
+  (:export #:blake2-mac #:blake2s-mac #:cmac #:hmac #:poly1305 #:skein-mac
+           #:gmac)
   ;; supported block ciphers
   (:export #:blowfish #:tea #:xtea #:square #:rc2 #:rc5 #:rc6 #:des #:3des
            #:aes #:twofish #:cast5 #:idea #:misty1 #:xor
