@@ -101,7 +101,7 @@
                                            (:file "pkcs5" :depends-on ("kdf-common"))
                                            (:file "scrypt" :depends-on ("kdf-common" "pkcs5"))))
                              (:module "macs"
-                              :depends-on ("ciphers" "common" "conditions" "digests" "generic" "package")
+                              :depends-on ("ciphers" "common" "conditions" "digests" "generic" "package" "sbcl-opt")
                               :components ((:file "blake2-mac" :depends-on ("mac"))
                                            (:file "blake2s-mac" :depends-on ("mac"))
                                            (:file "cmac" :depends-on ("mac"))

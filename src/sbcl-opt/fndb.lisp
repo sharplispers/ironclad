@@ -115,4 +115,12 @@
           (unsigned-byte 32))
   (any)
   :overwrite-fndb-silently t)
+
+#+x86-64
+(defknown ironclad::gmac-mul-fast
+  ((simple-array (unsigned-byte 8) (*))
+   (simple-array (unsigned-byte 8) (*)))
+  (values)
+  (any)
+  :overwrite-fndb-silently t)
 );#+sbcl
