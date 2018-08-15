@@ -11,6 +11,8 @@ Added support for CFB, CFB8 and OFB modes to cipher streams.
 
 Added the GMAC authentication code.
 
+Some optimizations for CMAC and Poly1305.
+
 * Version 0.42, released 2018-08-09
 
 ** bug fixes
