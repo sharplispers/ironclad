@@ -55,6 +55,7 @@
            (type index start end)
            (optimize (speed 3) (space 0) (safety 0) (debug 0)))
   (let* ((cipher (cmac-cipher cmac))
+         (encryption-function (encrypt-function cipher))
          (buffer (cmac-buffer cmac))
          (buffer-index (cmac-buffer-index cmac))
          (block-length (length buffer))
@@ -71,12 +72,12 @@
 
     (when (and (= buffer-index block-length)
                (plusp remaining))
-      (encrypt-in-place cipher buffer)
+      (funcall encryption-function cipher buffer 0 buffer 0)
       (setf buffer-index 0))
 
     (loop while (> remaining block-length) do
       (xor-block block-length buffer sequence start buffer 0)
-      (encrypt-in-place cipher buffer)
+      (funcall encryption-function cipher buffer 0 buffer 0)
       (incf start block-length)
       (decf remaining block-length))
 
