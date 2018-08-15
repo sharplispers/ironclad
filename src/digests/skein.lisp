@@ -267,6 +267,7 @@
            (type integer start end)
            #.(burn-baby-burn))
   (let* ((cipher (skein-cipher state))
+         (encryption-function (encrypt-function cipher))
          (cipher-key (threefish-key cipher))
          (cipher-tweak (threefish-tweak cipher))
          (block-length (block-length state))
@@ -307,7 +308,7 @@
       (unless final
         (skein-increment-counter tweak block-length))
       (skein-update-cipher block-length cipher-key cipher-tweak value tweak)
-      (encrypt cipher buffer ciphertext)
+      (funcall encryption-function cipher buffer 0 ciphertext 0)
       (skein-update-tweak tweak :first nil)
       (xor-block block-length ciphertext buffer 0 value 0)
       (setf buffer-length 0))
@@ -317,9 +318,7 @@
       (loop until (<= message-length block-length) do
         (skein-increment-counter tweak block-length)
         (skein-update-cipher block-length cipher-key cipher-tweak value tweak)
-        (encrypt cipher message ciphertext
-                 :plaintext-start message-start
-                 :plaintext-end (+ message-start block-length))
+        (funcall encryption-function cipher message message-start ciphertext 0)
         (xor-block block-length ciphertext message message-start value 0)
         (incf message-start block-length)
         (decf message-length block-length)))
