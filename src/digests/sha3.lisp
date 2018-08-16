@@ -466,12 +466,8 @@ the content on normal form exit."
 
     ;; Get output
     (setf output (keccak-state-extract-output keccak-state output-byte-length))
-    (etypecase digest
-      ((simple-array (unsigned-byte 8) (*))
-       (replace digest output :start1 digest-start :end2 output-byte-length)
-       digest)
-      (null
-       (copy-seq output)))))
+    (replace digest output :start1 digest-start :end2 output-byte-length)
+    digest))
 
 (define-digest-updater sha3
   (sha3-update state sequence start end))

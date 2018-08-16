@@ -501,12 +501,8 @@
     (let ((output (make-array +jh-block-size+ :element-type '(unsigned-byte 8))))
       (dotimes (i 8)
         (setf (ub64ref/le output (* i 8)) (aref jh-state (+ i 8))))
-      (etypecase digest
-        ((simple-array (unsigned-byte 8) (*))
-         (replace digest output :start1 digest-start :start2 (- +jh-block-size+ digest-length))
-         digest)
-        (null
-         (subseq output (- +jh-block-size+ digest-length)))))))
+      (replace digest output :start1 digest-start :start2 (- +jh-block-size+ digest-length))
+      digest)))
 
 (define-digest-updater jh
   (jh-update state sequence start end))

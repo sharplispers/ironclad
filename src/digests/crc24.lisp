@@ -93,11 +93,6 @@
                  (aref digest (+ start 2)) (ldb (byte 8 0) crc))
            digest))
     (declare (inline stuff-state))
-    (etypecase digest
-      ((simple-array (unsigned-byte 8) (*))
-       (stuff-state (crc24-crc state) digest digest-start))
-      (null
-       (stuff-state (crc24-crc state)
-                    (make-array 3 :element-type '(unsigned-byte 8)) 0)))))
+    (stuff-state (crc24-crc state) digest digest-start)))
 
 (defdigest crc24 :digest-length 3 :block-length 1)

@@ -261,12 +261,8 @@
     (let ((output (make-array +blake2-block-size+ :element-type '(unsigned-byte 8) :initial-element 0)))
       (dotimes (i 8)
         (setf (ub64ref/le output (* i 8)) (aref blake2-state i)))
-      (etypecase digest
-        ((simple-array (unsigned-byte 8) (*))
-         (replace digest output :start1 digest-start :end2 digest-length)
-         digest)
-        (null
-         (subseq output 0 digest-length))))))
+      (replace digest output :start1 digest-start :end2 digest-length)
+      digest)))
 
 (define-digest-updater blake2
   (blake2-update state sequence start end nil))

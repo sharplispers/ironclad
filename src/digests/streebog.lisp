@@ -1330,11 +1330,8 @@
                   ((64) 0))))
     (dotimes (i 8)
       (setf (ub64ref/le output (* i 8)) (aref h i)))
-    (etypecase digest
-      ((simple-array (unsigned-byte 8) (*))
-       (replace digest output :start1 digest-start :start2 offset :end2 64))
-      (null
-       (subseq output offset 64)))))
+    (replace digest output :start1 digest-start :start2 offset :end2 64)
+    digest))
 
 (defdigest streebog :digest-length 64 :block-length 64)
 (defdigest streebog/256 :digest-length 32 :block-length 64)

@@ -1497,12 +1497,8 @@
     (let ((output (make-array block-size :element-type '(unsigned-byte 8))))
       (dotimes (i (length groestl-state))
         (setf (ub64ref/be output (* i 8)) (aref groestl-state i)))
-      (etypecase digest
-        ((simple-array (unsigned-byte 8) (*))
-         (replace digest output :start1 digest-start :start2 (- block-size digest-length))
-         digest)
-        (null
-         (subseq output (- block-size digest-length)))))))
+      (replace digest output :start1 digest-start :start2 (- block-size digest-length))
+      digest)))
 
 (define-digest-updater groestl
   (groestl-update state sequence start end))

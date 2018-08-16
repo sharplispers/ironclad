@@ -355,15 +355,9 @@
                            :element-type '(unsigned-byte 8)
                            :initial-element 0)))
          ((= i noutputs)
-          (etypecase digest
-            ((simple-array (unsigned-byte 8) (*))
-             (progn
-               (replace digest output :start1 digest-start :end2 digest-length)
-               digest))
-            (null
-             (make-array digest-length
-                         :element-type '(unsigned-byte 8)
-                         :initial-contents (subseq output 0 digest-length)))))
+          (progn
+            (replace digest output :start1 digest-start :end2 digest-length)
+            digest))
       (replace msg (integer-to-octets i :n-bits 64 :big-endian nil) :end2 8)
       (replace (skein-value state) value)
       (skein-update-tweak tweak :first t :final t :type +skein-out+ :position 8)
