@@ -64,7 +64,7 @@
 
 (eval-when (:compile-toplevel :load-toplevel :execute)
 (defun ubref-fun-name (bitsize big-endian-p)
-  (nibbles::byte-ref-fun-name bitsize nil big-endian-p))
+  (read-from-string (format nil "ub~dref/~a" bitsize (if big-endian-p "be" "le"))))
 ) ; EVAL-WHEN
 
 

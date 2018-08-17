@@ -328,7 +328,7 @@
                                              (mode cfb8-mode))
               (let ((function (encrypt-function cipher))
                     (iv (iv mode))
-                    (encrypted-iv (nibbles:make-octet-vector ,block-length-expr)))
+                    (encrypted-iv (make-array ,block-length-expr :element-type '(unsigned-byte 8))))
                 (declare (type function function))
                 (declare (type (simple-octet-vector ,block-length-expr) iv encrypted-iv))
                 (values
@@ -410,7 +410,7 @@
              `(defmethod mode-crypt-functions ((cipher ,cipher-specializer)
                                                (mode ctr-mode))
                 (let ((iv (iv mode))
-                      (encrypted-iv (nibbles:make-octet-vector ,block-length-expr)))
+                      (encrypted-iv (make-array ,block-length-expr :element-type '(unsigned-byte 8))))
                   (declare (type (simple-octet-vector ,block-length-expr) iv encrypted-iv))
                   (flet ((ctr-crypt-function (function)
                            (declare (type function function))

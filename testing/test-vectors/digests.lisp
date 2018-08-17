@@ -52,7 +52,7 @@
 #.(loop for digest in (crypto:list-all-digests)
         collect `(rtest:deftest ,(intern (format nil "~A/~A" digest '#:block-buffering))
                    (let* ((sequences
-                            (mapcar (lambda (s) (coerce s 'nibbles:simple-octet-vector))
+                            (mapcar (lambda (s) (coerce s '(simple-array (unsigned-byte 8) (*))))
                                     '(#(71 69 84) #(10) #(10) #(10) #(10)
                                       #(120 45 97 109 122 45 100 97 116 101 58)
                                       #(84 117 101 44 32 50 54 32 74 117 110 32 50)
@@ -73,7 +73,7 @@
                           (one-shot-result
                             (ironclad:digest-sequence ',digest
                                                       (apply 'concatenate
-                                                             'nibbles:simple-octet-vector
+                                                             '(simple-array (unsigned-byte 8) (*))
                                                              sequences))))
                      (equalp incremental-result one-shot-result))
                    t) into forms
