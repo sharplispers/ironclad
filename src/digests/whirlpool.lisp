@@ -30,7 +30,7 @@
            (type (integer 0 #.(- array-dimension-limit 64)) start))
   (flet ((stuff-registers (buffer start)
              (dotimes (i 16 buffer)
-               (setf (nibbles:ub32ref/be buffer (+ start (* 4 i))) (aref regs i)))))
+               (setf (ub32ref/be buffer (+ start (* 4 i))) (aref regs i)))))
     (declare (inline stuff-registers))
     (cond
       (buffer (stuff-registers buffer start))
@@ -140,8 +140,8 @@
        do (progn
             (loop for j below 8 do
                  (setf (aref one-row-of-bytes j) (s (+ (* 8 (- r 1)) j))))
-            (setf (aref result (* 2 r)) (nibbles:ub32ref/be one-row-of-bytes 0))
-            (setf (aref result (+ (* 2 r) 1)) (nibbles:ub32ref/be one-row-of-bytes 4)))
+            (setf (aref result (* 2 r)) (ub32ref/be one-row-of-bytes 0))
+            (setf (aref result (+ (* 2 r) 1)) (ub32ref/be one-row-of-bytes 4)))
        finally (return result)))
 
 (declaim (type (simple-array (unsigned-byte 32) (8 256)) +c-even+ +c-odd+))

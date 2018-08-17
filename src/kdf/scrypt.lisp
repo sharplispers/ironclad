@@ -45,7 +45,7 @@
       (replace v x :start1 (* i smix-length) :end2 smix-length)
       (block-mix x xy xy-start r))
     (dotimes (i N)
-      (let ((j (ldb (byte 32 0) (logand (nibbles:ub64ref/le x (* (1- (* 2 r)) 64)) (1- N)))))
+      (let ((j (ldb (byte 32 0) (logand (ub64ref/le x (* (1- (* 2 r)) 64)) (1- N)))))
         (xor-block smix-length x v (* j smix-length) x 0)
         (block-mix x xy xy-start r)))
     (replace b x :start1 b-start :end1 (+ b-start smix-length))))

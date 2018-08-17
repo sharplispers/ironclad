@@ -80,7 +80,7 @@
     ;; If we wanted to really be a speed demon, we'd specialize this.
     (dotimes (i 64 scheduled-key)
       (setf (aref scheduled-key i)
-            (nibbles:ub16ref/le lbuf (* i 2))))))
+            (ub16ref/le lbuf (* i 2))))))
 
 (macrolet ((mix (index)
              (loop for i from 0 below 4

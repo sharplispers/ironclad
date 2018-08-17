@@ -459,7 +459,7 @@ OFFSET into the given (UNSIGNED-BYTE 32) BLOCK."
         for j of-type (integer 0 #.array-dimension-limit)
         from offset to (+ offset 63) by 4
         do
-        (setf (aref block i) (nibbles:ub32ref/le buffer j)))
+        (setf (aref block i) (ub32ref/le buffer j)))
   (values))
 
 (defun fill-block-ub8-be (block buffer offset)
@@ -482,7 +482,7 @@ without subsequently calling EXPAND-BLOCK results in undefined behavior."
   (loop for i of-type (integer 0 16) from 0
         for j of-type (integer 0 #.array-dimension-limit)
         from offset to (+ offset 63) by 4
-        do (setf (aref block i) (nibbles:ub32ref/be buffer j)))
+        do (setf (aref block i) (ub32ref/be buffer j)))
   (values))
 
 (defun fill-block-ub8-le/64 (block buffer offset)
@@ -507,7 +507,7 @@ behavior."
   (loop for i of-type (integer 0 8) from 0
         for j of-type (integer 0 #.array-dimension-limit)
         from offset to (+ offset 63) by 8
-        do (setf (aref block i) (nibbles:ub64ref/le buffer j)))
+        do (setf (aref block i) (ub64ref/le buffer j)))
   (values))
 
 (defun fill-block-ub8-be/64 (block buffer offset)
@@ -532,7 +532,7 @@ behavior."
   (loop for i of-type (integer 0 16) from 0
         for j of-type (integer 0 #.array-dimension-limit)
         from offset to (+ offset 127) by 8
-        do (setf (aref block i) (nibbles:ub64ref/be buffer j)))
+        do (setf (aref block i) (ub64ref/be buffer j)))
   (values))
 
 (defun xor-block (block-length input-block1 input-block2 input-block2-start
@@ -553,8 +553,8 @@ behavior."
                                           (,accessor input-block2
                                                      (+ input-block2-start i)))))))
        (ecase sb-vm:n-word-bits
-         (32 (frob nibbles:ub32ref/le))
-         (64 (frob nibbles:ub64ref/le)))))
+         (32 (frob ub32ref/le))
+         (64 (frob ub64ref/le)))))
     (t
      (dotimes (i block-length)
        (setf (aref output-block (+ output-block-start i))
@@ -572,8 +572,8 @@ behavior."
     ((and (constantp block-length env)
           (zerop (mod block-length sb-vm:n-word-bytes)))
      (let ((accessor (ecase sb-vm:n-word-bits
-                       (32 'nibbles:ub32ref/le)
-                       (64 'nibbles:ub64ref/le)))
+                       (32 'ub32ref/le)
+                       (64 'ub64ref/le)))
            (i (gensym)))
        `(loop for ,i from 0 below ,block-length by ,sb-vm:n-word-bytes
               do (setf (,accessor ,output-block (+ ,output-block-start ,i))

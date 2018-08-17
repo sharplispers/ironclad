@@ -65,7 +65,7 @@
      do (let ((size (min hmac-length key-length)))
           (reinitialize-instance hmac :key passphrase)
           (update-hmac hmac salt)
-          (setf (nibbles:ub32ref/be count-buffer 0) count)
+          (setf (ub32ref/be count-buffer 0) count)
           (update-hmac hmac count-buffer)
           (hmac-digest hmac :buffer hmac-out)
           (xor-block size hmac-out key key-position key key-position)

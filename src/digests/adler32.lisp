@@ -62,7 +62,7 @@
   (flet ((stuff-state (state digest start)
            (declare (type (simple-array (unsigned-byte 8) (*)) digest))
            (declare (type (integer 0 #.(- array-dimension-limit 4)) start))
-           (setf (nibbles:ub32ref/be digest start)
+           (setf (ub32ref/be digest start)
                  (logior (ash (adler32-s2 state) 16)
                          (adler32-s1 state)))
            digest))

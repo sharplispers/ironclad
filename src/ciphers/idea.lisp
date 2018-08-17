@@ -115,7 +115,7 @@
         (decryption-keys (make-array 52 :element-type '(unsigned-byte 16))))
     (declare (type idea-round-keys encryption-keys decryption-keys))
     (dotimes (i 8)
-      (setf (aref encryption-keys i) (nibbles:ub16ref/be key (* i 2))))
+      (setf (aref encryption-keys i) (ub16ref/be key (* i 2))))
     (do ((j 1 (1+ (mod j 8)))
          (k 8 (1+ k))
          (offset 0))
