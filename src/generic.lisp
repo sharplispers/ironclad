@@ -4,6 +4,13 @@
 (in-package :crypto)
 
 
+;;; Authenticated encryption
+
+(defgeneric process-associated-data (mode data &key start end))
+
+(defgeneric produce-tag (mode &key tag tag-start))
+
+
 ;;; Ciphers
 
 (defgeneric verify-key (cipher key)
@@ -45,6 +52,22 @@ the number of octets processed from IN and the number of octets processed
 from OUT.  Note that for some cipher modes, IN and OUT may be different."))
 
 (defgeneric valid-mode-for-cipher-p (cipher mode))
+
+(defgeneric encrypt (cipher plaintext ciphertext &key plaintext-start plaintext-end ciphertext-start handle-final-block &allow-other-keys)
+  (:documentation "Encrypt the data in PLAINTEXT between PLAINTEXT-START and
+PLAINTEXT-END according to CIPHER. Places the encrypted data in
+CIPHERTEXT, beginning at CIPHERTEXT-START. Less data than
+(- PLAINTEXT-END PLAINTEXT-START) may be encrypted, depending on the
+alignment constraints of CIPHER and the amount of space available in
+CIPHERTEXT."))
+
+(defgeneric decrypt (cipher ciphertext plaintext &key ciphertext-start ciphertext-end plaintext-start handle-final-block &allow-other-keys)
+  (:documentation "Decrypt the data in CIPHERTEXT between CIPHERTEXT-START and
+CIPHERTEXT-END according to CIPHER. Places the decrypted data in
+PLAINTEXT, beginning at PLAINTEXT-START. Less data than
+(- CIPHERTEXT-END CIPHERTEXT-START) may be decrypted, depending on the
+alignment constraints of CIPHER and the amount of space available in
+PLAINTEXT."))
 
 
 ;;; Digests

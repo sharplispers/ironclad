@@ -34,18 +34,6 @@ single ASCII string, suitable for use with PBKDF2-CHECK-PASSWORD."
              (pbkdf2-hash-password password :iterations iterations
                                             :salt salt :digest digest)))))
 
-(defun constant-time-equal (data1 data2)
-  "Returns T if the elements in DATA1 and DATA2 are identical, NIL otherwise.
-All the elements of DATA1 and DATA2 are compared to prevent timing attacks."
-  (declare (type (simple-array (unsigned-byte 8) (*)) data1 data2)
-           (optimize (speed 3)))
-  (let ((res (if (= (length data1) (length data2)) 0 1)))
-    (declare (type (unsigned-byte 8) res))
-    (loop for d1 across data1
-          for d2 across data2
-          do (setf res (logior res (logxor d1 d2))))
-    (zerop res)))
-
 (defun pbkdf2-check-password (password combined-salt-and-digest)
   "Given a PASSWORD byte vector and a combined salt and digest string
 produced by PBKDF2-HASH-PASSWORD-TO-COMBINED-STRING, checks whether

@@ -12,15 +12,7 @@
 (defclass stream-cipher (cipher)
   ())
 
-(defun encrypt (cipher plaintext ciphertext
-                &key (plaintext-start 0) plaintext-end
-                (ciphertext-start 0) handle-final-block)
-  "Encrypt the data in PLAINTEXT between PLAINTEXT-START and
-PLAINTEXT-END according to CIPHER.  Places the encrypted data in
-CIPHERTEXT, beginning at CIPHERTEXT-START.  Less data than
- (- PLAINTEXT-END PLAINTEXT-START) may be encrypted, depending on the
-alignment constraints of CIPHER and the amount of space available in
-CIPHERTEXT."
+(defmethod encrypt ((cipher cipher) plaintext ciphertext &key (plaintext-start 0) plaintext-end (ciphertext-start 0) handle-final-block &allow-other-keys)
   (check-type plaintext vector)
   (let ((plaintext-end (or plaintext-end (length plaintext))))
     (funcall (slot-value (mode cipher) 'encrypt-function)
@@ -28,15 +20,7 @@ CIPHERTEXT."
              plaintext-start plaintext-end ciphertext-start
              handle-final-block)))
 
-(defun decrypt (cipher ciphertext plaintext
-                &key (ciphertext-start 0) ciphertext-end
-                (plaintext-start 0) handle-final-block)
-  "Decrypt the data in CIPHERTEXT between CIPHERTEXT-START and
-CIPHERTEXT-END according to CIPHER.  Places the decrypted data in
-PLAINTEXT, beginning at PLAINTEXT-START.  Less data than
- (- CIPHERTEXT-END CIPHERTEXT-START) may be decrypted, depending on the
-alignment constraints of CIPHER and the amount of space available in
-PLAINTEXT."
+(defmethod decrypt ((cipher cipher) ciphertext plaintext &key (ciphertext-start 0) ciphertext-end (plaintext-start 0) handle-final-block &allow-other-keys)
   (check-type ciphertext vector)
   (let ((ciphertext-end (or ciphertext-end (length ciphertext))))
     (funcall (slot-value (mode cipher) 'decrypt-function)

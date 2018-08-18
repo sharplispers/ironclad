@@ -35,6 +35,10 @@
                              (:module "ccl-opt"
                               :depends-on ("package")
                               :components ((:file "x86oid-vm")))
+                             (:module "aead"
+                              :depends-on ("ciphers" "common" "conditions" "generic" "macro-utils" "macs" "package" "util")
+                              :components ((:file "aead")
+                                           (:file "gcm" :depends-on ("aead"))))
                              (:module "ciphers"
                               :depends-on ("common" "conditions" "generic" "macro-utils" "package" "sbcl-opt")
                               :components ((:file "aes" :depends-on ("cipher"))
@@ -94,7 +98,7 @@
                                            (:file "tree-hash" :depends-on ("digest"))
                                            (:file "whirlpool" :depends-on ("digest"))))
                              (:module "kdf"
-                              :depends-on ("ciphers" "common" "conditions" "digests" "generic" "macs" "package" "prng")
+                              :depends-on ("ciphers" "common" "conditions" "digests" "generic" "macs" "package" "prng" "util")
                               :components ((:file "argon2i" :depends-on ("kdf-common"))
                                            (:file "kdf-common")
                                            (:file "password-hash" :depends-on ("pkcs5"))

@@ -76,3 +76,15 @@ STRING contains any character whose CHAR-CODE is greater than 255."
 (declaim (notinline byte-array-to-hex-string
                     hex-string-to-byte-array
                     ascii-string-to-byte-array))
+
+(defun constant-time-equal (data1 data2)
+  "Returns T if the elements in DATA1 and DATA2 are identical, NIL otherwise.
+All the elements of DATA1 and DATA2 are compared to prevent timing attacks."
+  (declare (type (simple-array (unsigned-byte 8) (*)) data1 data2)
+           (optimize (speed 3)))
+  (let ((res (if (= (length data1) (length data2)) 0 1)))
+    (declare (type (unsigned-byte 8) res))
+    (loop for d1 across data1
+          for d2 across data2
+          do (setf res (logior res (logxor d1 d2))))
+    (zerop res)))

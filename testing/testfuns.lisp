@@ -313,7 +313,11 @@
                     (crypto:update-mac mac data)
                     (crypto:produce-mac mac))))
     (declare (ignorable result1))
-    (reinitialize-instance mac :key key)
+    (cond
+      ((typep mac 'ironclad:gmac)
+       (reinitialize-instance mac :key key :initialization-vector (car (last args))))
+      (t
+       (reinitialize-instance mac :key key)))
     (let ((result2 (progn
                      (crypto:update-mac mac data)
                      (crypto:produce-mac mac))))

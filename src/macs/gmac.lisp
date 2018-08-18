@@ -54,20 +54,31 @@
 (defmethod shared-initialize :after ((mac gmac) slot-names &rest initargs &key key cipher-name initialization-vector &allow-other-keys)
   (declare (ignore slot-names initargs)
            (type (simple-array (unsigned-byte 8) (*)) key))
+  (when (and cipher-name (/= (block-length cipher-name) 16))
+    (error 'invalid-mac-parameter
+           :mac-name 'gmac
+           :message "GMAC only supports 128-bit block ciphers"))
+  (unless (= (length initialization-vector) 12)
+    (error 'invalid-mac-parameter
+           :mac-name 'gmac
+           :message "The initialization vector length must be 12 bytes"))
   (let ((table (gmac-key mac))
         (cipher (if cipher-name
                     (make-cipher cipher-name :key key :mode :ecb)
                     (gmac-cipher mac)))
+        (iv (gmac-iv mac))
         (hkey (make-array 16 :element-type '(unsigned-byte 8) :initial-element 0)))
     (declare (type (simple-array (unsigned-byte 64) (128 2 2)) table)
              (type (simple-array (unsigned-byte 8) (16)) hkey)
              (dynamic-extent hkey))
     (setf (gmac-total-length mac) 0
-          (gmac-buffer-length mac) 0)
+          (gmac-buffer-length mac) 0
+          (gmac-cipher mac) cipher)
     (fill (gmac-accumulator mac) 0)
-    (when initialization-vector
-      (replace (gmac-iv mac) initialization-vector))
-    (setf (gmac-cipher mac) cipher)
+    (replace iv initialization-vector)
+    (fill iv 0 :start 12 :end 15)
+    (setf (aref iv 15) 1)
+    (encrypt-in-place cipher iv)
     (encrypt-in-place cipher hkey)
 
     (setf (aref table 0 1 0) (ub64ref/be hkey 0)
@@ -94,17 +105,28 @@
 (defmethod shared-initialize :after ((mac gmac) slot-names &rest initargs &key key cipher-name initialization-vector &allow-other-keys)
   (declare (ignore slot-names initargs)
            (type (simple-array (unsigned-byte 8) (*)) key))
-  (let ((cipher (if cipher-name
+  (when (and cipher-name (/= (block-length cipher-name) 16))
+    (error 'invalid-mac-parameter
+           :mac-name 'gmac
+           :message "GMAC only supports 128-bit block ciphers"))
+  (unless (= (length initialization-vector) 12)
+    (error 'invalid-mac-parameter
+           :mac-name 'gmac
+           :message "The initialization vector length must be 12 bytes"))
+  (let ((cipher (if (or cipher-name (null (gmac-cipher mac)))
                     (make-cipher cipher-name :key key :mode :ecb)
-                    (gmac-cipher mac)))
-        (hkey (gmac-key mac)))
+                    (reinitialize-instance (gmac-cipher mac) :key key :mode :ecb)))
+        (hkey (gmac-key mac))
+        (iv (gmac-iv mac)))
     (declare (type (simple-array (unsigned-byte 8) (16)) hkey))
     (setf (gmac-total-length mac) 0
-          (gmac-buffer-length mac) 0)
+          (gmac-buffer-length mac) 0
+          (gmac-cipher mac) cipher)
     (fill (gmac-accumulator mac) 0)
-    (when initialization-vector
-      (replace (gmac-iv mac) initialization-vector))
-    (setf (gmac-cipher mac) cipher)
+    (replace iv initialization-vector)
+    (fill iv 0 :start 12 :end 15)
+    (setf (aref iv 15) 1)
+    (encrypt-in-place cipher iv)
     (fill hkey 0)
     (encrypt-in-place cipher hkey)
     (gmac-swap-16 hkey)
@@ -198,7 +220,7 @@
           (gmac-buffer-length mac) buffer-length)
     (values)))
 
-(defun gmac-digest (mac)
+(defun gmac-digest (mac &optional (encrypted-data-length 0))
   (let ((accumulator (copy-seq (gmac-accumulator mac)))
         (key (gmac-key mac))
         (total-length (gmac-total-length mac))
@@ -223,17 +245,14 @@
       (incf total-length buffer-length))
 
     ;; Padding
-    #-pclmulqdq (setf (ub64ref/be buffer 0) (mod64* 8 total-length)
-                      (ub64ref/be buffer 8) 0)
-    #+pclmulqdq (setf (ub64ref/le buffer 0) 0
-                      (ub64ref/le buffer 8) (mod64* 8 total-length))
+    #-pclmulqdq (setf (ub64ref/be buffer 0) (mod64* 8 (- total-length encrypted-data-length))
+                      (ub64ref/be buffer 8) (* 8 encrypted-data-length))
+    #+pclmulqdq (setf (ub64ref/le buffer 0) (* 8 encrypted-data-length)
+                      (ub64ref/le buffer 8) (mod64* 8 (- total-length encrypted-data-length)))
     (xor-block 16 accumulator buffer 0 accumulator 0)
     (gmac-mul accumulator key)
 
     ;; Produce the tag
-    (fill iv 0 :start 12 :end 15)
-    (setf (aref iv 15) 1)
-    (encrypt-in-place cipher iv)
     #+pclmulqdq (gmac-swap-16 accumulator)
     (xor-block 16 accumulator iv 0 accumulator 0)
     accumulator))

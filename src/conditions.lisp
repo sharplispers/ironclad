@@ -9,14 +9,14 @@
 (define-condition key-not-supplied (ironclad-error)
   ((cipher :initarg :cipher :reader cipher))
   (:report (lambda (condition stream)
-             (format stream "Cipher ~A requires a key" (cipher condition))))
+             (format stream "Cipher ~A requires a key." (cipher condition))))
   (:documentation "Signaled when a key is not provided at the initialization
 of a cipher."))
 
 (define-condition initialization-vector-not-supplied (ironclad-error)
   ((mode :initarg :mode :reader mode))
   (:report (lambda (condition stream)
-             (format stream "Mode ~A requires an initialization vector"
+             (format stream "Mode ~A requires an initialization vector."
                      (mode condition))))
   (:documentation "Signaled when an initialization vector is required
 for a particular mode of operation but not supplied."))
@@ -25,7 +25,7 @@ for a particular mode of operation but not supplied."))
   ((cipher :initarg :cipher :reader cipher)
    (block-length :initarg :block-length :reader block-length))
   (:report (lambda (condition stream)
-             (format stream "Cipher ~A requires an initialization vector of length ~D"
+             (format stream "Cipher ~A requires an initialization vector of length ~D."
                      (cipher condition)
                      (block-length condition))))
   (:documentation "Signaled when an invalid initialization vector is supplied to MAKE-CIPHER."))
@@ -34,7 +34,7 @@ for a particular mode of operation but not supplied."))
   ((cipher :initarg :cipher :reader cipher)
    (lengths :initarg :accepted-lengths :reader accepted-lengths))
   (:report (lambda (condition stream)
-             (format stream "Cipher ~A only accepts keys of these lengths: ~A"
+             (format stream "Cipher ~A only accepts keys of these lengths: ~A."
                      (cipher condition)
                      (accepted-lengths condition))))
   (:documentation "Signaled when a key is not the proper length for a cipher."))
@@ -42,7 +42,7 @@ for a particular mode of operation but not supplied."))
 (define-condition unsupported-cipher (ironclad-error)
   ((cipher :initarg :name :reader cipher))
   (:report (lambda (condition stream)
-             (format stream "Cipher ~A is not a supported cipher"
+             (format stream "Cipher ~A is not a supported cipher."
                      (cipher condition))))
   (:documentation "Signaled when an invalid cipher name is provided to MAKE-CIPHER."))
 
@@ -51,37 +51,37 @@ for a particular mode of operation but not supplied."))
    (cipher :initarg :cipher :reader cipher))
   (:report (lambda (condition stream)
              (if (cipher condition)
-                 (format stream "Mode ~A is not a supported mode for ~A"
+                 (format stream "Mode ~A is not a supported mode for ~A."
                          (mode condition) (cipher condition))
-                 (format stream "Mode ~A is not a supported mode"
+                 (format stream "Mode ~A is not a supported mode."
                          (mode condition)))))
   (:documentation "Signaled when an invalid mode name is provided to MAKE-CIPHER."))
 
 (define-condition unsupported-padding (ironclad-error)
   ((padding :initarg :name :reader padding))
   (:report (lambda (condition stream)
-             (format stream "Padding ~A is not a supported padding"
+             (format stream "Padding ~A is not a supported padding."
                      (padding condition))))
   (:documentation "Signaled when an invalid padding name is provided to MAKE-CIPHER."))
 
 (define-condition unsupported-digest (ironclad-error)
   ((digest :initarg :name :reader digest))
   (:report (lambda (condition stream)
-             (format stream "Digest ~A is not a supported digest"
+             (format stream "Digest ~A is not a supported digest."
                      (digest condition))))
   (:documentation "Signaled when an invalid digest name is provided to MAKE-DIGEST."))
 
 (define-condition unsupported-mac (ironclad-error)
   ((mac :initarg :name :reader mac))
   (:report (lambda (condition stream)
-             (format stream "MAC ~A is not a supported MAC"
+             (format stream "MAC ~A is not a supported MAC."
                      (mac condition))))
   (:documentation "Signaled when an invalid MAC name is provided to MAKE-MAC."))
 
 (define-condition unsupported-kdf (ironclad-error)
   ((kdf :initarg :kdf :reader kdf))
   (:report (lambda (condition stream)
-             (format stream "~A is not a supported key derivation function"
+             (format stream "~A is not a supported key derivation function."
                      (kdf condition))))
   (:documentation "Signaled when an invalid key derivation function name is provided to MAKE-KDF."))
 
@@ -105,7 +105,7 @@ for a particular mode of operation but not supplied."))
    (start :initarg :start :reader insufficient-buffer-space-start)
    (length :initarg :length :reader insufficient-buffer-space-length))
   (:report (lambda (condition stream)
-             (format stream "Buffer ~A cannot accomodate ~D elements starting at index ~D"
+             (format stream "Buffer ~A cannot accomodate ~D elements starting at index ~D."
                      (insufficient-buffer-space-buffer condition)
                      (insufficient-buffer-space-length condition)
                      (insufficient-buffer-space-start condition))))
@@ -115,7 +115,7 @@ for a particular mode of operation but not supplied."))
   ((padding-name :initarg :name :reader invalid-padding-padding-name)
    (block :initarg :block :reader invalid-padding-block))
   (:report (lambda (condition stream)
-             (format stream "The ~A padding in block ~A is invalid"
+             (format stream "The ~A padding in block ~A is invalid."
                      (invalid-padding-padding-name condition)
                      (invalid-padding-block condition))))
   (:documentation "Signaled when padding in a block is determined to be invalid."))
@@ -205,3 +205,17 @@ provided to VERIFY-SIGNATURE."))
              (declare (ignore condition))
              (format stream "OAEP decoding of the message failed.")))
   (:documentation "Signaled when the OAEP decoding of a message fails."))
+
+(define-condition unsupported-authenticated-encryption-mode (ironclad-error)
+  ((name :initarg :name :reader name))
+  (:report (lambda (condition stream)
+             (format stream "~A is not a supported authenticated encryption mode."
+                     (name condition))))
+  (:documentation "Signaled when an invalid mode name is provided to MAKE-AUTHENTICATED-ENCRYPTION-MODE."))
+
+(define-condition bad-authentication-tag (ironclad-error)
+  ()
+  (:report (lambda (condition stream)
+             (declare (ignore condition))
+             (format stream "Bad authentication tag.")))
+  (:documentation "Signaled when the verification of authenticity of a message fails."))

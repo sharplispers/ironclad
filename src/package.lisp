@@ -38,6 +38,8 @@
    #:mode-supported-p #:list-all-modes
    #:block-length #:digest-length #:key-lengths
    #:keystream-position
+   #:authenticated-encryption-mode-supported-p
+   #:list-all-authenticated-encryption-modes
 
    ;; high-level block cipher operators
    #:make-cipher #:encrypt #:decrypt #:encrypt-in-place #:decrypt-in-place
@@ -47,6 +49,10 @@
 
    ;; block cipher padding
    #:pkcs7 #:ansi-x923 #:iso-7816-4
+
+   ;; authenticated encryption
+   #:make-authenticated-encryption-mode
+   #:gcm
 
    ;; KDFs
    #:pbkdf1 #:pbkdf2 #:scrypt-kdf #:argon2i
