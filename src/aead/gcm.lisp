@@ -8,7 +8,13 @@
   ((cipher :accessor gcm-cipher
            :initform nil)
    (mac :accessor gcm-mac
-        :initform nil)))
+        :initform nil)
+   (associated-data-length :accessor gcm-ad-length
+                           :initform 0
+                           :type (integer 0 *))
+   (encrypted-data-length :accessor gcm-ed-length
+                          :initform 0
+                          :type (integer 0 *))))
 
 (defmethod shared-initialize :after ((mode gcm) slot-names &rest initargs &key key cipher-name initialization-vector &allow-other-keys)
   (declare (ignore slot-names initargs)
@@ -29,7 +35,9 @@
                                             :mode :ctr
                                             :initialization-vector iv))))
     (setf (gcm-mac mode) mac
-          (gcm-cipher mode) cipher))
+          (gcm-cipher mode) cipher
+          (gcm-ad-length mode) 0
+          (gcm-ed-length mode) 0))
   mode)
 
 (defmethod process-associated-data ((mode gcm) data &key (start 0) end)
@@ -37,11 +45,11 @@
       (error 'ironclad-error :format-control "All associated data must be processed before the encryption begins.")
       (let* ((end (or end (length data)))
              (length (- end start)))
-        (incf (associated-data-length mode) length)
+        (incf (gcm-ad-length mode) length)
         (update-mac (gcm-mac mode) data :start start :end end))))
 
 (defmethod produce-tag ((mode gcm) &key tag (tag-start 0))
-  (let* ((encrypted-data-length (encrypted-data-length mode))
+  (let* ((encrypted-data-length (gcm-ed-length mode))
          (mac (gcm-mac mode))
          (mac-digest (gmac-digest mac encrypted-data-length))
          (digest-size (length mac-digest)))
@@ -65,7 +73,7 @@
         (produced-bytes 0))
     (when (< plaintext-start plaintext-end)
       (unless (encryption-started-p mode)
-        (let* ((associated-data-length (associated-data-length mode))
+        (let* ((associated-data-length (gcm-ad-length mode))
                (remaining (mod associated-data-length 16))
                (padding-length (if (zerop remaining) 0 (- 16 remaining)))
                (padding (make-array 16 :element-type '(unsigned-byte 8) :initial-element 0)))
@@ -77,7 +85,7 @@
         (encrypt cipher plaintext ciphertext
                  :plaintext-start plaintext-start :plaintext-end plaintext-end
                  :ciphertext-start ciphertext-start))
-      (incf (encrypted-data-length mode) produced-bytes)
+      (incf (gcm-ed-length mode) produced-bytes)
       (update-mac mac ciphertext
                   :start ciphertext-start :end (+ ciphertext-start produced-bytes)))
     (values consumed-bytes produced-bytes)))
@@ -90,7 +98,7 @@
         (produced-bytes 0))
     (when (< ciphertext-start ciphertext-end)
       (unless (encryption-started-p mode)
-        (let* ((associated-data-length (associated-data-length mode))
+        (let* ((associated-data-length (gcm-ad-length mode))
                (remaining (mod associated-data-length 16))
                (padding-length (if (zerop remaining) 0 (- 16 remaining)))
                (padding (make-array 16 :element-type '(unsigned-byte 8) :initial-element 0)))
@@ -104,10 +112,10 @@
         (decrypt cipher ciphertext plaintext
                  :ciphertext-start ciphertext-start :ciphertext-end ciphertext-end
                  :plaintext-start plaintext-start))
-      (incf (encrypted-data-length mode) consumed-bytes)
+      (incf (gcm-ed-length mode) consumed-bytes)
       (when (and handle-final-block (tag mode))
         (let* ((correct-tag (tag mode))
-               (encrypted-data-length (encrypted-data-length mode))
+               (encrypted-data-length (gcm-ed-length mode))
                (full-tag (gmac-digest mac encrypted-data-length))
                (tag (if (< (length correct-tag) (length full-tag))
                         (subseq full-tag 0 (length correct-tag))

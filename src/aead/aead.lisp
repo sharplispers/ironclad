@@ -8,19 +8,11 @@
   ((encryption-started :accessor encryption-started-p
                        :initform nil
                        :type boolean)
-   (associated-data-length :accessor associated-data-length
-                           :initform 0
-                           :type (integer 0 *))
-   (encrypted-data-length :accessor encrypted-data-length
-                          :initform 0
-                          :type (integer 0 *))
    (tag :accessor tag)))
 
 (defmethod shared-initialize :after ((mode aead-mode) slot-names &rest initargs &key tag &allow-other-keys)
   (declare (ignore slot-names initargs))
   (setf (encryption-started-p mode) nil
-        (associated-data-length mode) 0
-        (encrypted-data-length mode) 0
         (tag mode) (copy-seq tag))
   mode)
 
