@@ -182,6 +182,9 @@
                               :depends-on ("testfuns")
                               :components ((:file "ironclad")
                                            (:file "padding")
+                                           ;; aead
+                                           (:file "aead")
+                                           (:test-vector-file "gcm")
                                            ;; ciphers
                                            (:file "ciphers")
                                            (:file "modes")

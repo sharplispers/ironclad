@@ -559,3 +559,56 @@
   (list (cons :curve25519-dh-test 'curve25519-dh-test)
         (cons :curve448-dh-test 'curve448-dh-test)
         (cons :elgamal-dh-test 'elgamal-dh-test)))
+
+
+;;; authenticated encryption testing routines
+
+(defun aead-test (mode-name key input ad output tag &rest args)
+  (let* ((parameters (case mode-name
+                       ((:gcm gcm crypto:gcm)
+                        (list :cipher-name (car args) :initialization-vector (cadr args)))))
+         (ae (apply #'crypto:make-authenticated-encryption-mode mode-name :key key parameters))
+         (ciphertext (crypto:encrypt-message ae input :associated-data ad)))
+    (when (or (mismatch ciphertext output)
+              (mismatch (crypto:produce-tag ae) tag))
+      (error "encryption failed for ~A on key ~A, input ~A, output ~A" mode-name key input output))
+    (apply #'reinitialize-instance ae :key key :tag tag parameters)
+    (let ((plaintext (crypto:decrypt-message ae output :associated-data ad)))
+      (when (or (mismatch plaintext input)
+                (mismatch (crypto:produce-tag ae) tag))
+        (error "decryption failed for ~A on key ~A, input ~A, output ~A" mode-name key input output)))))
+
+(defun aead-test/incremental (mode-name key input ad output tag &rest args)
+  (let* ((parameters (case mode-name
+                       ((:gcm gcm crypto:gcm)
+                        (list :cipher-name (car args) :initialization-vector (cadr args)))))
+         (ae (apply #'ironclad:make-authenticated-encryption-mode mode-name :key key parameters))
+         (plaintext (make-array (length input) :element-type '(unsigned-byte 8)))
+         (ciphertext (make-array (length output) :element-type '(unsigned-byte 8))))
+    (dotimes (i (length ad))
+      (crypto:process-associated-data ae ad :start i :end (1+ i)))
+    (dotimes (i (length input))
+      (crypto:encrypt ae input ciphertext
+                      :plaintext-start i :plaintext-end (1+ i)
+                      :ciphertext-start i
+                      :handle-final-block (= i (1- (length input)))))
+    (when (or (mismatch ciphertext output)
+              (mismatch (crypto:produce-tag ae) tag))
+      (error "encryption failed for ~A on key ~A, input ~A, output ~A" mode-name key input output))
+    (apply #'reinitialize-instance ae :key key :tag tag parameters)
+    (dotimes (i (length ad))
+      (crypto:process-associated-data ae ad :start i :end (1+ i)))
+    (dotimes (i (length output))
+      (crypto:decrypt ae output plaintext
+                      :ciphertext-start i :ciphertext-end (1+ i)
+                      :plaintext-start i
+                      :handle-final-block (= i (1- (length output)))))
+    (when (or (mismatch plaintext input)
+              (mismatch (crypto:produce-tag ae) tag))
+      (error "decryption failed for ~A on key ~A, input ~A, output ~A" mode-name key input output))))
+
+(defparameter *authenticated-encryption-tests*
+  (list (cons :aead-test 'aead-test)))
+
+(defparameter *authenticated-encryption-incremental-tests*
+  (list (cons :aead-test 'aead-test/incremental)))
