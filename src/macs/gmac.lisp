@@ -236,18 +236,16 @@
 
     ;; Process the buffer
     (when (plusp buffer-length)
-      #-pclmulqdq (xor-block buffer-length accumulator buffer 0 accumulator 0)
-      #+pclmulqdq (loop for i from 0 below buffer-length
-                        for j downfrom 15
-                        do (setf (aref accumulator j) (logxor (aref accumulator j)
-                                                              (aref buffer i))))
+      (fill buffer 0 :start buffer-length)
+      #+pclmulqdq (gmac-swap-16 buffer)
+      (xor-block 16 accumulator buffer 0 accumulator 0)
       (gmac-mul accumulator key)
       (incf total-length buffer-length))
 
     ;; Padding
     #-pclmulqdq (setf (ub64ref/be buffer 0) (mod64* 8 (- total-length encrypted-data-length))
-                      (ub64ref/be buffer 8) (* 8 encrypted-data-length))
-    #+pclmulqdq (setf (ub64ref/le buffer 0) (* 8 encrypted-data-length)
+                      (ub64ref/be buffer 8) (mod64* 8 encrypted-data-length))
+    #+pclmulqdq (setf (ub64ref/le buffer 0) (mod64* 8 encrypted-data-length)
                       (ub64ref/le buffer 8) (mod64* 8 (- total-length encrypted-data-length)))
     (xor-block 16 accumulator buffer 0 accumulator 0)
     (gmac-mul accumulator key)

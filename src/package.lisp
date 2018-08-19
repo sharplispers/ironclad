@@ -52,6 +52,8 @@
 
    ;; authenticated encryption
    #:make-authenticated-encryption-mode
+   #:process-associated-data
+   #:produce-tag
    #:gcm
 
    ;; KDFs
