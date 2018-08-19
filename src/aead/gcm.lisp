@@ -8,13 +8,7 @@
   ((cipher :accessor gcm-cipher
            :initform nil)
    (mac :accessor gcm-mac
-        :initform nil)
-   (buffer :accessor gcm-buffer
-           :initform (make-array 16 :element-type '(unsigned-byte 8))
-           :type (simple-array (unsigned-byte 8) (16)))
-   (buffer-length :accessor gcm-buffer-length
-                  :initform 0
-                  :type (integer 0 16))))
+        :initform nil)))
 
 (defmethod shared-initialize :after ((mode gcm) slot-names &rest initargs &key key cipher-name initialization-vector &allow-other-keys)
   (declare (ignore slot-names initargs)
@@ -35,8 +29,7 @@
                                             :mode :ctr
                                             :initialization-vector iv))))
     (setf (gcm-mac mode) mac
-          (gcm-cipher mode) cipher
-          (gcm-buffer-length mode) 0))
+          (gcm-cipher mode) cipher))
   mode)
 
 (defmethod process-associated-data ((mode gcm) data &key (start 0) end)
