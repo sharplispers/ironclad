@@ -54,7 +54,7 @@
    #:make-authenticated-encryption-mode
    #:process-associated-data
    #:produce-tag
-   #:gcm
+   #:gcm #:etm
 
    ;; KDFs
    #:pbkdf1 #:pbkdf2 #:scrypt-kdf #:argon2i

@@ -38,6 +38,7 @@
                              (:module "aead"
                               :depends-on ("ciphers" "common" "conditions" "generic" "macro-utils" "macs" "package" "util")
                               :components ((:file "aead")
+                                           (:file "etm" :depends-on ("aead"))
                                            (:file "gcm" :depends-on ("aead"))))
                              (:module "ciphers"
                               :depends-on ("common" "conditions" "generic" "macro-utils" "package" "sbcl-opt")
