@@ -4,6 +4,8 @@
 (in-package :crypto)
 
 
+(defclass mac () ())
+
 (defun macp (sym)
   (get sym '%make-mac))
 

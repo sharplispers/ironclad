@@ -3,7 +3,7 @@
 
 (in-package :crypto)
 
-(defclass hmac ()
+(defclass hmac (mac)
   ((inner-digest :reader inner-digest :initarg :inner-digest)
    (outer-digest :reader outer-digest :initarg :outer-digest)))
 

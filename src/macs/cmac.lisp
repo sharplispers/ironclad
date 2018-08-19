@@ -3,7 +3,7 @@
 
 (in-package :crypto)
 
-(defclass cmac ()
+(defclass cmac (mac)
   ((cipher :reader cmac-cipher :initarg :cipher)
    (subkey1 :reader cmac-subkey1 :initarg :subkey1
             :type (simple-array (unsigned-byte 8) (*)))

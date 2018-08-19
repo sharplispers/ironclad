@@ -4,7 +4,7 @@
 (in-package :crypto)
 
 
-(defclass skein-mac ()
+(defclass skein-mac (mac)
   ((value :accessor skein-value :initarg :value)
    (tweak :accessor skein-tweak :initarg :tweak)
    (cfg :accessor skein-cfg :initarg :cfg)

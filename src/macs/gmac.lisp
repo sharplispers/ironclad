@@ -5,7 +5,7 @@
 (in-package :crypto)
 
 
-(defclass gmac ()
+(defclass gmac (mac)
   ((accumulator :accessor gmac-accumulator
                 :initform (make-array 16 :element-type '(unsigned-byte 8))
                 :type (simple-array (unsigned-byte 8) (16)))

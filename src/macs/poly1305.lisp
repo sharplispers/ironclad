@@ -5,7 +5,7 @@
 (in-package :crypto)
 
 
-(defclass poly1305 ()
+(defclass poly1305 (mac)
   ((accumulator :accessor poly1305-accumulator
                 :initform (make-array 5 :element-type '(unsigned-byte 32))
                 :type (simple-array (unsigned-byte 32) (5)))

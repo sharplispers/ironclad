@@ -4,7 +4,7 @@
 (in-package :crypto)
 
 
-(defclass blake2-mac ()
+(defclass blake2-mac (mac)
   ((digest :accessor blake2-digest :initarg :digest)
    (digest-length :accessor digest-length :initarg :digest-length)))
 
