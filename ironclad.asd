@@ -185,6 +185,7 @@
                                            (:file "padding")
                                            ;; aead
                                            (:file "aead")
+                                           (:test-vector-file "etm")
                                            (:test-vector-file "gcm")
                                            ;; ciphers
                                            (:file "ciphers")

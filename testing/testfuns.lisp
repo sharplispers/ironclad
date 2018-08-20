@@ -568,12 +568,35 @@
                        ((:gcm gcm crypto:gcm)
                         (list :cipher-name (car args)
                               :key (cadr args)
-                              :initialization-vector (caddr args)))))
+                              :initialization-vector (caddr args)))
+                       ((:etm etm crypto:etm)
+                        (destructuring-bind (cipher-name ckey mode iv mac-name mkey mparam) args
+                          (let ((cipher (crypto:make-cipher cipher-name
+                                                            :key ckey
+                                                            :mode mode
+                                                            :initialization-vector iv))
+                                (mac (if mparam
+                                         (crypto:make-mac mac-name mkey mparam)
+                                         (crypto:make-mac mac-name mkey))))
+                            (list :cipher cipher :mac mac))))))
          (ae (apply #'crypto:make-authenticated-encryption-mode mode-name parameters))
          (ciphertext (crypto:encrypt-message ae input :associated-data ad)))
     (when (or (mismatch ciphertext output)
               (mismatch (crypto:produce-tag ae) tag))
       (error "encryption failed for ~A, input ~A, output ~A" mode-name input output))
+    (setf parameters (case mode-name
+                       ((:gcm gcm crypto:gcm)
+                        parameters)
+                       ((:etm etm crypto:etm)
+                        (destructuring-bind (cipher-name ckey mode iv mac-name mkey mparam) args
+                          (let ((cipher (crypto:make-cipher cipher-name
+                                                            :key ckey
+                                                            :mode mode
+                                                            :initialization-vector iv))
+                                (mac (if mparam
+                                         (crypto:make-mac mac-name mkey mparam)
+                                         (crypto:make-mac mac-name mkey))))
+                            (list :cipher cipher :mac mac))))))
     (apply #'reinitialize-instance ae :tag tag parameters)
     (let ((plaintext (crypto:decrypt-message ae output :associated-data ad)))
       (when (or (mismatch plaintext input)
@@ -585,8 +608,18 @@
                        ((:gcm gcm crypto:gcm)
                         (list :cipher-name (car args)
                               :key (cadr args)
-                              :initialization-vector (caddr args)))))
-         (ae (apply #'ironclad:make-authenticated-encryption-mode mode-name parameters))
+                              :initialization-vector (caddr args)))
+                       ((:etm etm crypto:etm)
+                        (destructuring-bind (cipher-name ckey mode iv mac-name mkey mparam) args
+                          (let ((cipher (crypto:make-cipher cipher-name
+                                                            :key ckey
+                                                            :mode mode
+                                                            :initialization-vector iv))
+                                (mac (if mparam
+                                         (crypto:make-mac mac-name mkey mparam)
+                                         (crypto:make-mac mac-name mkey))))
+                            (list :cipher cipher :mac mac))))))
+         (ae (apply #'crypto:make-authenticated-encryption-mode mode-name parameters))
          (plaintext (make-array (length input) :element-type '(unsigned-byte 8)))
          (ciphertext (make-array (length output) :element-type '(unsigned-byte 8))))
     (dotimes (i (length ad))
@@ -599,6 +632,19 @@
     (when (or (mismatch ciphertext output)
               (mismatch (crypto:produce-tag ae) tag))
       (error "encryption failed for ~A, input ~A, output ~A" mode-name input output))
+    (setf parameters (case mode-name
+                       ((:gcm gcm crypto:gcm)
+                        parameters)
+                       ((:etm etm crypto:etm)
+                        (destructuring-bind (cipher-name ckey mode iv mac-name mkey mparam) args
+                          (let ((cipher (crypto:make-cipher cipher-name
+                                                            :key ckey
+                                                            :mode mode
+                                                            :initialization-vector iv))
+                                (mac (if mparam
+                                         (crypto:make-mac mac-name mkey mparam)
+                                         (crypto:make-mac mac-name mkey))))
+                            (list :cipher cipher :mac mac))))))
     (apply #'reinitialize-instance ae :tag tag parameters)
     (dotimes (i (length ad))
       (crypto:process-associated-data ae ad :start i :end (1+ i)))
