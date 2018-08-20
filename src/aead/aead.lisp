@@ -20,18 +20,24 @@
   (get name 'aead))
 
 (defun list-all-authenticated-encryption-modes ()
+  "Returns a list whose elements may be validly passed to
+make-authenticated-encryption-mode."
   (loop for symbol being each external-symbol of (find-package :ironclad)
         if (aeadp symbol)
           collect symbol into ciphers
         finally (return (sort ciphers #'string<))))
 
 (defun authenticated-encryption-mode-supported-p (name)
+  "Returns T if NAME would be in the list returned by
+list-all-authenticated-encryption-modes NIL otherwise."
   (and (symbolp name) (aeadp name)))
 
 (defmacro defaead (name)
   `(setf (get ',name 'aead) t))
 
 (defun make-authenticated-encryption-mode (name &rest args)
+  "Return an authenticated encryption object suitable for use for both
+encryption and decryption."
   (typecase name
     (symbol
      (let ((name (massage-symbol name)))

@@ -6,9 +6,15 @@
 
 ;;; Authenticated encryption
 
-(defgeneric process-associated-data (mode data &key start end))
+(defgeneric process-associated-data (mode data &key start end)
+  (:documentation "Update the internal state of MODE with the contents of DATA
+between START and END so that they are taken into consideration in the
+authentication tag."))
 
-(defgeneric produce-tag (mode &key tag tag-start))
+(defgeneric produce-tag (mode &key tag tag-start)
+  (:documentation "Return the authentication tag of the data processed by MODE
+so far. If TAG is provided, the computed tag will be placed into TAG starting at
+TAG-START."))
 
 
 ;;; Ciphers
@@ -129,7 +135,10 @@ An error will be signaled if there is insufficient room in DIGEST."))
 
 ;;; Key derivation functions
 
-(defgeneric derive-key (kdf passphrase salt iteration-count key-length))
+(defgeneric derive-key (kdf passphrase salt iteration-count key-length)
+  (:documentation "Given a key derivation function object (produced by
+MAKE-KDF), a PASSWORD, a SALT and an ITERATION-COUNT, return the password digest
+as a byte array of length KEY-LENGTH."))
 
 
 ;;; Message authentication codes

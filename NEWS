@@ -7,11 +7,14 @@
 Added support for PKCS7, ANSI X.923 and ISO 7816-4 padding schemes when
 encrypting or decrypting in ECB or CBC mode.
 
-Added support for CFB, CFB8 and OFB modes to cipher streams.
+Added support for CFB, CFB8 and OFB modes to encrypting/decrypting streams.
 
 Added the GMAC authentication code.
 
 Some optimizations for CMAC and Poly1305.
+
+Added the GCM (Galois counter mode) and ETM (Encrypt then MAC) authenticated
+encryption schemes.
 
 * Version 0.42, released 2018-08-09
 

@@ -146,7 +146,7 @@ the names of all supported ciphers. They are:
  - xchacha
  - xchacha/12
  - xchacha/8
- - xor
+ - xor (not a real cipher, use only for testing)
  - xsalsa20
  - xsalsa20/12
  - xsalsa20/8
@@ -770,6 +770,96 @@ Returns a list whose elements may be validly passed to [[make-mac][make-mac]].
 
 Returns ~t~ if /name/ would be in the list returned by [[list-all-macs][list-all-macs]],
 ~nil~ otherwise.
+
+* Authenticated encryption
+  :PROPERTIES:
+  :CUSTOM_ID: authenticated-encryption
+  :END:
+
+#+NAME: make-authenticated-encryption-mode
+#+BEGIN_SRC lisp
+(make-authenticated-encryption-mode name &rest args) => mode
+#+END_SRC
+
+Return an authenticated encryption object suitable for use for both encryption
+and decryption.
+
+/name/ denotes the mode to use. [[list-all-authenticated-encryption-modes][list-all-authenticated-encryption-modes]] will
+tell you the names of all the supported modes. They are:
+ - etm (Encrypt then MAC)
+ - gcm (Galois counter mode)
+
+/name/ can be a symbol in the ~keyword~  or ~ironclad~ packages.
+
+/args/ depends on the chosen authenticated encryption mode.
+
+#+BEGIN_EXAMPLE
+(make-authenticated-encryption-mode :etm &key tag cipher mac)
+(make-authenticated-encryption-mode :gcm &key tag cipher-name key initialization-vector)
+#+END_EXAMPLE
+
+If /tag/ is specified, it will used at the end of decryption (when the
+/handle-final-block/ flag is ~t~) to check the authenticity of the data.
+A ~bad-authentication-tag~ error will be signaled if the data is not authentic.
+If you don't specify it, you will have to call [[produce-tag][produce-tag]] after decryption and
+check that the tags match (e.g. using [[constant-time-equal][constant-time-equal]]).
+
+When using ETM, /cipher/ must be a cipher object created by [[make-cipher][make-cipher]].
+/mac/ must be a mac object created by [[make-mac][make-mac]].
+
+When using GCM, /cipher-name/ must have a [[block-length][block-length]] of 16 bytes. /key/ must be a suitable key
+for the chosen cipher. The length of /initialization-vector/ must be 12 bytes.
+
+
+#+NAME: process-associated-data
+#+BEGIN_SRC lisp
+(process-associated-data mode data &key start end) => (values)
+#+END_SRC
+
+Update the internal state of /mode/ with the contents of /data/ between /start/
+and /end/ so that they are taken into consideration in the authentication tag.
+
+
+An authenticated encryption object can be used with the [[encrypt][encrypt]], [[decrypt][decrypt]],
+[[encrypt-message][encrypt-message]] and [[decrypt-message][decrypt-message]] functions.
+
+#+BEGIN_EXAMPLE
+(encrypt mode plaintext ciphertext &key plaintext-start plaintext-end ciphertext-start handle-final-block)
+(decrypt mode ciphertext plaintext &key ciphertext-start ciphertext-end plaintext-start handle-final-block)
+(encrypt-message mode message &key start end associated-data associated-data-start associated-data-end)
+(decrypt-message mode message &key start end associated-data associated-data-start associated-data-end)
+#+END_EXAMPLE
+
+
+#+NAME: produce-tag
+#+BEGIN_SRC lisp
+(produce-tag mode &key tag tag-start) => tag
+#+END_SRC
+
+Return the authentication tag of the data processed by /mode/ so far. If /tag/
+is provided, the computed tag will be placed into /tag/ starting at /tag-start/.
+/tag/ must be a ~(simple-array (unsigned-byte 8) (*))~. An
+[[insufficient-buffer-space][insufficient-buffer-space]] error will be signaled if there is insufficient space
+in /tag/.
+
+** Inquiry functions
+
+#+NAME: list-all-authenticated-encryption-modes
+#+BEGIN_SRC lisp
+(list-all-authenticated-encryption-modes) => list
+#+END_SRC
+
+Returns a list whose elements may be validly passed to
+[[make-authenticated-encryption-mode][make-authenticated-encryption-mode]].
+
+
+#+NAME: authenticated-encryption-mode-supported-p
+#+BEGIN_SRC lisp
+(authenticated-encryption-mode-supported-p name) => boolean
+#+END_SRC
+
+Returns ~t~ if /name/ would be in the list returned by
+[[list-all-authenticated-encryption-modes][list-all-authenticated-encryption-modes]] ~nil~ otherwise.
 
 * Key derivation functions
   :PROPERTIES:
@@ -1879,3 +1969,20 @@ oaep-decoding-error
 #+END_SRC
 
 This error is signaled when the OAEP decoding of a message fails.
+
+
+#+NAME: unsupported-authenticated-encryption-mode
+#+BEGIN_SRC lisp
+unsupported-authenticated-encryption-mode
+#+END_SRC
+
+This error is signaled when an invalid mode name is provided to
+[[make-authenticated-encryption-mode][make-authenticated-encryption-mode]].
+
+
+#+NAME: bad-authentication-tag
+#+BEGIN_SRC lisp
+bad-authentication-tag
+#+END_SRC
+
+This error is signaled when the verification of authenticity of a message fails.
