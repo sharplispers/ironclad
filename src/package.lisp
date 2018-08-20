@@ -118,6 +118,8 @@
    #:missing-message-parameter #:missing-signature-parameter
    #:incompatible-keys #:invalid-curve-point
    #:invalid-public-key-length #:oaep-decoding-error
+   #:unsupported-authenticated-encryption-mode
+   #:bad-authentication-tag
 
    ;; utilities
    #:byte-array-to-hex-string #:hex-string-to-byte-array
