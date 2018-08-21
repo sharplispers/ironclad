@@ -4,15 +4,57 @@
 (in-package :crypto-tests)
 
 (rtest:deftest pkcs7-padding
-  (loop with block-size = 16
-        and array = (make-array 16 :element-type '(unsigned-byte 8)
-                                :initial-element 0)
-        and padding = (make-instance 'crypto::pkcs7-padding)
-       for i from 0 below block-size
-       do (crypto::add-padding-bytes padding array 0 i block-size)
-       finally (return
-                 (dotimes (i block-size :ok)
-                   (unless (= (aref array i) (- block-size i))
-                     (return :error)))))
+  (let* ((block-size 16)
+         (buffer (make-array block-size
+                             :element-type '(unsigned-byte 8)
+                             :initial-element #xff))
+         (padding (make-instance 'crypto::pkcs7-padding)))
+    (flet ((pad-and-check (length)
+             (crypto::add-padding-bytes padding buffer 0 length block-size)
+             (let ((padding-bytes (crypto::count-padding-bytes padding buffer 0 block-size)))
+               (and (= padding-bytes (- block-size length))
+                    (loop for i from length below block-size
+                          always (= (aref buffer i) padding-bytes))))))
+      (if (loop for length from 0 below block-size
+                always (pad-and-check length))
+          :ok
+          :error)))
   :ok)
 
+(rtest:deftest ansi-x923-padding
+  (let* ((block-size 16)
+         (buffer (make-array block-size
+                             :element-type '(unsigned-byte 8)
+                             :initial-element #xff))
+         (padding (make-instance 'crypto::ansi-x923-padding)))
+    (flet ((pad-and-check (length)
+             (crypto::add-padding-bytes padding buffer 0 length block-size)
+             (let ((padding-bytes (crypto::count-padding-bytes padding buffer 0 block-size)))
+               (and (= padding-bytes (- block-size length))
+                    (loop for i from length below (1- block-size)
+                          always (zerop (aref buffer i)))
+                    (= (aref buffer (1- block-size)) padding-bytes)))))
+      (if (loop for length from 0 below block-size
+                always (pad-and-check length))
+          :ok
+          :error)))
+  :ok)
+
+(rtest:deftest iso-7816-4-padding
+  (let* ((block-size 16)
+         (buffer (make-array block-size
+                             :element-type '(unsigned-byte 8)
+                             :initial-element #xff))
+         (padding (make-instance 'crypto::iso-7816-4-padding)))
+    (flet ((pad-and-check (length)
+             (crypto::add-padding-bytes padding buffer 0 length block-size)
+             (let ((padding-bytes (crypto::count-padding-bytes padding buffer 0 block-size)))
+               (and (= padding-bytes (- block-size length))
+                    (= (aref buffer length) #x80)
+                    (loop for i from (1+ length) below block-size
+                          always (zerop (aref buffer i)))))))
+      (if (loop for length from 0 below block-size
+                always (pad-and-check length))
+          :ok
+          :error)))
+  :ok)
