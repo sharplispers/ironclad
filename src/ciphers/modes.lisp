@@ -18,7 +18,7 @@
 (defclass cfb-mode (encryption-mode inititialization-vector-mixin) ())
 (defclass cfb8-mode (encryption-mode inititialization-vector-mixin) ())
 (defclass ctr-mode (encryption-mode inititialization-vector-mixin)
-  ((keystream-blocks :accessor keystream-blocks :initform 0)))
+  ((keystream-blocks :accessor keystream-blocks :initform 0 :type (integer 0 *))))
 
 (defmethod print-object ((object encryption-mode) stream)
   (print-unreadable-object (object stream :identity t)
@@ -103,6 +103,7 @@
                 (declare (type simple-octet-vector in out))
                 (declare (type index in-start in-end out-start))
                 (declare (ignorable handle-final-block))
+                (declare (optimize (speed 3) (space 0) (debug 0)))
                 ,@body)))
 
 
@@ -418,19 +419,21 @@
                             (let ((iv-position (iv-position mode))
                                   (keystream-blocks (keystream-blocks mode))
                                   (remaining (- in-end in-start))
-                                  (processed 0))
+                                  (offset in-start))
                               (declare (type (integer 0 (,block-length-expr)) iv-position)
-                                       (type index remaining processed))
+                                       (type (integer 0 *) keystream-blocks)
+                                       (type index remaining offset))
 
                               ;; Use remaining bytes in encrypted-iv
                               (loop until (or (zerop remaining) (zerop iv-position))
-                                    do (setf (aref out (+ out-start processed))
-                                             (logxor (aref in (+ in-start processed))
+                                    do (setf (aref out out-start)
+                                             (logxor (aref in offset)
                                                      (aref encrypted-iv iv-position)))
                                        (if (= iv-position (1- ,block-length-expr))
                                            (setf iv-position 0)
                                            (incf iv-position))
-                                       (incf processed)
+                                       (incf offset)
+                                       (incf out-start)
                                        (decf remaining))
 
                               ;; Process data by block
@@ -441,10 +444,11 @@
                                        (xor-block ,block-length-expr
                                                   encrypted-iv
                                                   in
-                                                  (+ in-start processed)
+                                                  offset
                                                   out
-                                                  (+ out-start processed))
-                                       (incf processed ,block-length-expr)
+                                                  out-start)
+                                       (incf offset ,block-length-expr)
+                                       (incf out-start ,block-length-expr)
                                        (decf remaining ,block-length-expr))
 
                               ;; Process remaing bytes of data
@@ -453,18 +457,20 @@
                                          (funcall function cipher iv 0 encrypted-iv 0)
                                          (increment-counter-block iv 1)
                                          (incf keystream-blocks))
-                                       (setf (aref out (+ out-start processed))
-                                             (logxor (aref in (+ in-start processed))
+                                       (setf (aref out out-start)
+                                             (logxor (aref in offset)
                                                      (aref encrypted-iv iv-position)))
                                        (if (= iv-position (1- ,block-length-expr))
                                            (setf iv-position 0)
                                            (incf iv-position))
-                                       (incf processed)
+                                       (incf offset)
+                                       (incf out-start)
                                        (decf remaining))
 
                               (setf (iv-position mode) iv-position)
                               (setf (keystream-blocks mode) keystream-blocks)
-                              (values processed processed)))))
+                              (let ((processed (- offset in-start)))
+                                (values processed processed))))))
                     (let ((f (ctr-crypt-function (encrypt-function cipher))))
                       (values f f))))))
            (message-length (cipher-specializer block-length-expr)
