@@ -8,26 +8,8 @@
     ("Clisp" "clisp -i benchmark-implementation.lisp")
     ("ECL" "ecl --load benchmark-implementation.lisp")
     ("SBCL" "sbcl --load benchmark-implementation.lisp")))
-(defparameter *data-file* "/tmp/data-clr")
-(defparameter *encrypted-file* "/tmp/data-enc")
 (defparameter *implementation-result-file* "benchmark-tmp")
 (defparameter *result-file* "benchmark.org")
-
-(defun make-data-file (size)
-  (with-open-file (data-file *data-file*
-                             :direction :output
-                             :element-type '(unsigned-byte 8)
-                             :if-exists :supersede)
-    (loop with remaining = size
-          until (zerop remaining)
-          do (let ((n (min remaining 1000)))
-               (write-sequence (ironclad:random-data n) data-file)
-               (decf remaining n)))))
-
-(defun delete-data-files ()
-  (uiop:delete-file-if-exists *data-file*)
-  (uiop:delete-file-if-exists *encrypted-file*)
-  (uiop:delete-file-if-exists *implementation-result-file*))
 
 ;;; results format:
 ;;;
@@ -241,12 +223,6 @@
             (command (cadr implementation)))
         (format t "Benchmarking ~a..." lisp)
         (finish-output)
-        (make-data-file (cond ((member lisp '("SBCL") :test #'string=)
-                               (expt 10 8))
-                              ((member lisp '("AllegroCL" "ClozureCL" "ECL") :test #'string=)
-                               (expt 10 7))
-                              (t
-                               (expt 10 6))))
         (let ((result (ignore-errors
                         (uiop:run-program command)
                         (with-open-file (file *implementation-result-file*)
@@ -254,7 +230,7 @@
           (if (null result)
               (format t " FAILED~%")
               (format t " OK~%")))
-        (delete-data-files)))
+        (uiop:delete-file-if-exists *implementation-result-file*)))
     (write-result-file results)
     (format t "Benchmark result written to \"~a\"~%" *result-file*)))
 
