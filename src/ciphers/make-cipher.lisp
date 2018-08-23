@@ -31,7 +31,7 @@
 (defmethod valid-mode-for-cipher-p ((cipher stream-cipher) mode)
   (or (eq mode :stream) (eq mode 'stream)))
 
-(defun make-mode-for-cipher (cipher mode &optional initialization-vector)
+(defun make-mode-for-cipher (cipher mode &optional initialization-vector padding)
   (let ((block-length (block-length cipher)))
     (flet ((make-extended-mode (mode-class)
              (declare (ignorable mode-class))
@@ -48,10 +48,11 @@
                       :block-length block-length))
              (make-instance mode-class
                             :initialization-vector (copy-seq initialization-vector)
+                            :padding padding
                             :cipher cipher)))
     (case mode
       ((:ecb ecb)
-       (make-instance 'ecb-mode :cipher cipher))
+       (make-instance 'ecb-mode :cipher cipher :padding padding))
       ((:cbc cbc)
        (make-extended-mode 'cbc-mode))
       ((:ofb ofb)
@@ -91,22 +92,10 @@
   (when (and iv-p
              (not mode-p))
     (setq mode (mode-name cipher)))
-  (when (or mode-p iv-p)
+  (when (or mode-p iv-p padding-p)
     (setf (slot-value cipher 'mode-name) mode)
-    (let ((mode-instance (make-mode-for-cipher cipher mode initialization-vector)))
+    (let ((mode-instance (make-mode-for-cipher cipher mode initialization-vector padding)))
       (setf (mode cipher) mode-instance)))
-  (when (and padding-p (mode cipher) (typep (mode cipher) 'padded-mode))
-    (case padding
-      ((:pkcs7 pkcs7)
-       (setf (padding (mode cipher)) (make-instance 'pkcs7-padding)))
-      ((:ansi-x923 ansi-x923)
-       (setf (padding (mode cipher)) (make-instance 'ansi-x923-padding)))
-      ((:iso-7816-4 iso-7816-4)
-       (setf (padding (mode cipher)) (make-instance 'iso-7816-4-padding)))
-      ((nil)
-       (setf (padding (mode cipher)) nil))
-      (t
-       (error 'unsupported-padding :name padding))))
   cipher)
 
 (defmethod initialize-instance :after ((cipher cipher)

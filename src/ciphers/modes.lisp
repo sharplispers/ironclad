@@ -24,7 +24,19 @@
   (print-unreadable-object (object stream :identity t)
     (format stream "~A" (class-name (class-of object)))))
 
-(defmethod initialize-instance :after ((mode encryption-mode) &key cipher)
+(defmethod initialize-instance :after ((mode encryption-mode) &key cipher padding)
+  (when (typep mode 'padded-mode)
+    (case padding
+      ((:pkcs7 pkcs7)
+       (setf (padding mode) (make-instance 'pkcs7-padding)))
+      ((:ansi-x923 ansi-x923)
+       (setf (padding mode) (make-instance 'ansi-x923-padding)))
+      ((:iso-7816-4 iso-7816-4)
+       (setf (padding mode) (make-instance 'iso-7816-4-padding)))
+      ((nil)
+       (setf (padding mode) nil))
+      (t
+       (error 'unsupported-padding :name padding))))
   (multiple-value-bind (efun dfun) (mode-crypt-functions cipher mode)
     (setf (slot-value mode 'encrypt-function) efun
           (slot-value mode 'decrypt-function) dfun)))
@@ -113,20 +125,23 @@
              `(defmethod mode-crypt-functions ((cipher ,cipher-specializer)
                                                (mode ecb-mode))
                 (let ((efun (encrypt-function cipher))
-                      (dfun (decrypt-function cipher)))
-                  (declare (type function efun dfun))
+                      (dfun (decrypt-function cipher))
+                      (padding (padding mode)))
+                 (declare (type function efun dfun))
                   (values
                    (mode-lambda
-                    (let ((offset in-start)
-                          (padding (padding mode)))
+                    (let ((offset in-start))
                       (declare (type index offset))
-                      (loop while (<= offset (- in-end ,block-length-expr))
+                      (loop with end = (- in-end ,block-length-expr)
+                            while (<= offset end)
                             do (funcall efun cipher in offset out out-start)
                                (incf offset ,block-length-expr)
                                (incf out-start ,block-length-expr))
                       (let ((n-bytes-processed (- offset in-start)))
+                        (declare (type index n-bytes-processed))
                         (if (and handle-final-block padding)
                             (let ((n-bytes-remaining (- in-end offset)))
+                              (declare (type index n-bytes-remaining))
                               (when (< (- (length out) out-start) ,block-length-expr)
                                 (error 'insufficient-buffer-space
                                        :buffer out
@@ -134,7 +149,7 @@
                                        :length ,block-length-expr))
                               (replace out in
                                        :start1 out-start
-                                       :start2 offset :end2 (+ offset n-bytes-remaining))
+                                       :start2 offset :end2 in-end)
                               (add-padding-bytes padding out out-start
                                                  n-bytes-remaining ,block-length-expr)
                               (funcall efun cipher out out-start out out-start)
@@ -144,22 +159,24 @@
                    (mode-lambda
                     (let ((temp-block (make-array ,block-length-expr
                                                   :element-type '(unsigned-byte 8)))
-                          (offset in-start)
-                          (padding (padding mode)))
+                          (offset in-start))
                       (declare (type (simple-octet-vector ,block-length-expr) temp-block))
                       (declare (dynamic-extent temp-block))
                       (declare (type index offset))
-                      (loop while (if (and handle-final-block padding)
-                                      (< offset (- in-end ,block-length-expr))
-                                      (<= offset (- in-end ,block-length-expr)))
+                      (loop with end = (if (and handle-final-block padding)
+                                           (- in-end (* 2 ,block-length-expr))
+                                           (- in-end ,block-length-expr))
+                            while (<= offset end)
                             do (funcall dfun cipher in offset out out-start)
                                (incf offset ,block-length-expr)
                                (incf out-start ,block-length-expr))
                       (let ((n-bytes-processed (- offset in-start)))
+                        (declare (type index n-bytes-processed))
                         (if (and handle-final-block
                                  padding
                                  (= (- in-end offset) ,block-length-expr))
                             (let ((n-bytes-remaining 0))
+                              (declare (type index n-bytes-remaining))
                               (funcall dfun cipher in offset temp-block 0)
                               (setf n-bytes-remaining (- ,block-length-expr
                                                          (count-padding-bytes padding temp-block
@@ -188,16 +205,17 @@
                                                (mode cbc-mode))
                 (let ((efun (encrypt-function cipher))
                       (dfun (decrypt-function cipher))
-                      (iv (iv mode)))
+                      (iv (iv mode))
+                      (padding (padding mode)))
                   (declare (type function efun dfun))
                   (declare (type (simple-octet-vector ,block-length-expr) iv))
                   (declare (inline xor-block))
                   (values
                    (mode-lambda
-                    (let ((offset in-start)
-                          (padding (padding mode)))
+                    (let ((offset in-start))
                       (declare (type index offset))
-                      (loop while (<= offset (- in-end ,block-length-expr))
+                      (loop with end = (- in-end ,block-length-expr)
+                            while (<= offset end)
                             do (xor-block ,block-length-expr iv in offset out out-start)
                                (funcall efun cipher out out-start out out-start)
                                (replace iv out
@@ -206,8 +224,10 @@
                                (incf offset ,block-length-expr)
                                (incf out-start ,block-length-expr))
                       (let ((n-bytes-processed (- offset in-start)))
+                        (declare (type index n-bytes-processed))
                         (if (and handle-final-block padding)
                             (let ((n-bytes-remaining (- in-end offset)))
+                              (declare (type index n-bytes-remaining))
                               (when (< (- (length out) out-start) ,block-length-expr)
                                 (error 'insufficient-buffer-space
                                        :buffer out
@@ -215,7 +235,7 @@
                                        :length ,block-length-expr))
                               (replace out in
                                        :start1 out-start
-                                       :start2 offset :end2 (+ offset n-bytes-remaining))
+                                       :start2 offset :end2 in-end)
                               (add-padding-bytes padding out out-start
                                                  n-bytes-remaining ,block-length-expr)
                               (xor-block ,block-length-expr iv out out-start out out-start)
@@ -229,15 +249,15 @@
                    (mode-lambda
                     (let ((temp-block (make-array ,block-length-expr
                                                   :element-type '(unsigned-byte 8)))
-                          (offset in-start)
-                          (padding (padding mode)))
+                          (offset in-start))
                       (declare (type (simple-octet-vector ,block-length-expr) temp-block))
                       (declare (dynamic-extent temp-block))
                       (declare (type index offset))
                       (declare (inline xor-block))
-                      (loop while (if (and handle-final-block padding)
-                                      (< offset (- in-end ,block-length-expr))
-                                      (<= offset (- in-end ,block-length-expr)))
+                      (loop with end = (if (and handle-final-block padding)
+                                           (- in-end (* 2 ,block-length-expr))
+                                           (- in-end ,block-length-expr))
+                            while (<= offset end)
                             do (replace temp-block in
                                         :start1 0 :end1 ,block-length-expr
                                         :start2 offset)
@@ -249,10 +269,12 @@
                                (incf offset ,block-length-expr)
                                (incf out-start ,block-length-expr))
                       (let ((n-bytes-processed (- offset in-start)))
+                        (declare (type index n-bytes-processed))
                         (if (and handle-final-block
                                  padding
                                  (= (- in-end offset) ,block-length-expr))
                             (let ((n-bytes-remaining 0))
+                              (declare (type index n-bytes-remaining))
                               (funcall dfun cipher in offset temp-block 0)
                               (xor-block ,block-length-expr iv temp-block 0 temp-block 0)
                               (setf n-bytes-remaining (- ,block-length-expr
