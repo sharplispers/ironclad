@@ -123,4 +123,16 @@
   (values)
   (any)
   :overwrite-fndb-silently t)
+
+#+x86-64
+(defknown ironclad::xor128
+  ((simple-array (unsigned-byte 8) (*))
+   (integer 0 #.array-dimension-limit)
+   (simple-array (unsigned-byte 8) (*))
+   (integer 0 #.array-dimension-limit)
+   (simple-array (unsigned-byte 8) (*))
+   (integer 0 #.array-dimension-limit))
+  (values)
+  (any)
+  :overwrite-fndb-silently t)
 );#+sbcl

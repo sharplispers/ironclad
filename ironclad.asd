@@ -23,7 +23,7 @@
                (:module "doc"
                 :components ((:html-file "ironclad")))
                (:module "src"
-                :components ((:file "common" :depends-on ("package" "ccl-opt"))
+                :components ((:file "common" :depends-on ("ccl-opt" "macro-utils" "package" "sbcl-opt"))
                              (:file "conditions" :depends-on ("package"))
                              (:file "generic" :depends-on ("package"))
                              (:file "macro-utils" :depends-on ("package"))
@@ -133,7 +133,7 @@
                                            (:file "public-key")
                                            (:file "rsa" :depends-on ("pkcs1" "public-key"))))
                              (:module "sbcl-opt"
-                              :depends-on ("common" "package")
+                              :depends-on ("macro-utils" "package")
                               :components ((:file "cpu-features" :depends-on ("fndb" "x86oid-vm"))
                                            (:file "fndb")
                                            (:file "x86oid-vm" :depends-on ("fndb"))))))))

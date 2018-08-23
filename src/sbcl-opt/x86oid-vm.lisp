@@ -991,4 +991,33 @@
        (inst pxor x3 x2)
        (inst pxor x6 x3)
        (inst movdqa (buffer-mem accumulator) x6))))
+
+#+x86-64
+(define-vop (xor128)
+  (:translate ironclad::xor128)
+  (:policy :fast-safe)
+  (:args (in1 :scs (descriptor-reg))
+         (start-in1 :scs (unsigned-reg))
+         (in2 :scs (descriptor-reg))
+         (start-in2 :scs (unsigned-reg))
+         (out :scs (descriptor-reg))
+         (start-out :scs (unsigned-reg)))
+  (:arg-types simple-array-unsigned-byte-8
+              positive-fixnum
+              simple-array-unsigned-byte-8
+              positive-fixnum
+              simple-array-unsigned-byte-8
+              positive-fixnum)
+  (:temporary (:sc double-reg) x0 x1)
+  (:generator 1000
+     (flet ((buffer-mem (base offset)
+              (make-ea :qword
+                       :base base
+                       :index offset
+                       :disp (- (* n-word-bytes vector-data-offset)
+                                other-pointer-lowtag))))
+       (inst movdqu x0 (buffer-mem in1 start-in1))
+       (inst movdqu x1 (buffer-mem in2 start-in2))
+       (inst pxor x0 x1)
+       (inst movdqu (buffer-mem out start-out) x0))))
 )                        ; PROGN

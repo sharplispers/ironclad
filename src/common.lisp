@@ -535,90 +535,73 @@ behavior."
         do (setf (aref block i) (ub64ref/be buffer j)))
   (values))
 
-(defun xor-block (block-length input-block1 input-block2 input-block2-start
-                               output-block output-block-start)
-  (declare (type (simple-array (unsigned-byte 8) (*)) input-block1 input-block2 output-block))
-  (declare (type index block-length input-block2-start output-block-start))
-  (cond
-    ;; These are the only architectures with efficient nibbles
-    ;; accessors currently.  Happily, they also do efficient
-    ;; unaligned access, which helps make this block efficient.
-    #+(and sbcl (or x86 x86-64))
-    ((zerop (mod block-length sb-vm:n-word-bytes))
-     (macrolet ((frob (accessor)
-                  `(loop for i from 0 below block-length by ,sb-vm:n-word-bytes
-                         do (setf (,accessor output-block
-                                             (+ output-block-start i))
-                                  (logxor (,accessor input-block1 i)
-                                          (,accessor input-block2
-                                                     (+ input-block2-start i)))))))
-       (ecase sb-vm:n-word-bits
-         (32 (frob ub32ref/le))
-         (64 (frob ub64ref/le)))))
-    (t
-     (dotimes (i block-length)
-       (setf (aref output-block (+ output-block-start i))
-             (logxor (aref input-block1 i)
-                     (aref input-block2 (+ input-block2-start i))))))))
+(defun xor-block (block-length input-block1 input-block2 input-block2-start output-block output-block-start)
+  (declare (type (simple-array (unsigned-byte 8) (*)) input-block1 input-block2 output-block)
+           (type index block-length input-block2-start output-block-start)
+           #.(burn-baby-burn))
+  (let ((input-block1-start 0))
+    (declare (type index input-block1-start))
+    (macrolet ((xor-bytes (size xor-form)
+                 `(loop until (< block-length ,size) do
+                    ,xor-form
+                    (incf output-block-start ,size)
+                    (incf input-block1-start ,size)
+                    (incf input-block2-start ,size)
+                    (decf block-length ,size))))
+      #+(and sbcl x86-64)
+      (xor-bytes 16 (xor128 input-block1 input-block1-start
+                            input-block2 input-block2-start
+                            output-block output-block-start))
+      #+(and sbcl x86-64)
+      (xor-bytes 8 (setf (ub64ref/le output-block output-block-start)
+                         (logxor (ub64ref/le input-block1 input-block1-start)
+                                 (ub64ref/le input-block2 input-block2-start))))
+      #+(and sbcl (or x86 x86-64))
+      (xor-bytes 4 (setf (ub32ref/le output-block output-block-start)
+                         (logxor (ub32ref/le input-block1 input-block1-start)
+                                 (ub32ref/le input-block2 input-block2-start))))
+      (xor-bytes 1 (setf (aref output-block output-block-start)
+                         (logxor (aref input-block1 input-block1-start)
+                                 (aref input-block2 input-block2-start)))))))
 
 (define-compiler-macro xor-block (&whole form &environment env
                                          block-length input-block1
                                          input-block2 input-block2-start
                                          output-block output-block-start)
   (cond
-    ;; These are the only architectures with efficient nibbles
-    ;; accessors currently.
+    #+(and sbcl x86-64)
+    ((and (constantp block-length env)
+          (= block-length 16))
+     `(xor128 ,input-block1 0
+              ,input-block2 ,input-block2-start
+              ,output-block ,output-block-start))
+    #+(and sbcl x86-64)
+    ((and (constantp block-length env)
+          (zerop (mod block-length 16)))
+     (let ((i (gensym)))
+       `(loop for ,i from 0 below ,block-length by 16 do
+          (xor128 ,input-block1 ,i
+                  ,input-block2 (+ ,input-block2-start ,i)
+                  ,output-block (+ ,output-block-start ,i)))))
+    #+(and sbcl x86-64)
+    ((and (constantp block-length env)
+          (= block-length 8))
+     `(setf (ub64ref/le ,output-block ,output-block-start)
+            (logxor (ub64ref/le ,input-block1 0)
+                    (ub64ref/le ,input-block2 ,input-block2-start))))
     #+(and sbcl (or x86 x86-64))
     ((and (constantp block-length env)
-          (zerop (mod block-length sb-vm:n-word-bytes)))
-     (let ((accessor (ecase sb-vm:n-word-bits
-                       (32 'ub32ref/le)
-                       (64 'ub64ref/le)))
-           (i (gensym)))
-       `(loop for ,i from 0 below ,block-length by ,sb-vm:n-word-bytes
-              do (setf (,accessor ,output-block (+ ,output-block-start ,i))
-                       (logxor (,accessor ,input-block1 ,i)
-                               (,accessor ,input-block2
-                                          (+ ,input-block2-start ,i)))))))
+          (= block-length 4))
+     `(setf (ub32ref/le ,output-block ,output-block-start)
+            (logxor (ub64ref/le ,input-block1 0)
+                    (ub64ref/le ,input-block2 ,input-block2-start))))
+    #+(and sbcl x86)
+    ((and (constantp block-length env)
+          (zerop (mod block-length 4)))
+     (let ((i (gensym)))
+       `(loop for ,i from 0 below ,block-length by 4 do
+          (setf (ub32ref/le ,output-block (+ ,output-block-start ,i))
+                (logxor (ub32ref/le ,input-block1 ,i)
+                        (ub32ref/le ,input-block2 (+ ,input-block2-start ,i)))))))
     (t
      form)))
-
-
-;;; a few functions that are useful during compilation
-
-(defun make-circular-list (&rest elements)
-  (let ((list (copy-seq elements)))
-    (setf (cdr (last list)) list)))
-
-;;; SUBSEQ is defined to error on circular lists, so we define our own
-(defun circular-list-subseq (list start end)
-  (let* ((length (- end start))
-         (subseq (make-list length)))
-    (do ((i 0 (1+ i))
-         (list (nthcdr start list) (cdr list))
-         (xsubseq subseq (cdr xsubseq)))
-        ((>= i length) subseq)
-      (setf (first xsubseq) (first list)))))
-
-;;;
-;;; Partial Evaluation Helpers
-;;;
-
-(eval-when (:compile-toplevel :load-toplevel :execute)
-  (defun trivial-macroexpand-all (form env)
-    "Trivial and very restricted code-walker used in partial evaluation macros.
-Only supports atoms and function forms, no special forms."
-    (let ((real-form (macroexpand form env)))
-      (cond
-        ((atom real-form)
-         real-form)
-        (t
-         (list* (car real-form)
-                (mapcar #'(lambda (x) (trivial-macroexpand-all x env))
-                        (cdr real-form))))))))
-
-(defmacro dotimes-unrolled ((var limit) &body body &environment env)
-  "Unroll the loop body at compile-time."
-  (loop for x from 0 below (eval (trivial-macroexpand-all limit env))
-        collect `(symbol-macrolet ((,var ,x)) ,@body) into forms
-        finally (return `(progn ,@forms))))

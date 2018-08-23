@@ -18,3 +18,42 @@
       ((eq package (load-time-value (find-package :keyword)))
        (find-symbol (symbol-name symbol) ironclad))
       (t nil))))
+
+
+;;; a few functions that are useful during compilation
+
+(defun make-circular-list (&rest elements)
+  (let ((list (copy-seq elements)))
+    (setf (cdr (last list)) list)))
+
+;;; SUBSEQ is defined to error on circular lists, so we define our own
+(defun circular-list-subseq (list start end)
+  (let* ((length (- end start))
+         (subseq (make-list length)))
+    (do ((i 0 (1+ i))
+         (list (nthcdr start list) (cdr list))
+         (xsubseq subseq (cdr xsubseq)))
+        ((>= i length) subseq)
+      (setf (first xsubseq) (first list)))))
+
+
+;;; Partial evaluation helpers
+
+(eval-when (:compile-toplevel :load-toplevel :execute)
+  (defun trivial-macroexpand-all (form env)
+    "Trivial and very restricted code-walker used in partial evaluation macros.
+Only supports atoms and function forms, no special forms."
+    (let ((real-form (macroexpand form env)))
+      (cond
+        ((atom real-form)
+         real-form)
+        (t
+         (list* (car real-form)
+                (mapcar #'(lambda (x) (trivial-macroexpand-all x env))
+                        (cdr real-form))))))))
+
+(defmacro dotimes-unrolled ((var limit) &body body &environment env)
+  "Unroll the loop body at compile-time."
+  (loop for x from 0 below (eval (trivial-macroexpand-all limit env))
+        collect `(symbol-macrolet ((,var ,x)) ,@body) into forms
+        finally (return `(progn ,@forms))))
