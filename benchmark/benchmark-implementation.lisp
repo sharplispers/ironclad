@@ -93,6 +93,22 @@
         (setf speeds (acons mac-name speed speeds))))
     (setf *result* (acons "macs" speeds *result*))))
 
+(defun benchmark-modes ()
+  (let ((speeds '()))
+    (dolist (mode-name (ironclad:list-all-modes))
+      (let* ((cipher-name :aes)
+             (key (ironclad:random-data (car (last (ironclad:key-lengths cipher-name)))))
+             (iv (ironclad:random-data (ironclad:block-length cipher-name)))
+             (cipher (ironclad:make-cipher cipher-name
+                                           :mode mode-name
+                                           :key key
+                                           :initialization-vector iv))
+             (buffer (ironclad:random-data *buffer-size*))
+             (speed (get-speed-data (dotimes (i (ceiling *data-size* *buffer-size*))
+                                      (ironclad:encrypt-in-place cipher buffer)))))
+        (setf speeds (acons mode-name speed speeds))))
+    (setf *result* (acons "modes" speeds *result*))))
+
 (defun benchmark-diffie-hellman ()
   (let ((speeds '()))
     (dolist (dh-name '(:curve25519 :curve448 :elgamal))
@@ -144,6 +160,7 @@
 (benchmark-ciphers)
 (benchmark-digests)
 (benchmark-macs)
+(benchmark-modes)
 (benchmark-diffie-hellman)
 (benchmark-message-encryptions)
 (benchmark-signatures)
