@@ -76,30 +76,25 @@
   (declare (type simple-octet-vector block)
            (type (mod #.most-positive-fixnum) n)
            (optimize (speed 3) (space 0) (debug 0) (safety 0)))
-  (do* ((i (1- (length block)) (1- i))
-        (carry n (+ (ash carry -8) (ash sum -8)))
-        (sum (+ (aref block i) (logand carry #xff))
-             (+ (aref block i) (logand carry #xff))))
-       ((or (minusp i) (zerop carry)))
-    (declare (type fixnum i)
-             (type (mod #.most-positive-fixnum) carry)
-             (type (unsigned-byte 16) sum))
-    (setf (aref block i) (logand sum #xff)))
-  (values))
+  (loop with carry of-type (mod #.most-positive-fixnum) = n
+        with sum of-type (unsigned-byte 16) = 0
+        for i of-type fixnum from (1- (length block)) downto 0
+        do (setf sum (+ (aref block i) (logand carry #xff))
+                 (aref block i) (logand sum #xff)
+                 carry (+ (ash carry -8) (ash sum -8)))
+        until (zerop carry)))
 
 (defun decrement-counter-block (block n)
   (declare (type simple-octet-vector block)
            (type (mod #.most-positive-fixnum) n)
            (optimize (speed 3) (space 0) (debug 0) (safety 0)))
-  (do* ((i (1- (length block)) (1- i))
-        (carry n (+ (ash carry -8) (if (minusp sub) 1 0)))
-        (sub (- (aref block i) (logand carry #xff))
-             (- (aref block i) (logand carry #xff))))
-       ((or (minusp i) (zerop carry)))
-    (declare (type fixnum i sub)
-             (type (mod #.most-positive-fixnum) carry))
-    (setf (aref block i) (logand sub #xff)))
-  (values))
+  (loop with carry of-type (mod #.most-positive-fixnum) = n
+        with sub of-type fixnum = 0
+        for i of-type fixnum from (1- (length block)) downto 0
+        do (setf sub (- (aref block i) (logand carry #xff))
+                 (aref block i) (logand sub #xff)
+                 carry (+ (ash carry -8) (if (minusp sub) 1 0)))
+        until (zerop carry)))
 
 ;;; This way is kind of ugly, but I don't know a better way.
 (macrolet ((define-mode-function (&rest mode-definition-funs &environment env)
