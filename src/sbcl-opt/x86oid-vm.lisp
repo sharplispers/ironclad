@@ -1020,4 +1020,27 @@
        (inst movdqu x1 (buffer-mem in2 start-in2))
        (inst pxor x0 x1)
        (inst movdqu (buffer-mem out start-out) x0))))
+
+#+x86-64
+(define-vop (mov128)
+  (:translate ironclad::mov128)
+  (:policy :fast-safe)
+  (:args (in :scs (descriptor-reg))
+         (start-in :scs (unsigned-reg))
+         (out :scs (descriptor-reg))
+         (start-out :scs (unsigned-reg)))
+  (:arg-types simple-array-unsigned-byte-8
+              positive-fixnum
+              simple-array-unsigned-byte-8
+              positive-fixnum)
+  (:temporary (:sc double-reg) x0)
+  (:generator 1000
+     (flet ((buffer-mem (base offset)
+              (make-ea :qword
+                       :base base
+                       :index offset
+                       :disp (- (* n-word-bytes vector-data-offset)
+                                other-pointer-lowtag))))
+       (inst movdqu x0 (buffer-mem in start-in))
+       (inst movdqu (buffer-mem out start-out) x0))))
 )                        ; PROGN

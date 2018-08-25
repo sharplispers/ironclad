@@ -593,8 +593,8 @@ behavior."
     ((and (constantp block-length env)
           (= block-length 4))
      `(setf (ub32ref/le ,output-block ,output-block-start)
-            (logxor (ub64ref/le ,input-block1 0)
-                    (ub64ref/le ,input-block2 ,input-block2-start))))
+            (logxor (ub32ref/le ,input-block1 0)
+                    (ub32ref/le ,input-block2 ,input-block2-start))))
     #+(and sbcl x86)
     ((and (constantp block-length env)
           (zerop (mod block-length 4)))
@@ -603,5 +603,65 @@ behavior."
           (setf (ub32ref/le ,output-block (+ ,output-block-start ,i))
                 (logxor (ub32ref/le ,input-block1 ,i)
                         (ub32ref/le ,input-block2 (+ ,input-block2-start ,i)))))))
+    (t
+     form)))
+
+(defun copy-block (block-length input-block input-block-start output-block output-block-start)
+  (declare (type (simple-array (unsigned-byte 8) (*)) input-block output-block)
+           (type index block-length input-block-start output-block-start)
+           #.(burn-baby-burn))
+  (macrolet ((copy-bytes (size copy-form)
+               `(loop until (< block-length ,size) do
+                      ,copy-form
+                      (incf input-block-start ,size)
+                      (incf output-block-start ,size)
+                      (decf block-length ,size))))
+    #+(and sbcl x86-64)
+    (copy-bytes 16 (mov128 input-block input-block-start
+                           output-block output-block-start))
+    #+(and sbcl x86-64)
+    (copy-bytes 8 (setf (ub64ref/le output-block output-block-start)
+                        (ub64ref/le input-block input-block-start)))
+    #+(and sbcl (or x86 x86-64))
+    (copy-bytes 4 (setf (ub32ref/le output-block output-block-start)
+                        (ub32ref/le input-block input-block-start)))
+    (replace output-block input-block
+             :start1 output-block-start :end1 (+ output-block-start block-length)
+             :start2 input-block-start :end2 (+ input-block-start block-length))))
+
+(define-compiler-macro copy-block (&whole form &environment env
+                                          block-length
+                                          input-block input-block-start
+                                          output-block output-block-start)
+  (cond
+    #+(and sbcl x86-64)
+    ((and (constantp block-length env)
+          (= block-length 16))
+     `(mov128  ,input-block ,input-block-start
+               ,output-block ,output-block-start))
+    #+(and sbcl x86-64)
+    ((and (constantp block-length env)
+          (zerop (mod block-length 16)))
+     (let ((i (gensym)))
+       `(loop for ,i from 0 below ,block-length by 16 do
+          (mov128 ,input-block (+ ,input-block-start ,i)
+                  ,output-block (+ ,output-block-start ,i)))))
+    #+(and sbcl x86-64)
+    ((and (constantp block-length env)
+          (= block-length 8))
+     `(setf (ub64ref/le ,output-block ,output-block-start)
+            (ub64ref/le ,input-block ,input-block-start)))
+    #+(and sbcl (or x86 x86-64))
+    ((and (constantp block-length env)
+          (= block-length 4))
+     `(setf (ub32ref/le ,output-block ,output-block-start)
+            (ub32ref/le ,input-block ,input-block-start)))
+    #+(and sbcl x86)
+    ((and (constantp block-length env)
+          (zerop (mod block-length 4)))
+     (let ((i (gensym)))
+       `(loop for ,i from 0 below ,block-length by 4 do
+          (setf (ub32ref/le ,output-block (+ ,output-block-start ,i))
+                (ub32ref/le ,input-block (+ ,input-block-start ,i))))))
     (t
      form)))

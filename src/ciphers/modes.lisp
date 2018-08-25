@@ -205,6 +205,7 @@
                   (declare (type function efun dfun))
                   (declare (type (simple-octet-vector ,block-length-expr) iv))
                   (declare (inline xor-block))
+                  (declare (inline copy-block))
                   (values
                    (mode-lambda
                     (let ((offset in-start))
@@ -213,9 +214,7 @@
                             while (<= offset end)
                             do (xor-block ,block-length-expr iv in offset out out-start)
                                (funcall efun cipher out out-start out out-start)
-                               (replace iv out
-                                        :start1 0 :end1 ,block-length-expr
-                                        :start2 out-start)
+                               (copy-block ,block-length-expr out out-start iv 0)
                                (incf offset ,block-length-expr)
                                (incf out-start ,block-length-expr))
                       (let ((n-bytes-processed (- offset in-start)))
@@ -235,9 +234,7 @@
                                                  n-bytes-remaining ,block-length-expr)
                               (xor-block ,block-length-expr iv out out-start out out-start)
                               (funcall efun cipher out out-start out out-start)
-                              (replace iv out
-                                       :start1 0 :end1 ,block-length-expr
-                                       :start2 out-start)
+                              (copy-block ,block-length-expr out out-start iv 0)
                               (values (+ n-bytes-processed n-bytes-remaining)
                                       (+ n-bytes-processed ,block-length-expr)))
                             (values n-bytes-processed n-bytes-processed)))))
@@ -248,19 +245,14 @@
                       (declare (type (simple-octet-vector ,block-length-expr) temp-block))
                       (declare (dynamic-extent temp-block))
                       (declare (type index offset))
-                      (declare (inline xor-block))
                       (loop with end = (if (and handle-final-block padding)
                                            (- in-end (* 2 ,block-length-expr))
                                            (- in-end ,block-length-expr))
                             while (<= offset end)
-                            do (replace temp-block in
-                                        :start1 0 :end1 ,block-length-expr
-                                        :start2 offset)
+                            do (copy-block ,block-length-expr in offset temp-block 0)
                                (funcall dfun cipher in offset out out-start)
                                (xor-block ,block-length-expr iv out out-start out out-start)
-                               (replace iv temp-block
-                                        :end1 ,block-length-expr
-                                        :end2 ,block-length-expr)
+                               (copy-block ,block-length-expr temp-block 0 iv 0)
                                (incf offset ,block-length-expr)
                                (incf out-start ,block-length-expr))
                       (let ((n-bytes-processed (- offset in-start)))
@@ -349,11 +341,12 @@
                     (encrypted-iv (make-array ,block-length-expr :element-type '(unsigned-byte 8))))
                 (declare (type function function))
                 (declare (type (simple-octet-vector ,block-length-expr) iv encrypted-iv))
+                (declare (inline copy-block))
                 (values
                   (mode-lambda
                    (loop for i of-type index from in-start below in-end
                          for j of-type index from out-start
-                         do (replace encrypted-iv iv :end1 ,block-length-expr :end2 ,block-length-expr)
+                         do (copy-block ,block-length-expr iv 0 encrypted-iv 0)
                             (funcall function cipher encrypted-iv 0 encrypted-iv 0)
                             (let ((b (logxor (aref in i) (aref encrypted-iv 0))))
                               (setf (aref out j) b)
@@ -366,7 +359,7 @@
                   (mode-lambda
                    (loop for i of-type index from in-start below in-end
                          for j of-type index from out-start
-                         do (replace encrypted-iv iv :end1 ,block-length-expr :end2 ,block-length-expr)
+                         do (copy-block ,block-length-expr iv 0 encrypted-iv 0)
                             (funcall function cipher encrypted-iv 0 encrypted-iv 0)
                             (replace iv iv :start1 0 :start2 1
                                      :end1 (1- ,block-length-expr) :end2 ,block-length-expr)
