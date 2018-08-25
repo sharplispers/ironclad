@@ -84,6 +84,21 @@
                  carry (+ (ash carry -8) (ash sum -8)))
         until (zerop carry)))
 
+(declaim (inline increment-counter-block-1))
+(defun increment-counter-block-1 (size block)
+  (declare (type index size)
+           (type simple-octet-vector block)
+           (optimize (speed 3) (space 0) (debug 0) (safety 0)))
+  #+(and sbcl (or x86 x86-64))
+  (inc-counter-block size block)
+  #-(and sbcl (or x86 x86-64))
+  (loop with sum of-type (unsigned-byte 16) = 1
+        for i of-type fixnum from (1- size) downto 0
+        do (setf sum (+ (aref block i) sum)
+                 (aref block i) (logand sum #xff)
+                 sum (ash sum -8))
+        until (zerop sum)))
+
 (defun decrement-counter-block (block n)
   (declare (type simple-octet-vector block)
            (type (mod #.most-positive-fixnum) n)
@@ -435,7 +450,7 @@
                                        (type index remaining offset))
 
                               ;; Use remaining bytes in encrypted-iv
-                              (loop until (or (zerop remaining) (zerop iv-position))
+                              (loop until (or (zerop iv-position) (zerop remaining))
                                     do (setf (aref out out-start)
                                              (logxor (aref in offset)
                                                      (aref encrypted-iv iv-position)))
@@ -447,25 +462,22 @@
                                        (decf remaining))
 
                               ;; Process data by block
-                              (loop until (< remaining ,block-length-expr)
-                                    do (funcall function cipher iv 0 encrypted-iv 0)
-                                       (increment-counter-block iv 1)
-                                       (incf keystream-blocks)
-                                       (xor-block ,block-length-expr
-                                                  encrypted-iv
-                                                  in
-                                                  offset
-                                                  out
-                                                  out-start)
-                                       (incf offset ,block-length-expr)
-                                       (incf out-start ,block-length-expr)
-                                       (decf remaining ,block-length-expr))
+                              (multiple-value-bind (q r)
+                                  (truncate remaining ,block-length-expr)
+                                (dotimes (i q)
+                                  (funcall function cipher iv 0 encrypted-iv 0)
+                                  (increment-counter-block-1 ,block-length-expr iv)
+                                  (xor-block ,block-length-expr encrypted-iv in offset out out-start)
+                                  (incf offset ,block-length-expr)
+                                  (incf out-start ,block-length-expr))
+                                (incf keystream-blocks q)
+                                (setf remaining r))
 
                               ;; Process remaing bytes of data
                               (loop until (zerop remaining)
                                     do (when (zerop iv-position)
                                          (funcall function cipher iv 0 encrypted-iv 0)
-                                         (increment-counter-block iv 1)
+                                         (increment-counter-block-1 ,block-length-expr iv)
                                          (incf keystream-blocks))
                                        (setf (aref out out-start)
                                              (logxor (aref in offset)

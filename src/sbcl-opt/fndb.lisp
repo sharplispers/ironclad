@@ -145,4 +145,11 @@
   (values)
   (any)
   :overwrite-fndb-silently t)
+
+(defknown ironclad::inc-counter-block
+  ((integer 0 #.most-positive-fixnum)
+   (simple-array (unsigned-byte 8) (*)))
+  (values)
+  (any)
+  :overwrite-fndb-silently t)
 );#+sbcl

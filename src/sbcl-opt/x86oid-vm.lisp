@@ -1043,4 +1043,31 @@
                                 other-pointer-lowtag))))
        (inst movdqu x0 (buffer-mem in start-in))
        (inst movdqu (buffer-mem out start-out) x0))))
+
+(define-vop (inc-counter-block)
+  (:translate ironclad::inc-counter-block)
+  (:policy :fast-safe)
+  (:args (size :scs (unsigned-reg) :target idx)
+         (counter :scs (descriptor-reg)))
+  (:arg-types positive-fixnum
+              simple-array-unsigned-byte-8)
+  (:temporary (:sc unsigned-reg) idx)
+  (:generator 1000
+     (flet ((buffer-mem (base offset)
+              (make-ea :byte
+                       :base base
+                       :index offset
+                       :disp (- (* n-word-bytes vector-data-offset)
+                                other-pointer-lowtag
+                                1))))
+       (let ((start (gen-label))
+             (end (gen-label)))
+         (move idx size)
+         (inst stc)
+         (emit-label start)
+         (inst adc (buffer-mem counter idx) 0)
+         (inst jmp :nc end)
+         (inst dec idx)
+         (inst jmp :nz start)
+         (emit-label end)))))
 )                        ; PROGN
