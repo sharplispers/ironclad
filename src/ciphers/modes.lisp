@@ -407,16 +407,48 @@
                   (flet ((ofb-crypt-function (function)
                            (declare (type function function))
                            (mode-lambda
-                            (loop for i of-type index from in-start below in-end
-                                  for j of-type index from out-start
-                                  do (when (zerop iv-position)
-                                       (funcall function cipher iv 0 iv 0))
-                                     (setf (aref out j) (logxor (aref in i)
-                                                                (aref iv iv-position)))
-                                     (setf iv-position (mod (1+ iv-position) ,block-length-expr))
-                                  finally (return
-                                            (let ((n-bytes-processed (- in-end in-start)))
-                                              (values n-bytes-processed n-bytes-processed)))))))
+                            (let ((remaining (- in-end in-start))
+                                  (offset in-start))
+                              (declare (type index remaining offset))
+
+                              ;; Use remaining bytes in iv
+                              (loop until (or (zerop iv-position) (zerop remaining))
+                                    do (setf (aref out out-start)
+                                             (logxor (aref in offset)
+                                                     (aref iv iv-position)))
+                                       (if (= iv-position (1- ,block-length-expr))
+                                           (setf iv-position 0)
+                                           (incf iv-position))
+                                       (incf offset)
+                                       (incf out-start)
+                                       (decf remaining))
+
+                              ;; Process data by block
+                              (multiple-value-bind (q r)
+                                  (truncate remaining ,block-length-expr)
+                                (dotimes (i q)
+                                  (funcall function cipher iv 0 iv 0)
+                                  (xor-block ,block-length-expr iv in offset out out-start)
+                                  (incf offset ,block-length-expr)
+                                  (incf out-start ,block-length-expr))
+                                (setf remaining r))
+
+                              ;; Process remaing bytes of data
+                              (loop until (zerop remaining)
+                                    do (when (zerop iv-position)
+                                         (funcall function cipher iv 0 iv 0))
+                                       (setf (aref out out-start)
+                                             (logxor (aref in offset)
+                                                     (aref iv iv-position)))
+                                       (if (= iv-position (1- ,block-length-expr))
+                                           (setf iv-position 0)
+                                           (incf iv-position))
+                                       (incf offset)
+                                       (incf out-start)
+                                       (decf remaining))
+
+                              (let ((processed (- offset in-start)))
+                                (values processed processed))))))
                     (let ((f (ofb-crypt-function (encrypt-function cipher))))
                       (values f f))))))
            (message-length (cipher-specializer block-length-expr)

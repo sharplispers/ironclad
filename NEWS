@@ -16,7 +16,7 @@ Some optimizations for CMAC and Poly1305.
 Added the GCM (Galois counter mode) and ETM (Encrypt then MAC) authenticated
 encryption schemes.
 
-Some optimizations for CBC and CTR modes.
+Some optimizations for CBC, CTR and OFB modes.
 
 * Version 0.42, released 2018-08-09
 
