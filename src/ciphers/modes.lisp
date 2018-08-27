@@ -472,13 +472,13 @@
                               (declare (type index remaining offset))
 
                               ;; Use remaining bytes in iv
-                              (loop until (or (zerop iv-position) (zerop remaining))
-                                    do (setf (aref out out-start)
-                                             (logxor (aref in offset) (aref iv iv-position)))
-                                       (setf iv-position (mod (1+ iv-position) ,block-length-expr))
-                                       (incf offset)
-                                       (incf out-start)
-                                       (decf remaining))
+                              (loop until (or (zerop iv-position) (zerop remaining)) do
+                                (setf (aref out out-start)
+                                      (logxor (aref in offset) (aref iv iv-position)))
+                                (setf iv-position (mod (1+ iv-position) ,block-length-expr))
+                                (incf offset)
+                                (incf out-start)
+                                (decf remaining))
 
                               ;; Process data by block
                               (multiple-value-bind (q r)
@@ -491,15 +491,15 @@
                                 (setf remaining r))
 
                               ;; Process remaing bytes of data
-                              (loop until (zerop remaining)
-                                    do (when (zerop iv-position)
-                                         (funcall function cipher iv 0 iv 0))
-                                       (setf (aref out out-start)
-                                             (logxor (aref in offset) (aref iv iv-position)))
-                                       (setf iv-position (mod (1+ iv-position) ,block-length-expr))
-                                       (incf offset)
-                                       (incf out-start)
-                                       (decf remaining))
+                              (loop until (zerop remaining) do
+                                (when (zerop iv-position)
+                                  (funcall function cipher iv 0 iv 0))
+                                (setf (aref out out-start)
+                                      (logxor (aref in offset) (aref iv iv-position)))
+                                (setf iv-position (mod (1+ iv-position) ,block-length-expr))
+                                (incf offset)
+                                (incf out-start)
+                                (decf remaining))
 
                               (let ((processed (- offset in-start)))
                                 (values processed processed))))))
@@ -536,16 +536,13 @@
                                        (type index remaining offset))
 
                               ;; Use remaining bytes in encrypted-iv
-                              (loop until (or (zerop iv-position) (zerop remaining))
-                                    do (setf (aref out out-start)
-                                             (logxor (aref in offset)
-                                                     (aref encrypted-iv iv-position)))
-                                       (if (= iv-position (1- ,block-length-expr))
-                                           (setf iv-position 0)
-                                           (incf iv-position))
-                                       (incf offset)
-                                       (incf out-start)
-                                       (decf remaining))
+                              (loop until (or (zerop iv-position) (zerop remaining)) do
+                                (setf (aref out out-start)
+                                      (logxor (aref in offset) (aref encrypted-iv iv-position)))
+                                (setf iv-position (mod (1+ iv-position) ,block-length-expr))
+                                (incf offset)
+                                (incf out-start)
+                                (decf remaining))
 
                               ;; Process data by block
                               (multiple-value-bind (q r)
@@ -560,20 +557,17 @@
                                 (setf remaining r))
 
                               ;; Process remaing bytes of data
-                              (loop until (zerop remaining)
-                                    do (when (zerop iv-position)
-                                         (funcall function cipher iv 0 encrypted-iv 0)
-                                         (increment-counter-block-1 ,block-length-expr iv)
-                                         (incf keystream-blocks))
-                                       (setf (aref out out-start)
-                                             (logxor (aref in offset)
-                                                     (aref encrypted-iv iv-position)))
-                                       (if (= iv-position (1- ,block-length-expr))
-                                           (setf iv-position 0)
-                                           (incf iv-position))
-                                       (incf offset)
-                                       (incf out-start)
-                                       (decf remaining))
+                              (loop until (zerop remaining) do
+                                (when (zerop iv-position)
+                                  (funcall function cipher iv 0 encrypted-iv 0)
+                                  (increment-counter-block-1 ,block-length-expr iv)
+                                  (incf keystream-blocks))
+                                (setf (aref out out-start)
+                                      (logxor (aref in offset) (aref encrypted-iv iv-position)))
+                                (setf iv-position (mod (1+ iv-position) ,block-length-expr))
+                                (incf offset)
+                                (incf out-start)
+                                (decf remaining))
 
                               (setf (iv-position mode) iv-position)
                               (setf (keystream-blocks mode) keystream-blocks)
