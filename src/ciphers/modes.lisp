@@ -354,9 +354,13 @@
                       (let ((processed (- offset in-start)))
                         (values processed processed))))
                    (mode-lambda
-                    (let ((remaining (- in-end in-start))
+                    (let ((temp-block (make-array ,block-length-expr
+                                                  :element-type '(unsigned-byte 8)))
+                          (remaining (- in-end in-start))
                           (offset in-start))
-                      (declare (type index remaining offset))
+                      (declare (type (simple-octet-vector ,block-length-expr) temp-block)
+                               (dynamic-extent temp-block)
+                               (type index remaining offset))
 
                       ;; Use remaining bytes in iv
                       (loop until (or (zerop iv-position) (zerop remaining)) do
@@ -373,9 +377,9 @@
                       (multiple-value-bind (q r)
                           (truncate remaining ,block-length-expr)
                         (dotimes (i q)
-                          (funcall function cipher iv 0 iv 0)
-                          (xor-block ,block-length-expr iv in offset out out-start)
+                          (funcall function cipher iv 0 temp-block 0)
                           (copy-block ,block-length-expr in offset iv 0)
+                          (xor-block ,block-length-expr temp-block in offset out out-start)
                           (incf offset ,block-length-expr)
                           (incf out-start ,block-length-expr))
                         (setf remaining r))
