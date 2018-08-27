@@ -311,30 +311,90 @@
                   (declare (type (simple-octet-vector ,block-length-expr) iv))
                   (declare (type (integer 0 (,block-length-expr)) iv-position))
                   (values
-                    (mode-lambda
-                     (loop for i of-type index from in-start below in-end
-                           for j of-type index from out-start
-                           do (when (zerop iv-position)
-                                (funcall function cipher iv 0 iv 0))
-                              (let ((b (logxor (aref in i) (aref iv iv-position))))
-                                (setf (aref out j) b)
-                                (setf (aref iv iv-position) b)
-                                (setf iv-position (mod (1+ iv-position) ,block-length-expr)))
-                           finally (return
-                                     (let ((n-bytes-processed (- in-end in-start)))
-                                       (values n-bytes-processed n-bytes-processed)))))
-                    (mode-lambda
-                     (loop for i of-type index from in-start below in-end
-                           for j of-type index from out-start
-                           do (when (zerop iv-position)
-                                (funcall function cipher iv 0 iv 0))
-                              (let ((b (logxor (aref in i) (aref iv iv-position))))
-                                (setf (aref iv iv-position) (aref in i))
-                                (setf (aref out j) b)
-                                (setf iv-position (mod (1+ iv-position) ,block-length-expr)))
-                           finally (return
-                                     (let ((n-bytes-processed (- in-end in-start)))
-                                       (values n-bytes-processed n-bytes-processed)))))))))
+                   (mode-lambda
+                    (let ((remaining (- in-end in-start))
+                          (offset in-start))
+                      (declare (type index remaining offset))
+
+                      ;; Use remaining bytes in iv
+                      (loop until (or (zerop iv-position) (zerop remaining)) do
+                        (let ((b (logxor (aref in offset) (aref iv iv-position))))
+                          (declare (type (unsigned-byte 8) b))
+                          (setf (aref out out-start) b
+                                (aref iv iv-position) b
+                                iv-position (mod (1+ iv-position) ,block-length-expr))
+                          (incf offset)
+                          (incf out-start)
+                          (decf remaining)))
+
+                      ;; Process data by block
+                      (multiple-value-bind (q r)
+                          (truncate remaining ,block-length-expr)
+                        (dotimes (i q)
+                          (funcall function cipher iv 0 iv 0)
+                          (xor-block ,block-length-expr iv in offset iv 0)
+                          (copy-block ,block-length-expr iv 0 out out-start)
+                          (incf offset ,block-length-expr)
+                          (incf out-start ,block-length-expr))
+                        (setf remaining r))
+
+                      ;; Process remaing bytes of data
+                      (loop until (zerop remaining) do
+                        (when (zerop iv-position)
+                          (funcall function cipher iv 0 iv 0))
+                        (let ((b (logxor (aref in offset) (aref iv iv-position))))
+                          (declare (type (unsigned-byte 8) b))
+                          (setf (aref out out-start) b
+                                (aref iv iv-position) b
+                                iv-position (mod (1+ iv-position) ,block-length-expr))
+                          (incf offset)
+                          (incf out-start)
+                          (decf remaining)))
+
+                      (let ((processed (- offset in-start)))
+                        (values processed processed))))
+                   (mode-lambda
+                    (let ((remaining (- in-end in-start))
+                          (offset in-start))
+                      (declare (type index remaining offset))
+
+                      ;; Use remaining bytes in iv
+                      (loop until (or (zerop iv-position) (zerop remaining)) do
+                        (let ((b (aref in offset)))
+                          (declare (type (unsigned-byte 8) b))
+                          (setf (aref out out-start) (logxor b (aref iv iv-position))
+                                (aref iv iv-position) b
+                                iv-position (mod (1+ iv-position) ,block-length-expr))
+                          (incf offset)
+                          (incf out-start)
+                          (decf remaining)))
+
+                      ;; Process data by block
+                      (multiple-value-bind (q r)
+                          (truncate remaining ,block-length-expr)
+                        (dotimes (i q)
+                          (funcall function cipher iv 0 iv 0)
+                          (xor-block ,block-length-expr iv in offset out out-start)
+                          (copy-block ,block-length-expr in offset iv 0)
+                          (incf offset ,block-length-expr)
+                          (incf out-start ,block-length-expr))
+                        (setf remaining r))
+
+                      ;; Process remaing bytes of data
+                      (loop until (zerop remaining) do
+                        (when (zerop iv-position)
+                          (funcall function cipher iv 0 iv 0))
+                        (let ((b (aref in offset)))
+                          (declare (type (unsigned-byte 8) b))
+                          (setf (aref out out-start) (logxor b (aref iv iv-position))
+                                (aref iv iv-position) b
+                                iv-position (mod (1+ iv-position) ,block-length-expr))
+                          (incf offset)
+                          (incf out-start)
+                          (decf remaining)))
+
+                      (let ((processed (- offset in-start)))
+                        (values processed processed))))))))
            (message-length (cipher-specializer block-length-expr)
              (declare (ignore block-length-expr))
              `(defmethod encrypted-message-length ((cipher ,cipher-specializer)
@@ -414,11 +474,8 @@
                               ;; Use remaining bytes in iv
                               (loop until (or (zerop iv-position) (zerop remaining))
                                     do (setf (aref out out-start)
-                                             (logxor (aref in offset)
-                                                     (aref iv iv-position)))
-                                       (if (= iv-position (1- ,block-length-expr))
-                                           (setf iv-position 0)
-                                           (incf iv-position))
+                                             (logxor (aref in offset) (aref iv iv-position)))
+                                       (setf iv-position (mod (1+ iv-position) ,block-length-expr))
                                        (incf offset)
                                        (incf out-start)
                                        (decf remaining))
@@ -438,11 +495,8 @@
                                     do (when (zerop iv-position)
                                          (funcall function cipher iv 0 iv 0))
                                        (setf (aref out out-start)
-                                             (logxor (aref in offset)
-                                                     (aref iv iv-position)))
-                                       (if (= iv-position (1- ,block-length-expr))
-                                           (setf iv-position 0)
-                                           (incf iv-position))
+                                             (logxor (aref in offset) (aref iv iv-position)))
+                                       (setf iv-position (mod (1+ iv-position) ,block-length-expr))
                                        (incf offset)
                                        (incf out-start)
                                        (decf remaining))
