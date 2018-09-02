@@ -176,8 +176,35 @@
         (error "decryption failed for ~A on key ~A, input ~A, output ~A"
                cipher-name key output input)))))
 
+(defun mode-padding-test (mode cipher-name padding key iv input output)
+  (let ((cipher (crypto:make-cipher cipher-name
+                                    :key key
+                                    :mode mode
+                                    :initialization-vector iv
+                                    :padding padding))
+        (buffer1 (make-array (length input) :element-type '(unsigned-byte 8)))
+        (buffer2 (make-array (length output) :element-type '(unsigned-byte 8))))
+    (crypto:encrypt cipher input buffer2 :handle-final-block t)
+    (when (mismatch buffer2 output)
+      (error "encryption failed for ~A on key ~A, input ~A, output ~A"
+             cipher-name key input output))
+    (reinitialize-instance cipher
+                           :key key
+                           :mode mode
+                           :initialization-vector iv
+                           :padding padding)
+    (crypto:decrypt cipher output buffer1 :handle-final-block t)
+    (when (mismatch buffer1 input)
+      (error "decryption failed for ~A on key ~A, input ~A, output ~A"
+             cipher-name key output input))))
+
 (defparameter *mode-tests*
-  (list (cons :mode-test 'mode-test)))
+  (list (cons :mode-test 'mode-test)
+        (cons :mode-padding-test 'ignore-test)))
+
+(defparameter *mode-padding-tests*
+  (list (cons :mode-test 'ignore-test)
+        (cons :mode-padding-test 'mode-padding-test)))
 
 
 ;;; digest testing routines

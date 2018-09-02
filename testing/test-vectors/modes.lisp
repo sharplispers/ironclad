@@ -7,6 +7,10 @@
   (run-test-vector-file :cbc *mode-tests*)
   t)
 
+(rtest:deftest :modes.cbc.padding
+  (run-test-vector-file :cbc *mode-padding-tests*)
+  t)
+
 (rtest:deftest :modes.cfb
   (run-test-vector-file :cfb *mode-tests*)
   t)
