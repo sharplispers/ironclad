@@ -153,7 +153,7 @@
           (declare (type (integer 0 64) size))
           (replace remaining-keystream keystream-buffer
                    :end1 size :start2 (- 64 keystream-buffer-remaining))
-          (xor-block size remaining-keystream plaintext plaintext-start
+          (xor-block size remaining-keystream 0 plaintext plaintext-start
                      ciphertext ciphertext-start)
           (decf keystream-buffer-remaining size)
           (decf length size)
@@ -166,11 +166,11 @@
                              (mod32+ (aref state 12) 1)))
             (setf (aref state 13) (mod32+ (aref state 13) 1)))
           (when (<= length 64)
-            (xor-block length keystream-buffer plaintext plaintext-start
+            (xor-block length keystream-buffer 0 plaintext plaintext-start
                        ciphertext ciphertext-start)
             (setf (chacha-keystream-buffer-remaining context) (- 64 length))
             (return-from chacha-crypt (values)))
-          (xor-block 64 keystream-buffer plaintext plaintext-start
+          (xor-block 64 keystream-buffer 0 plaintext plaintext-start
                      ciphertext ciphertext-start)
           (decf length 64)
           (incf ciphertext-start 64)

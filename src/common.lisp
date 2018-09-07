@@ -535,44 +535,39 @@ behavior."
         do (setf (aref block i) (ub64ref/be buffer j)))
   (values))
 
-(defun xor-block (block-length input-block1 input-block2 input-block2-start output-block output-block-start)
+(defun xor-block (block-length input-block1 input-block1-start input-block2 input-block2-start output-block output-block-start)
   (declare (type (simple-array (unsigned-byte 8) (*)) input-block1 input-block2 output-block)
-           (type index block-length input-block2-start output-block-start)
+           (type index block-length input-block1-start input-block2-start output-block-start)
            #.(burn-baby-burn))
-  (let ((input-block1-start 0))
-    (declare (type index input-block1-start))
-    (macrolet ((xor-bytes (size xor-form)
-                 `(loop until (< block-length ,size) do
-                    ,xor-form
-                    (incf output-block-start ,size)
-                    (incf input-block1-start ,size)
-                    (incf input-block2-start ,size)
-                    (decf block-length ,size))))
-      #+(and sbcl x86-64)
-      (xor-bytes 16 (xor128 input-block1 input-block1-start
-                            input-block2 input-block2-start
-                            output-block output-block-start))
-      #+(and sbcl x86-64)
-      (xor-bytes 8 (setf (ub64ref/le output-block output-block-start)
-                         (logxor (ub64ref/le input-block1 input-block1-start)
-                                 (ub64ref/le input-block2 input-block2-start))))
-      #+(and sbcl (or x86 x86-64))
-      (xor-bytes 4 (setf (ub32ref/le output-block output-block-start)
-                         (logxor (ub32ref/le input-block1 input-block1-start)
-                                 (ub32ref/le input-block2 input-block2-start))))
-      (xor-bytes 1 (setf (aref output-block output-block-start)
-                         (logxor (aref input-block1 input-block1-start)
-                                 (aref input-block2 input-block2-start)))))))
+  (macrolet ((xor-bytes (size xor-form)
+               `(loop until (< block-length ,size) do
+                  ,xor-form
+                  (incf output-block-start ,size)
+                  (incf input-block1-start ,size)
+                  (incf input-block2-start ,size)
+                  (decf block-length ,size))))
+    #+(and sbcl x86-64)
+    (xor-bytes 16 (xor128 input-block1 input-block1-start
+                          input-block2 input-block2-start
+                          output-block output-block-start))
+    #+(and sbcl x86-64)
+    (xor-bytes 8 (setf (ub64ref/le output-block output-block-start)
+                       (logxor (ub64ref/le input-block1 input-block1-start)
+                               (ub64ref/le input-block2 input-block2-start))))
+    #+(and sbcl (or x86 x86-64))
+    (xor-bytes 4 (setf (ub32ref/le output-block output-block-start)
+                       (logxor (ub32ref/le input-block1 input-block1-start)
+                               (ub32ref/le input-block2 input-block2-start))))
+    (xor-bytes 1 (setf (aref output-block output-block-start)
+                       (logxor (aref input-block1 input-block1-start)
+                               (aref input-block2 input-block2-start))))))
 
-(define-compiler-macro xor-block (&whole form &environment env
-                                         block-length input-block1
-                                         input-block2 input-block2-start
-                                         output-block output-block-start)
+(define-compiler-macro xor-block (&whole form &environment env block-length input-block1 input-block1-start input-block2 input-block2-start output-block output-block-start)
   (cond
     #+(and sbcl x86-64)
     ((and (constantp block-length env)
           (= block-length 16))
-     `(xor128 ,input-block1 0
+     `(xor128 ,input-block1 ,input-block1-start
               ,input-block2 ,input-block2-start
               ,output-block ,output-block-start))
     #+(and sbcl x86-64)
@@ -580,20 +575,20 @@ behavior."
           (zerop (mod block-length 16)))
      (let ((i (gensym)))
        `(loop for ,i from 0 below ,block-length by 16 do
-          (xor128 ,input-block1 ,i
+          (xor128 ,input-block1 (+ ,input-block1-start ,i)
                   ,input-block2 (+ ,input-block2-start ,i)
                   ,output-block (+ ,output-block-start ,i)))))
     #+(and sbcl x86-64)
     ((and (constantp block-length env)
           (= block-length 8))
      `(setf (ub64ref/le ,output-block ,output-block-start)
-            (logxor (ub64ref/le ,input-block1 0)
+            (logxor (ub64ref/le ,input-block1 ,input-block1-start)
                     (ub64ref/le ,input-block2 ,input-block2-start))))
     #+(and sbcl (or x86 x86-64))
     ((and (constantp block-length env)
           (= block-length 4))
      `(setf (ub32ref/le ,output-block ,output-block-start)
-            (logxor (ub32ref/le ,input-block1 0)
+            (logxor (ub32ref/le ,input-block1 ,input-block1-start)
                     (ub32ref/le ,input-block2 ,input-block2-start))))
     #+(and sbcl x86)
     ((and (constantp block-length env)
@@ -601,7 +596,7 @@ behavior."
      (let ((i (gensym)))
        `(loop for ,i from 0 below ,block-length by 4 do
           (setf (ub32ref/le ,output-block (+ ,output-block-start ,i))
-                (logxor (ub32ref/le ,input-block1 ,i)
+                (logxor (ub32ref/le ,input-block1 (+ ,input-block1-start ,i))
                         (ub32ref/le ,input-block2 (+ ,input-block2-start ,i)))))))
     (t
      form)))

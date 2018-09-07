@@ -48,9 +48,9 @@
     (when (> (length key) block-length)
       (setf key (digest-sequence (type-of inner) key)))
     (replace padded-key key)
-    (xor-block block-length padded-key inner-padding 0 inner-padding 0)
+    (xor-block block-length padded-key 0 inner-padding 0 inner-padding 0)
     (update-digest inner inner-padding)
-    (xor-block block-length padded-key outer-padding 0 outer-padding 0)
+    (xor-block block-length padded-key 0 outer-padding 0 outer-padding 0)
     (update-digest outer outer-padding)
     mac))
 

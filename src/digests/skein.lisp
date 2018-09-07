@@ -310,7 +310,7 @@
       (skein-update-cipher block-length cipher-key cipher-tweak value tweak)
       (funcall encryption-function cipher buffer 0 ciphertext 0)
       (skein-update-tweak tweak :first nil)
-      (xor-block block-length ciphertext buffer 0 value 0)
+      (xor-block block-length ciphertext 0 buffer 0 value 0)
       (setf buffer-length 0))
 
     ;; Process data in message
@@ -319,7 +319,7 @@
         (skein-increment-counter tweak block-length)
         (skein-update-cipher block-length cipher-key cipher-tweak value tweak)
         (funcall encryption-function cipher message message-start ciphertext 0)
-        (xor-block block-length ciphertext message message-start value 0)
+        (xor-block block-length ciphertext 0 message message-start value 0)
         (incf message-start block-length)
         (decf message-length block-length)))
 

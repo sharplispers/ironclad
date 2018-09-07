@@ -68,13 +68,13 @@
           (setf (ub32ref/be count-buffer 0) count)
           (update-hmac hmac count-buffer)
           (hmac-digest hmac :buffer hmac-out)
-          (xor-block size hmac-out key key-position key key-position)
+          (xor-block size hmac-out 0 key key-position key key-position)
           (loop for i from 1 below iteration-count
              do
                (reinitialize-instance hmac :key passphrase)
                (update-hmac hmac hmac-out)
                (hmac-digest hmac :buffer hmac-out)
-               (xor-block size hmac-out key key-position key key-position)
+               (xor-block size hmac-out 0 key key-position key key-position)
              finally
                (decf key-length size)
                (incf key-position size)

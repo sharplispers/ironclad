@@ -26,7 +26,7 @@
     (declare (dynamic-extent xs))
     (replace xs b :start2 (* 64 (1- (* 2 r))) :end1 64)
     (dotimes (i (* 2 r))
-      (xor-block 64 xs b (* i 64) xs 0)
+      (xor-block 64 xs 0 b (* i 64) xs 0)
       (scrypt-vector-salsa xs)
       (replace xy xs :start1 (+ xy-start (* i 64)) :end2 64))
     (dotimes (i r)
@@ -46,7 +46,7 @@
       (block-mix x xy xy-start r))
     (dotimes (i N)
       (let ((j (ldb (byte 32 0) (logand (ub64ref/le x (* (1- (* 2 r)) 64)) (1- N)))))
-        (xor-block smix-length x v (* j smix-length) x 0)
+        (xor-block smix-length x 0 v (* j smix-length) x 0)
         (block-mix x xy xy-start r)))
     (replace b x :start1 b-start :end1 (+ b-start smix-length))))
 

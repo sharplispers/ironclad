@@ -76,7 +76,7 @@
       (setf buffer-index 0))
 
     (loop while (> remaining block-length) do
-      (xor-block block-length buffer sequence start buffer 0)
+      (xor-block block-length buffer 0 sequence start buffer 0)
       (funcall encryption-function cipher buffer 0 buffer 0)
       (incf start block-length)
       (decf remaining block-length))
@@ -101,7 +101,7 @@
                (setf (aref x (cmac-buffer-index cmac))
                      (logxor (aref x (cmac-buffer-index cmac)) #x80))
                (cmac-subkey2 cmac)))))
-    (xor-block block-length L x 0 x 0)
+    (xor-block block-length L 0 x 0 x 0)
     (encrypt-in-place (cmac-cipher cmac) x)
     x))
 

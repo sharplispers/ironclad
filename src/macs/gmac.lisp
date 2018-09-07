@@ -193,18 +193,18 @@
     ;; Process the buffer
     (when (= buffer-length 16)
       #+pclmulqdq (gmac-swap-16 buffer)
-      (xor-block 16 accumulator buffer 0 accumulator 0)
+      (xor-block 16 accumulator 0 buffer 0 accumulator 0)
       (gmac-mul accumulator key)
       (incf total-length 16)
       (setf buffer-length 0))
 
     ;; Process the data
     (loop while (> remaining 16) do
-      #-pclmulqdq (xor-block 16 accumulator data start accumulator 0)
+      #-pclmulqdq (xor-block 16 accumulator 0 data start accumulator 0)
       #+pclmulqdq (progn
                     (setf (ub64ref/le buffer 8) (ub64ref/be data start)
                           (ub64ref/le buffer 0) (ub64ref/be data (+ start 8)))
-                    (xor-block 16 accumulator buffer 0 accumulator 0))
+                    (xor-block 16 accumulator 0 buffer 0 accumulator 0))
       (gmac-mul accumulator key)
       (incf total-length 16)
       (incf start 16)
@@ -238,7 +238,7 @@
     (when (plusp buffer-length)
       (fill buffer 0 :start buffer-length)
       #+pclmulqdq (gmac-swap-16 buffer)
-      (xor-block 16 accumulator buffer 0 accumulator 0)
+      (xor-block 16 accumulator 0 buffer 0 accumulator 0)
       (gmac-mul accumulator key)
       (incf total-length buffer-length))
 
@@ -247,12 +247,12 @@
                       (ub64ref/be buffer 8) (mod64* 8 encrypted-data-length))
     #+pclmulqdq (setf (ub64ref/le buffer 0) (mod64* 8 encrypted-data-length)
                       (ub64ref/le buffer 8) (mod64* 8 (- total-length encrypted-data-length)))
-    (xor-block 16 accumulator buffer 0 accumulator 0)
+    (xor-block 16 accumulator 0 buffer 0 accumulator 0)
     (gmac-mul accumulator key)
 
     ;; Produce the tag
     #+pclmulqdq (gmac-swap-16 accumulator)
-    (xor-block 16 accumulator iv 0 accumulator 0)
+    (xor-block 16 accumulator 0 iv 0 accumulator 0)
     accumulator))
 
 (defmac gmac

@@ -650,7 +650,7 @@
           (declare (type (integer 0 80) size))
           (replace remaining-keystream keystream-buffer
                    :end1 size :start2 (- 80 keystream-buffer-remaining))
-          (xor-block size remaining-keystream plaintext plaintext-start ciphertext ciphertext-start)
+          (xor-block size remaining-keystream 0 plaintext plaintext-start ciphertext ciphertext-start)
           (decf keystream-buffer-remaining size)
           (decf length size)
           (incf ciphertext-start size)
@@ -659,10 +659,10 @@
         (loop
           (sosemanuk-compute-block state state-r keystream-buffer)
           (when (<= length 80)
-            (xor-block length keystream-buffer plaintext plaintext-start ciphertext ciphertext-start)
+            (xor-block length keystream-buffer 0 plaintext plaintext-start ciphertext ciphertext-start)
             (setf (sosemanuk-keystream-buffer-remaining context) (- 80 length))
             (return-from sosemanuk-crypt (values)))
-          (xor-block 80 keystream-buffer plaintext plaintext-start ciphertext ciphertext-start)
+          (xor-block 80 keystream-buffer 0 plaintext plaintext-start ciphertext ciphertext-start)
           (decf length 80)
           (incf ciphertext-start 80)
           (incf plaintext-start 80)))
