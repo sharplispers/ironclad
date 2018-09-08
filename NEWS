@@ -11,12 +11,14 @@ Added support for CFB, CFB8 and OFB modes to encrypting/decrypting streams.
 
 Added the GMAC authentication code.
 
-Some optimizations for CMAC and Poly1305.
-
 Added the GCM (Galois counter mode) and ETM (Encrypt then MAC) authenticated
 encryption schemes.
 
+Some optimizations for CMAC and Poly1305.
+
 Some optimizations for CBC, CFB, CTR and OFB modes.
+
+Some optimizations for Skein.
 
 * Version 0.42, released 2018-08-09
 

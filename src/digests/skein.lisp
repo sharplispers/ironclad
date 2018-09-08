@@ -167,22 +167,18 @@
 
 ;;; This function is called a lot by skein-ubi,
 ;;; so we try to optimize it for speed.
+(declaim (inline skein-increment-counter))
 (defun skein-increment-counter (tweak n)
   (declare (type (simple-array (unsigned-byte 64) (2)) tweak)
            (type (unsigned-byte 32) n)
            #.(burn-baby-burn))
-  (let ((x (ldb (byte 32 0) (aref tweak 0)))
-        (y (ldb (byte 32 32) (aref tweak 0)))
-        (z (ldb (byte 32 0) (aref tweak 1))))
-    (declare (type (unsigned-byte 64) x y z))
-    (setf x (mod64+ x n)
-          y (mod64+ y (ldb (byte 32 32) x))
-          z (mod64+ z (ldb (byte 32 32) y)))
-    (setf (ldb (byte 32 0) (aref tweak 0)) (ldb (byte 32 0) x)
-          (ldb (byte 32 32) (aref tweak 0)) (ldb (byte 32 0) y))
-    (setf (ldb (byte 32 0) (aref tweak 1)) (ldb (byte 32 0) z))
+  (let* ((x (mod64+ (aref tweak 0) n))
+         (y (mod32+ (logand (aref tweak 1) #xffffffff) (if (< x n) 1 0))))
+    (declare (type (unsigned-byte 64) x)
+             (type (unsigned-byte 32) y))
+    (setf (aref tweak 0) x
+          (ldb (byte 32 0) (aref tweak 1)) y)
     (values)))
-
 
 (defun skein-update-tweak (tweak &key
                                    (first nil first-p)
@@ -237,6 +233,7 @@
 
 ;;; This function is called a lot by skein-ubi,
 ;;; so we try to optimize it for speed.
+(declaim (inline skein-update-cipher))
 (defun skein-update-cipher (block-length cipher-key cipher-tweak key tweak)
   (declare (type fixnum block-length)
            (type (simple-array (unsigned-byte 64) (*)) cipher-key)
@@ -264,7 +261,7 @@
 
 (defun skein-ubi (state message start end &optional final)
   (declare (type (simple-array (unsigned-byte 8) (*)) message)
-           (type integer start end)
+           (type index start end)
            #.(burn-baby-burn))
   (let* ((cipher (skein-cipher state))
          (encryption-function (encrypt-function cipher))
@@ -277,16 +274,18 @@
          (buffer-length (skein-buffer-length state))
          (message-start start)
          (message-length (- end start))
-         (ciphertext (make-array block-length
+         (ciphertext (make-array 128
                                  :element-type '(unsigned-byte 8)
                                  :initial-element 0))
          (n 0))
     (declare (type (simple-array (unsigned-byte 64) (*)) cipher-key)
              (type (simple-array (unsigned-byte 64) (3)) cipher-tweak)
-             (type (simple-array (unsigned-byte 8) (*)) value buffer ciphertext)
+             (type (simple-array (unsigned-byte 8) (*)) value buffer)
+             (type (simple-array (unsigned-byte 8) (128)) ciphertext)
+             (dynamic-extent ciphertext)
              (type (simple-array (unsigned-byte 64) (2)) tweak)
-             (type fixnum block-length buffer-length n)
-             (type integer message-start message-length))
+             (type (integer 0 128) block-length buffer-length n)
+             (type index message-start message-length))
 
     ;; Try to fill the buffer with the new data
     (setf n (min message-length (- block-length buffer-length)))
