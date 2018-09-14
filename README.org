@@ -57,8 +57,8 @@ usually not safe against side channel attacks.
   :CUSTOM_ID: installation
   :END:
 
-The current version of Ironclad is 0.42. It can be downloaded
-at [[https://github.com/sharplispers/ironclad/archive/v0.42.tar.gz]].
+The current version of Ironclad is 0.43. It can be downloaded
+at [[https://github.com/sharplispers/ironclad/archive/v0.43.tar.gz]].
 If you are feeling adventurous, you can download a bleeding-edge version
 at [[https://github.com/sharplispers/ironclad]].
 
@@ -647,8 +647,8 @@ MACs can be found by calling [[list-all-macs][list-all-macs]]. They are:
  - blake2-mac
  - blake2s-mac
  - cmac
- - hmac
  - gmac
+ - hmac
  - poly1305
  - skein-mac
 
@@ -748,8 +748,9 @@ The length of the digest returned by [[produce-mac][produce-mac]] is determined 
 kind of MAC and the extra arguments passed to [[make-mac][make-mac]]:
  - blake2-mac: from 1 to 64 bytes (64 by default)
  - blake2s-mac: from 1 to 32 bytes (32 by default)
- - hmac: [[digest-length][digest-length]] of the /digest-name/ passed to [[make-mac][make-mac]]
  - cmac: [[block-length][block-length]] of the /cipher-name/ passed to [[make-mac][make-mac]]
+ - gmac: 16 bytes
+ - hmac: [[digest-length][digest-length]] of the /digest-name/ passed to [[make-mac][make-mac]]
  - poly1305: 16 bytes
  - skein-mac: /digest-length/ passed to [[make-mac][make-mac]] (64 by default)
 
@@ -798,7 +799,7 @@ tell you the names of all the supported modes. They are:
 (make-authenticated-encryption-mode :gcm &key tag cipher-name key initialization-vector)
 #+END_EXAMPLE
 
-If /tag/ is specified, it will used at the end of decryption (when the
+If /tag/ is specified, it will be used at the end of decryption (when the
 /handle-final-block/ flag is ~t~) to check the authenticity of the data.
 A ~bad-authentication-tag~ error will be signaled if the data is not authentic.
 If you don't specify it, you will have to call [[produce-tag][produce-tag]] after decryption and
