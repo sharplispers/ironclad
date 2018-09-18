@@ -89,9 +89,9 @@
   (declare (type index size)
            (type simple-octet-vector block)
            (optimize (speed 3) (space 0) (debug 0) (safety 0)))
-  #+(and sbcl (or x86 x86-64))
+  #+(and sbcl (or x86 x86-64) ironclad-assembly)
   (inc-counter-block size block)
-  #-(and sbcl (or x86 x86-64))
+  #-(and sbcl (or x86 x86-64) ironclad-assembly)
   (loop with sum of-type (unsigned-byte 16) = 1
         for i of-type fixnum from (1- size) downto 0
         do (setf sum (+ (aref block i) sum)

@@ -47,9 +47,9 @@
            #.(burn-baby-burn))
   ;; FIXME: There must be a better way to do this
   ;; per-implementation/architecture specialization.
-  #+(and sbcl x86-64)
+  #+(and sbcl x86-64 ironclad-assembly)
   (%update-sha1-block regs block)
-  #-(and sbcl x86-64)
+  #-(and sbcl x86-64 ironclad-assembly)
   (let ((a (sha1-regs-a regs)) (b (sha1-regs-b regs))
         (c (sha1-regs-c regs)) (d (sha1-regs-d regs))
         (e (sha1-regs-e regs)))
@@ -111,6 +111,7 @@
 ;; ugh.
 #+(and ironclad-fast-mod32-arithmetic (not (and sbcl (or x86 x86-64))))
 (declaim (inline expand-block))
+
 (defun expand-block (block)
   "Expand the first 16 words in BLOCK to fill the entire 80 word space
 available."

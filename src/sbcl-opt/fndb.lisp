@@ -2,7 +2,8 @@
 #+sbcl
 (in-package :sb-c)
 
-#+sbcl (progn
+#+(and sbcl ironclad-assembly)
+(progn
 
 (defknown (ironclad::fill-block-ub8-le ironclad::fill-block-ub8-be)
   ((simple-array (unsigned-byte 32) (*))

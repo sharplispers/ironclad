@@ -224,3 +224,6 @@
 
 (dolist (f (ironclad-implementation-features))
   (pushnew f *features*))
+
+;; Enable assembly optimizations
+(pushnew :ironclad-assembly *features*)

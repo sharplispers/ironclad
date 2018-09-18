@@ -2,7 +2,7 @@
 #+ccl
 (in-package :ccl)
 
-#+(and ccl x86-64)
+#+(and ccl x86-64 ironclad-assembly)
 (progn
   (defx86lapfunction mod32+ ((a arg_y) (b arg_z))
     (unbox-fixnum a imm0)

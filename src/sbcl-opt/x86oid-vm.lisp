@@ -1,5 +1,5 @@
 ;;;; -*- mode: lisp; indent-tabs-mode: nil -*-
-#+(and sbcl (or x86 x86-64))
+#+(and sbcl (or x86 x86-64) ironclad-assembly)
 (defpackage :ironclad-vm
   ;; more recent SBCL exports various symbols making this package
   ;; definition more concise. This is the backward-compatible way.
@@ -16,10 +16,10 @@
                 #+x86-64 #:simple-array-unsigned-byte-64
                 #+x86-64 #:rax-offset #+x86-64 #:rcx-offset))
 
-#+(and sbcl (or x86 x86-64))
+#+(and sbcl (or x86 x86-64) ironclad-assembly)
 (in-package :ironclad-vm)
 
-#+(and sbcl x86)
+#+(and sbcl x86 ironclad-assembly)
 (eval-when (:compile-toplevel :load-toplevel :execute)
   (defun ea (displacement &optional base index (scale 1))
     (sb-vm::make-ea :dword
@@ -31,7 +31,7 @@
   (defmacro dword-inst (name &rest operands)
     `(inst ,name ,@operands)))
 
-#+(and sbcl x86-64)
+#+(and sbcl x86-64 ironclad-assembly)
 (eval-when (:compile-toplevel :load-toplevel :execute)
   (if (fboundp 'sb-vm::ea)
       (progn ; Newer SBCL (>= 1.4.11)
@@ -60,7 +60,7 @@
                                         ,operand))
                                  operands))))))
 
-#+(and sbcl (or x86 x86-64))
+#+(and sbcl (or x86 x86-64) ironclad-assembly)
 (progn
 (define-vop (fill-block-ub8)
   (:policy :fast-safe)

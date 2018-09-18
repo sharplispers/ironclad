@@ -72,19 +72,27 @@
 
 (declaim #+ironclad-fast-mod32-arithmetic (inline mod32+)
          (ftype (function ((unsigned-byte 32) (unsigned-byte 32)) (unsigned-byte 32)) mod32+))
+
+#-(or (and ccl x86-64 ironclad-assembly)
+      (and ecl ironclad-assembly))
 (defun mod32+ (a b)
   (declare (type (unsigned-byte 32) a b))
-  #+ecl
+  (ldb (byte 32 0) (+ a b)))
+
+#+(and ccl x86-64 ironclad-assembly)
+(defun mod32+ (a b)
+  (declare (type (unsigned-byte 32) a b))
+  (ccl::mod32+ a b))
+
+#+(and ecl ironclad-assembly)
+(defun mod32+ (a b)
+  (declare (type (unsigned-byte 32) a b))
   (ffi:c-inline (a b)
                 (:uint32-t :uint32-t)
                 :uint32-t
                 "#0 + #1"
                 :one-liner t
-                :side-effects nil)
-  #+(and ccl x86-64)
-  (ccl::mod32+ a b)
-  #-(or ecl (and ccl x86-64))
-  (ldb (byte 32 0) (+ a b)))
+                :side-effects nil))
 
 #+cmu
 (define-compiler-macro mod32+ (a b)
@@ -98,19 +106,26 @@
 (declaim #+ironclad-fast-mod32-arithmetic (inline mod32-)
          (ftype (function ((unsigned-byte 32) (unsigned-byte 32)) (unsigned-byte 32)) mod32-))
 
+#-(or (and ccl x86-64 ironclad-assembly)
+      (and ecl ironclad-assembly))
 (defun mod32- (a b)
   (declare (type (unsigned-byte 32) a b))
-  #+ecl
+  (ldb (byte 32 0) (- a b)))
+
+#+(and ccl x86-64 ironclad-assembly)
+(defun mod32- (a b)
+  (declare (type (unsigned-byte 32) a b))
+  (ccl::mod32- a b))
+
+#+(and ecl ironclad-assembly)
+(defun mod32- (a b)
+  (declare (type (unsigned-byte 32) a b))
   (ffi:c-inline (a b)
                 (:uint32-t :uint32-t)
                 :uint32-t
                 "#0 - #1"
                 :one-liner t
-                :side-effects nil)
-  #+(and ccl x86-64)
-  (ccl::mod32- a b)
-  #-(or ecl (and ccl x86-64))
-  (ldb (byte 32 0) (- a b)))
+                :side-effects nil))
 
 #+cmu
 (define-compiler-macro mod32- (a b)
@@ -124,19 +139,26 @@
 (declaim #+ironclad-fast-mod32-arithmetic (inline mod32*)
          (ftype (function ((unsigned-byte 32) (unsigned-byte 32)) (unsigned-byte 32)) mod32*))
 
+#-(or (and ccl x86-64 ironclad-assembly)
+      (and ecl ironclad-assembly))
 (defun mod32* (a b)
   (declare (type (unsigned-byte 32) a b))
-  #+ecl
+  (ldb (byte 32 0) (* a b)))
+
+#+(and ccl x86-64 ironclad-assembly)
+(defun mod32* (a b)
+  (declare (type (unsigned-byte 32) a b))
+  (ccl::mod32* a b))
+
+#+(and ecl ironclad-assembly)
+(defun mod32* (a b)
+  (declare (type (unsigned-byte 32) a b))
   (ffi:c-inline (a b)
                 (:uint32-t :uint32-t)
                 :uint32-t
                 "#0 * #1"
                 :one-liner t
-                :side-effects nil)
-  #+(and ccl x86-64)
-  (ccl::mod32* a b)
-  #-(or ecl (and ccl x86-64))
-  (ldb (byte 32 0) (* a b)))
+                :side-effects nil))
 
 #+cmu
 (define-compiler-macro mod32* (a b)
@@ -149,20 +171,29 @@
 (declaim #+ironclad-fast-mod32-arithmetic (inline mod32ash)
          (ftype (function ((unsigned-byte 32) (integer -31 31)) (unsigned-byte 32)) mod32ash))
 
+#-(or (and ccl x86-64 ironclad-assembly)
+      (and ecl ironclad-assembly))
 (defun mod32ash (num count)
   (declare (type (unsigned-byte 32) num)
            (type (integer -31 31) count))
-  #+ecl
+  (ldb (byte 32 0) (ash num count)))
+
+#+(and ccl x86-64 ironclad-assembly)
+(defun mod32ash (num count)
+  (declare (type (unsigned-byte 32) num)
+           (type (integer -31 31) count))
+  (ccl::mod32ash num count))
+
+#+(and ecl ironclad-assembly)
+(defun mod32ash (num count)
+  (declare (type (unsigned-byte 32) num)
+           (type (integer -31 31) count))
   (ffi:c-inline (num count)
                 (:uint32-t :int8-t)
                 :uint32-t
                 "(#1 > 0) ? (#0 << #1) : (#0 >> -#1)"
                 :one-liner t
-                :side-effects nil)
-  #+(and ccl x86-64)
-  (ccl::mod32ash num count)
-  #-(or ecl (and ccl x86-64))
-  (ldb (byte 32 0) (ash num count)))
+                :side-effects nil))
 
 #+sbcl
 (define-compiler-macro mod32ash (num count)
@@ -173,19 +204,26 @@
 (declaim #+ironclad-fast-mod32-arithmetic (inline mod32lognot)
          (ftype (function ((unsigned-byte 32)) (unsigned-byte 32)) mod32lognot))
 
+#-(or (and ccl x86-64 ironclad-assembly)
+      (and ecl ironclad-assembly))
 (defun mod32lognot (num)
   (declare (type (unsigned-byte 32) num))
-  #+ecl
+  (ldb (byte 32 0) (lognot num)))
+
+#+(and ccl x86-64 ironclad-assembly)
+(defun mod32lognot (num)
+  (declare (type (unsigned-byte 32) num))
+  (ccl::mod32lognot num))
+
+#+(and ecl ironclad-assembly)
+(defun mod32lognot (num)
+  (declare (type (unsigned-byte 32) num))
   (ffi:c-inline (num)
                 (:uint32-t)
                 :uint32-t
                 "~#0"
                 :one-liner t
-                :side-effects nil)
-  #+(and ccl x86-64)
-  (ccl::mod32lognot num)
-  #-(or ecl (and ccl x86-64))
-  (ldb (byte 32 0) (lognot num)))
+                :side-effects nil))
 
 #+sbcl
 (define-compiler-macro mod32lognot (num)
@@ -194,94 +232,150 @@
 (declaim #+ironclad-fast-mod32-arithmetic (inline rol32 ror32)
          (ftype (function ((unsigned-byte 32) (unsigned-byte 5)) (unsigned-byte 32)) rol32 ror32))
 
+#-(or (and ccl x86-64 ironclad-assembly)
+      cmu
+      (and ecl ironclad-assembly)
+      sbcl)
 (defun rol32 (a s)
-  (declare (type (unsigned-byte 32) a) (type (integer 0 32) s))
-  #+(and ccl x86-64)
-  (ccl::rol32 a s)
-  #+cmu
+  (declare (type (unsigned-byte 32) a)
+           (type (integer 0 32) s))
+  (logior (ldb (byte 32 0) (ash a s)) (ash a (- s 32))))
+
+#+(and ccl x86-64 ironclad-assembly)
+(defun rol32 (a s)
+  (declare (type (unsigned-byte 32) a)
+           (type (integer 0 32) s))
+  (ccl::rol32 a s))
+
+#+cmu
+(defun rol32 (a s)
+  (declare (type (unsigned-byte 32) a)
+           (type (integer 0 32) s))
   (kernel:32bit-logical-or #+little-endian (kernel:shift-towards-end a s)
                            #+big-endian (kernel:shift-towards-start a s)
-                           (ash a (- s 32)))
-  #+ecl
+                           (ash a (- s 32))))
+
+#+(and ecl ironclad-assembly)
+(defun rol32 (a s)
+  (declare (type (unsigned-byte 32) a)
+           (type (integer 0 32) s))
   (ffi:c-inline (a s)
                 (:uint32-t :uint8-t)
                 :uint32-t
                 "(#0 << #1) | (#0 >> (32 - #1))"
                 :one-liner t
-                :side-effects nil)
-  #+sbcl
-  (sb-rotate-byte:rotate-byte s (byte 32 0) a)
-  #-(or (and ccl x86-64) cmu ecl sbcl)
-  (logior (ldb (byte 32 0) (ash a s)) (ash a (- s 32))))
+                :side-effects nil))
 
+#+sbcl
+(defun rol32 (a s)
+  (declare (type (unsigned-byte 32) a)
+           (type (integer 0 32) s))
+  (sb-rotate-byte:rotate-byte s (byte 32 0) a))
+
+#-(or (and ccl x86-64 ironclad-assembly)
+      (and ecl ironclad-assembly)
+      sbcl)
 (defun ror32 (a s)
-  (declare (type (unsigned-byte 32) a) (type (integer 0 32) s))
-  #+(and ccl x86-64)
-  (ccl::ror32 a s)
-  #+ecl
+  (declare (type (unsigned-byte 32) a)
+           (type (integer 0 32) s))
+  (rol32 a (- 32 s)))
+
+#+(and ccl x86-64 ironclad-assembly)
+(defun ror32 (a s)
+  (declare (type (unsigned-byte 32) a)
+           (type (integer 0 32) s))
+  (ccl::ror32 a s))
+
+#+(and ecl ironclad-assembly)
+(defun ror32 (a s)
+  (declare (type (unsigned-byte 32) a)
+           (type (integer 0 32) s))
   (ffi:c-inline (a s)
                 (:uint32-t :uint8-t)
                 :uint32-t
                 "(#0 << (32 - #1)) | (#0 >> #1)"
                 :one-liner t
-                :side-effects nil)
-  #+sbcl
-  (sb-rotate-byte:rotate-byte (- s) (byte 32 0) a)
-  #-(or (and ccl x86-64) ecl sbcl)
-  (rol32 a (- 32 s)))
+                :side-effects nil))
+
+#+sbcl
+(defun ror32 (a s)
+  (declare (type (unsigned-byte 32) a)
+           (type (integer 0 32) s))
+  (sb-rotate-byte:rotate-byte (- s) (byte 32 0) a))
 
 (declaim #+ironclad-fast-mod64-arithmetic (inline mod64+ mod64- mod64*)
          (ftype (function ((unsigned-byte 64) (unsigned-byte 64)) (unsigned-byte 64)) mod64+))
 
+#-(or (and ccl x86-64 ironclad-assembly)
+      (and ecl ironclad-assembly))
 (defun mod64+ (a b)
   (declare (type (unsigned-byte 64) a b))
-  #+ecl
+  (ldb (byte 64 0) (+ a b)))
+
+#+(and ccl x86-64 ironclad-assembly)
+(defun mod64+ (a b)
+  (declare (type (unsigned-byte 64) a b))
+  (ccl::mod64+ a b))
+
+#+(and ecl ironclad-assembly)
+(defun mod64+ (a b)
+  (declare (type (unsigned-byte 64) a b))
   (ffi:c-inline (a b)
                 (:uint64-t :uint64-t)
                 :uint64-t
                 "#0 + #1"
                 :one-liner t
-                :side-effects nil)
-  #+(and ccl ironclad-fast-mod64-arithmetic)
-  (ccl::mod64+ a b)
-  #-(or ecl (and ccl ironclad-fast-mod64-arithmetic))
-  (ldb (byte 64 0) (+ a b)))
+                :side-effects nil))
 
 #+sbcl
 (define-compiler-macro mod64+ (a b)
   `(ldb (byte 64 0) (+ ,a ,b)))
 
+#-(or (and ccl x86-64 ironclad-assembly)
+      (and ecl ironclad-assembly))
 (defun mod64- (a b)
   (declare (type (unsigned-byte 64) a b))
-  #+ecl
+  (ldb (byte 64 0) (- a b)))
+
+#+(and ccl x86-64 ironclad-assembly)
+(defun mod64- (a b)
+  (declare (type (unsigned-byte 64) a b))
+  (ccl::mod64- a b))
+
+#+(and ecl ironclad-assembly)
+(defun mod64- (a b)
+  (declare (type (unsigned-byte 64) a b))
   (ffi:c-inline (a b)
                 (:uint64-t :uint64-t)
                 :uint64-t
                 "#0 - #1"
                 :one-liner t
-                :side-effects nil)
-  #+(and ccl ironclad-fast-mod64-arithmetic)
-  (ccl::mod64- a b)
-  #-(or ecl (and ccl ironclad-fast-mod64-arithmetic))
-  (ldb (byte 64 0) (- a b)))
+                :side-effects nil))
 
 #+sbcl
 (define-compiler-macro mod64- (a b)
   `(ldb (byte 64 0) (- ,a ,b)))
 
+#-(or (and ccl x86-64 ironclad-assembly)
+      (and ecl ironclad-assembly))
 (defun mod64* (a b)
   (declare (type (unsigned-byte 64) a b))
-  #+ecl
+  (ldb (byte 64 0) (* a b)))
+
+#+(and ccl x86-64 ironclad-assembly)
+(defun mod64* (a b)
+  (declare (type (unsigned-byte 64) a b))
+  (ccl::mod64* a b))
+
+#+(and ecl ironclad-assembly)
+(defun mod64* (a b)
+  (declare (type (unsigned-byte 64) a b))
   (ffi:c-inline (a b)
                 (:uint64-t :uint64-t)
                 :uint64-t
                 "#0 * #1"
                 :one-liner t
-                :side-effects nil)
-  #+(and ccl ironclad-fast-mod64-arithmetic)
-  (ccl::mod64* a b)
-  #-(or ecl (and ccl ironclad-fast-mod64-arithmetic))
-  (ldb (byte 64 0) (* a b)))
+                :side-effects nil))
 
 #+sbcl
 (define-compiler-macro mod64* (a b)
@@ -290,20 +384,29 @@
 (declaim #+ironclad-fast-mod64-arithmetic (inline mod64ash)
          (ftype (function ((unsigned-byte 64) (integer -63 63)) (unsigned-byte 64)) mod64ash))
 
+#-(or (and ccl x86-64 ironclad-assembly)
+      (and ecl ironclad-assembly))
 (defun mod64ash (num count)
   (declare (type (unsigned-byte 64) num)
            (type (integer -63 63) count))
-  #+ecl
+  (ldb (byte 64 0) (ash num count)))
+
+#+(and ccl x86-64 ironclad-assembly)
+(defun mod64ash (num count)
+  (declare (type (unsigned-byte 64) num)
+           (type (integer -63 63) count))
+  (ccl::mod64ash num count))
+
+#+(and ecl ironclad-assembly)
+(defun mod64ash (num count)
+  (declare (type (unsigned-byte 64) num)
+           (type (integer -63 63) count))
   (ffi:c-inline (num count)
                 (:uint64-t :int8-t)
                 :uint64-t
                 "(#1 > 0) ? (#0 << #1) : (#0 >> -#1)"
                 :one-liner t
-                :side-effects nil)
-  #+(and ccl ironclad-fast-mod64-arithmetic)
-  (ccl::mod64ash num count)
-  #-(or ecl (and ccl ironclad-fast-mod64-arithmetic))
-  (ldb (byte 64 0) (ash num count)))
+                :side-effects nil))
 
 #+sbcl
 (define-compiler-macro mod64ash (num count)
@@ -314,19 +417,26 @@
 (declaim #+ironclad-fast-mod64-arithmetic (inline mod64lognot)
          (ftype (function ((unsigned-byte 64)) (unsigned-byte 64)) mod64lognot))
 
+#-(or (and ccl x86-64 ironclad-assembly)
+      (and ecl ironclad-assembly))
 (defun mod64lognot (num)
   (declare (type (unsigned-byte 64) num))
-  #+ecl
+  (ldb (byte 64 0) (lognot num)))
+
+#+(and ccl x86-64 ironclad-assembly)
+(defun mod64lognot (num)
+  (declare (type (unsigned-byte 64) num))
+  (ccl::mod64lognot num))
+
+#+(and ecl ironclad-assembly)
+(defun mod64lognot (num)
+  (declare (type (unsigned-byte 64) num))
   (ffi:c-inline (num)
                 (:uint64-t)
                 :uint64-t
                 "~#0"
                 :one-liner t
-                :side-effects nil)
-  #+(and ccl ironclad-fast-mod64-arithmetic)
-  (ccl::mod64lognot num)
-  #-(or ecl (and ccl ironclad-fast-mod64-arithmetic))
-  (ldb (byte 64 0) (lognot num)))
+                :side-effects nil))
 
 #+sbcl
 (define-compiler-macro mod64lognot (num)
@@ -335,41 +445,67 @@
 (declaim #+ironclad-fast-mod64-arithmetic (inline rol64 ror64)
          (ftype (function ((unsigned-byte 64) (unsigned-byte 6)) (unsigned-byte 64)) rol64 ror64))
 
+#-(or (and ccl x86-64 ironclad-assembly)
+      (and ecl ironclad-assembly)
+      sbcl)
 (defun rol64 (a s)
-  (declare (type (unsigned-byte 64) a) (type (integer 0 64) s))
-  #+ecl
+  (declare (type (unsigned-byte 64) a)
+           (type (integer 0 64) s))
+  (logior (ldb (byte 64 0) (ash a s)) (ash a (- s 64))))
+
+#+(and ccl x86-64 ironclad-assembly)
+(defun rol64 (a s)
+  (declare (type (unsigned-byte 64) a)
+           (type (integer 0 64) s))
+  (ccl::rol64 a s))
+
+#+(and ecl ironclad-assembly)
+(defun rol64 (a s)
+  (declare (type (unsigned-byte 64) a)
+           (type (integer 0 64) s))
   (ffi:c-inline (a s)
                 (:uint64-t :uint8-t)
                 :uint64-t
                 "(#0 << #1) | (#0 >> (64 - #1))"
                 :one-liner t
-                :side-effects nil)
-  #+(and sbcl ironclad-fast-mod64-arithmetic)
-  (sb-rotate-byte:rotate-byte s (byte 64 0) a)
-  #+(and ccl ironclad-fast-mod64-arithmetic)
-  (ccl::rol64 a s)
-  #-(or ecl
-        (and sbcl ironclad-fast-mod64-arithmetic)
-        (and ccl ironclad-fast-mod64-arithmetic))
-  (logior (ldb (byte 64 0) (ash a s)) (ash a (- s 64))))
+                :side-effects nil))
 
+#+sbcl
+(defun rol64 (a s)
+  (declare (type (unsigned-byte 64) a)
+           (type (integer 0 64) s))
+  (sb-rotate-byte:rotate-byte s (byte 64 0) a))
+
+#-(or (and ccl x86-64 ironclad-assembly)
+      (and ecl ironclad-assembly)
+      sbcl)
 (defun ror64 (a s)
-  (declare (type (unsigned-byte 64) a) (type (integer 0 64) s))
-  #+ecl
+  (declare (type (unsigned-byte 64) a)
+           (type (integer 0 64) s))
+  (rol64 a (- 64 s)))
+
+#+(and ccl x86-64 ironclad-assembly)
+(defun ror64 (a s)
+  (declare (type (unsigned-byte 64) a)
+           (type (integer 0 64) s))
+  (ccl::ror64 a s))
+
+#+(and ecl ironclad-assembly)
+(defun ror64 (a s)
+  (declare (type (unsigned-byte 64) a)
+           (type (integer 0 64) s))
   (ffi:c-inline (a s)
                 (:uint64-t :uint8-t)
                 :uint64-t
                 "(#0 << (64 - #1)) | (#0 >> #1)"
                 :one-liner t
-                :side-effects nil)
-  #+(and sbcl ironclad-fast-mod64-arithmetic)
-  (sb-rotate-byte:rotate-byte (- s) (byte 64 0) a)
-  #+(and ccl ironclad-fast-mod64-arithmetic)
-  (ccl::ror64 a s)
-  #-(or ecl
-        (and sbcl ironclad-fast-mod64-arithmetic)
-        (and ccl ironclad-fast-mod64-arithmetic))
-  (rol64 a (- 64 s)))
+                :side-effects nil))
+
+#+sbcl
+(defun ror64 (a s)
+  (declare (type (unsigned-byte 64) a)
+           (type (integer 0 64) s))
+  (sb-rotate-byte:rotate-byte (- s) (byte 64 0) a))
 
 
 ;;; 64-bit utilities
@@ -546,7 +682,7 @@ behavior."
                   (incf input-block1-start ,size)
                   (incf input-block2-start ,size)
                   (decf block-length ,size))))
-    #+(and sbcl x86-64)
+    #+(and sbcl x86-64 ironclad-assembly)
     (xor-bytes 16 (xor128 input-block1 input-block1-start
                           input-block2 input-block2-start
                           output-block output-block-start))
@@ -564,13 +700,13 @@ behavior."
 
 (define-compiler-macro xor-block (&whole form &environment env block-length input-block1 input-block1-start input-block2 input-block2-start output-block output-block-start)
   (cond
-    #+(and sbcl x86-64)
+    #+(and sbcl x86-64 ironclad-assembly)
     ((and (constantp block-length env)
           (= block-length 16))
      `(xor128 ,input-block1 ,input-block1-start
               ,input-block2 ,input-block2-start
               ,output-block ,output-block-start))
-    #+(and sbcl x86-64)
+    #+(and sbcl x86-64 ironclad-assembly)
     ((and (constantp block-length env)
           (zerop (mod block-length 16)))
      (let ((i (gensym)))
@@ -611,7 +747,7 @@ behavior."
                       (incf input-block-start ,size)
                       (incf output-block-start ,size)
                       (decf block-length ,size))))
-    #+(and sbcl x86-64)
+    #+(and sbcl x86-64 ironclad-assembly)
     (copy-bytes 16 (mov128 input-block input-block-start
                            output-block output-block-start))
     #+(and sbcl x86-64)
@@ -629,12 +765,12 @@ behavior."
                                           input-block input-block-start
                                           output-block output-block-start)
   (cond
-    #+(and sbcl x86-64)
+    #+(and sbcl x86-64 ironclad-assembly)
     ((and (constantp block-length env)
           (= block-length 16))
      `(mov128  ,input-block ,input-block-start
                ,output-block ,output-block-start))
-    #+(and sbcl x86-64)
+    #+(and sbcl x86-64 ironclad-assembly)
     ((and (constantp block-length env)
           (zerop (mod block-length 16)))
      (let ((i (gensym)))

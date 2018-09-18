@@ -4,7 +4,7 @@
 
 ;;; Check what features are supported by the CPU
 
-#+(and sbcl x86-64)
+#+(and sbcl x86-64 ironclad-assembly)
 (eval-when (:compile-toplevel :load-toplevel :execute)
   (defun aes-ni-support-p ()
     (aes-ni-support-p))

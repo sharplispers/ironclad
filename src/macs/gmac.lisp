@@ -9,11 +9,11 @@
   ((accumulator :accessor gmac-accumulator
                 :initform (make-array 16 :element-type '(unsigned-byte 8))
                 :type (simple-array (unsigned-byte 8) (16)))
-   #-pclmulqdq
+   #-(and sbcl x86-64 pclmulqdq)
    (key :accessor gmac-key
         :initform (make-array '(128 2 2) :element-type '(unsigned-byte 64) :initial-element 0)
         :type (simple-array (unsigned-byte 64) (128 2 2)))
-   #+pclmulqdq
+   #+(and sbcl x86-64 pclmulqdq)
    (key :accessor gmac-key
         :initform (make-array 16 :element-type '(unsigned-byte 8))
         :type (simple-array (unsigned-byte 8) (16)))
@@ -50,7 +50,7 @@
                  :cipher-name cipher-name
                  :initialization-vector initialization-vector))
 
-#-pclmulqdq
+#-(and sbcl x86-64 pclmulqdq)
 (defmethod shared-initialize :after ((mac gmac) slot-names &rest initargs &key key cipher-name initialization-vector &allow-other-keys)
   (declare (ignore slot-names initargs)
            (type (simple-array (unsigned-byte 8) (*)) key))
@@ -101,7 +101,7 @@
           (ub64ref/le data 0) x))
   (values))
 
-#+pclmulqdq
+#+(and sbcl x86-64 pclmulqdq)
 (defmethod shared-initialize :after ((mac gmac) slot-names &rest initargs &key key cipher-name initialization-vector &allow-other-keys)
   (declare (ignore slot-names initargs)
            (type (simple-array (unsigned-byte 8) (*)) key))
@@ -132,7 +132,7 @@
     (gmac-swap-16 hkey)
     mac))
 
-#-pclmulqdq
+#-(and sbcl x86-64 pclmulqdq)
 (defun gmac-mul (accumulator table)
   (declare (type (simple-array (unsigned-byte 8) (16)) accumulator)
            (type (simple-array (unsigned-byte 64) (128 2 2)) table)
@@ -154,7 +154,7 @@
           (ub64ref/be accumulator 8) z1)
     (values)))
 
-#+pclmulqdq
+#+(and sbcl x86-64 pclmulqdq)
 (defun gmac-mul (accumulator key)
   (declare (type (simple-array (unsigned-byte 8) (16)) accumulator key)
            (optimize (speed 3) (space 0) (safety 0) (debug 0)))
@@ -175,8 +175,10 @@
              (type (unsigned-byte 64) total-length)
              (type (integer 0 16) buffer-length)
              (type index remaining))
-    #-pclmulqdq (declare (type (simple-array (unsigned-byte 64) (128 2 2)) key))
-    #+pclmulqdq (declare (type (simple-array (unsigned-byte 8) (16)) key))
+    #-(and sbcl x86-64 pclmulqdq)
+    (declare (type (simple-array (unsigned-byte 64) (128 2 2)) key))
+    #+(and sbcl x86-64 pclmulqdq)
+    (declare (type (simple-array (unsigned-byte 8) (16)) key))
 
     ;; Fill the buffer with new data if necessary
     (when (plusp buffer-length)
@@ -192,7 +194,8 @@
 
     ;; Process the buffer
     (when (= buffer-length 16)
-      #+pclmulqdq (gmac-swap-16 buffer)
+      #+(and sbcl x86-64 pclmulqdq)
+      (gmac-swap-16 buffer)
       (xor-block 16 accumulator 0 buffer 0 accumulator 0)
       (gmac-mul accumulator key)
       (incf total-length 16)
@@ -200,11 +203,13 @@
 
     ;; Process the data
     (loop while (> remaining 16) do
-      #-pclmulqdq (xor-block 16 accumulator 0 data start accumulator 0)
-      #+pclmulqdq (progn
-                    (setf (ub64ref/le buffer 8) (ub64ref/be data start)
-                          (ub64ref/le buffer 0) (ub64ref/be data (+ start 8)))
-                    (xor-block 16 accumulator 0 buffer 0 accumulator 0))
+      #-(and sbcl x86-64 pclmulqdq)
+      (xor-block 16 accumulator 0 data start accumulator 0)
+      #+(and sbcl x86-64 pclmulqdq)
+      (progn
+        (setf (ub64ref/le buffer 8) (ub64ref/be data start)
+              (ub64ref/le buffer 0) (ub64ref/be data (+ start 8)))
+        (xor-block 16 accumulator 0 buffer 0 accumulator 0))
       (gmac-mul accumulator key)
       (incf total-length 16)
       (incf start 16)
@@ -231,27 +236,33 @@
     (declare (type (simple-array (unsigned-byte 8) (16)) accumulator buffer iv)
              (type (unsigned-byte 64) total-length)
              (type (integer 0 16) buffer-length))
-    #-pclmulqdq (declare (type (simple-array (unsigned-byte 64) (128 2 2)) key))
-    #+pclmulqdq (declare (type (simple-array (unsigned-byte 8) (16)) key))
+    #-(and sbcl x86-64 pclmulqdq)
+    (declare (type (simple-array (unsigned-byte 64) (128 2 2)) key))
+    #+(and sbcl x86-64 pclmulqdq)
+    (declare (type (simple-array (unsigned-byte 8) (16)) key))
 
     ;; Process the buffer
     (when (plusp buffer-length)
       (fill buffer 0 :start buffer-length)
-      #+pclmulqdq (gmac-swap-16 buffer)
+      #+(and sbcl x86-64 pclmulqdq)
+      (gmac-swap-16 buffer)
       (xor-block 16 accumulator 0 buffer 0 accumulator 0)
       (gmac-mul accumulator key)
       (incf total-length buffer-length))
 
     ;; Padding
-    #-pclmulqdq (setf (ub64ref/be buffer 0) (mod64* 8 (- total-length encrypted-data-length))
-                      (ub64ref/be buffer 8) (mod64* 8 encrypted-data-length))
-    #+pclmulqdq (setf (ub64ref/le buffer 0) (mod64* 8 encrypted-data-length)
-                      (ub64ref/le buffer 8) (mod64* 8 (- total-length encrypted-data-length)))
+    #-(and sbcl x86-64 pclmulqdq)
+    (setf (ub64ref/be buffer 0) (mod64* 8 (- total-length encrypted-data-length))
+          (ub64ref/be buffer 8) (mod64* 8 encrypted-data-length))
+    #+(and sbcl x86-64 pclmulqdq)
+    (setf (ub64ref/le buffer 0) (mod64* 8 encrypted-data-length)
+          (ub64ref/le buffer 8) (mod64* 8 (- total-length encrypted-data-length)))
     (xor-block 16 accumulator 0 buffer 0 accumulator 0)
     (gmac-mul accumulator key)
 
     ;; Produce the tag
-    #+pclmulqdq (gmac-swap-16 accumulator)
+    #+(and sbcl x86-64 pclmulqdq)
+    (gmac-swap-16 accumulator)
     (xor-block 16 accumulator 0 iv 0 accumulator 0)
     accumulator))
 
