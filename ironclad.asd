@@ -23,7 +23,7 @@
                (:module "doc"
                 :components ((:html-file "ironclad")))
                (:module "src"
-                :components ((:file "common" :depends-on ("ccl-opt" "macro-utils" "package" "sbcl-opt"))
+                :components ((:file "common" :depends-on ("macro-utils" "opt" "package"))
                              (:file "conditions" :depends-on ("package"))
                              (:file "generic" :depends-on ("package"))
                              (:file "macro-utils" :depends-on ("package"))
@@ -32,16 +32,13 @@
                              (:file "octet-stream" :depends-on ("ciphers" "common" "conditions" "digests" "macs" "package"))
                              (:file "package")
                              (:file "util" :depends-on ("conditions" "package"))
-                             (:module "ccl-opt"
-                              :depends-on ("package")
-                              :components ((:file "x86oid-vm")))
                              (:module "aead"
                               :depends-on ("ciphers" "common" "conditions" "generic" "macro-utils" "macs" "package" "util")
                               :components ((:file "aead")
                                            (:file "etm" :depends-on ("aead"))
                                            (:file "gcm" :depends-on ("aead"))))
                              (:module "ciphers"
-                              :depends-on ("common" "conditions" "generic" "macro-utils" "package" "sbcl-opt")
+                              :depends-on ("common" "conditions" "generic" "macro-utils" "opt" "package")
                               :components ((:file "aes" :depends-on ("cipher"))
                                            (:file "arcfour" :depends-on ("cipher"))
                                            (:file "aria" :depends-on ("cipher"))
@@ -74,7 +71,7 @@
                                            (:file "xsalsa20" :depends-on ("cipher" "salsa20"))
                                            (:file "xtea" :depends-on ("cipher"))))
                              (:module "digests"
-                              :depends-on ("ciphers" "common" "conditions" "generic" "macro-utils" "package" "sbcl-opt")
+                              :depends-on ("ciphers" "common" "conditions" "generic" "macro-utils" "opt" "package")
                               :components ((:file "adler32" :depends-on ("digest"))
                                            (:file "blake2" :depends-on ("digest"))
                                            (:file "blake2s" :depends-on ("digest"))
@@ -106,7 +103,7 @@
                                            (:file "pkcs5" :depends-on ("kdf-common"))
                                            (:file "scrypt" :depends-on ("kdf-common" "pkcs5"))))
                              (:module "macs"
-                              :depends-on ("ciphers" "common" "conditions" "digests" "generic" "package" "sbcl-opt")
+                              :depends-on ("ciphers" "common" "conditions" "digests" "generic" "opt" "package")
                               :components ((:file "blake2-mac" :depends-on ("mac"))
                                            (:file "blake2s-mac" :depends-on ("mac"))
                                            (:file "cmac" :depends-on ("mac"))
@@ -115,6 +112,19 @@
                                            (:file "mac")
                                            (:file "poly1305" :depends-on ("mac"))
                                            (:file "skein-mac" :depends-on ("mac"))))
+                             (:module "opt"
+                              :depends-on ("macro-utils" "package")
+                              :components ((:module "ccl"
+                                            :if-feature :ccl
+                                            :components ((:file "x86oid-vm")))
+                                           (:module "ecl"
+                                            :if-feature :ecl
+                                            :components ((:file "c-functions")))
+                                           (:module "sbcl"
+                                            :if-feature :sbcl
+                                            :components ((:file "cpu-features" :depends-on ("fndb" "x86oid-vm"))
+                                                         (:file "fndb")
+                                                         (:file "x86oid-vm" :depends-on ("fndb"))))))
                              (:module "prng"
                               :depends-on ("ciphers" "conditions" "digests" "generic" "package")
                               :components ((:file "fortuna" :depends-on ("prng" "generator"))
@@ -131,12 +141,7 @@
                                            (:file "elgamal" :depends-on ("pkcs1" "public-key"))
                                            (:file "pkcs1" :depends-on ("public-key"))
                                            (:file "public-key")
-                                           (:file "rsa" :depends-on ("pkcs1" "public-key"))))
-                             (:module "sbcl-opt"
-                              :depends-on ("macro-utils" "package")
-                              :components ((:file "cpu-features" :depends-on ("fndb" "x86oid-vm"))
-                                           (:file "fndb")
-                                           (:file "x86oid-vm" :depends-on ("fndb"))))))))
+                                           (:file "rsa" :depends-on ("pkcs1" "public-key"))))))))
 
 (macrolet ((do-silently (&body body)
              `(handler-bind ((style-warning #'muffle-warning)
