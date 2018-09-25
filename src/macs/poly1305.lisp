@@ -73,6 +73,10 @@
          (rr3 (mod32+ (mod32ash r3 -2) r3)))
     (declare (type (unsigned-byte 32) hibit h0 h1 h2 h3 h4 r0 r1 r2 r3 rr0 rr1 rr2 rr3))
     (loop while (>= remaining 16) do
+      #+(and ecl ironclad-assembly)
+      (multiple-value-setq (h0 h1 h2 h3 h4)
+        (poly1305-process-block h0 h1 h2 h3 h4 r0 r1 r2 r3 rr0 rr1 rr2 rr3 hibit data start))
+      #-(and ecl ironclad-assembly)
       (let* ((s0 (mod64+ h0 (ub32ref/le data start)))
              (s1 (mod64+ h1 (ub32ref/le data (+ start 4))))
              (s2 (mod64+ h2 (ub32ref/le data (+ start 8))))
@@ -119,9 +123,9 @@
               h1 (logand u1 #xffffffff)
               h2 (logand u2 #xffffffff)
               h3 (logand u3 #xffffffff)
-              h4 (logand u4 #xffffffff))
-        (incf start 16)
-        (decf remaining 16)))
+              h4 (logand u4 #xffffffff)))
+      (incf start 16)
+      (decf remaining 16))
     (setf (aref accumulator 0) h0
           (aref accumulator 1) h1
           (aref accumulator 2) h2
