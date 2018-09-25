@@ -92,6 +92,12 @@ listed above, please send your platform information so that it can be
 added to the above list. If the tests do not all pass, you have found
 a bug; please report it.
 
+By default, Ironclad uses some implementation dependent low-level code to make
+some functions run much faster (currently, some assembly for SBCL and CCL, some
+C code for ECL). If for some reason you want to disable these optimisations and
+use the generic Lisp code, it can be achieved by commenting out the
+~(pushnew :ironclad-assembly *features*)~ line in the /src/package.lisp/ file.
+
 * License
   :PROPERTIES:
   :CUSTOM_ID: license

@@ -1,5 +1,13 @@
 -*- mode: outline -*-
 
+* Changes since version 0.43
+
+** new features
+
+Some optimizations for Chacha and Salsa for ECL.
+
+Some optimizations for Poly1305 for ECL.
+
 * Version 0.43, released 2018-09-14
 
 ** new features
