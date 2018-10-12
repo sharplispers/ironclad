@@ -679,10 +679,10 @@ must be 64 bytes.
 When making a Blake2s MAC, the length of the /key/ passed to [[make-mac][make-mac]]
 must be 32 bytes.
 
-When making a CMAC, /cipher-name/ must have a [[block-length][block-length]] of either
-8 or 16; this restriction is satisfied by many ciphers in Ironclad
-with the notable exception of stream ciphers. /key/ must be an
-acceptable key for /cipher-name/.
+When making a CMAC, /cipher-name/ must have a [[block-length][block-length]] of either 8, 16, 32,
+64 or 128; this restriction is satisfied by many ciphers in Ironclad with the
+notable exception of stream ciphers. /key/ must be an acceptable key for
+/cipher-name/.
 
 When making a GMAC, /cipher-name/ must have a [[block-length][block-length]] of 16. /key/ must be
 an acceptable key for /cipher-name/. The length of /initialization-vector/ must

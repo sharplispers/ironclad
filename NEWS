@@ -6,6 +6,8 @@
 
 Added the EAX authenticated encryption scheme.
 
+Add support of 256, 512 and 1024 bit block ciphers to CMAC.
+
 Some optimizations for Chacha and Salsa for ECL.
 
 Some optimizations for Poly1305 for ECL.

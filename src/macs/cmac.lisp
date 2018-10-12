@@ -26,11 +26,16 @@
                         (ldb (byte n-bits 0) (ash (octets-to-integer b) 1))
                         :n-bits n-bits)))
                (when (logbitp 7 (aref b 0))
-                 (setf (aref k (1- block-length))
-                       (logxor (ecase block-length
-                                 (16 #x87)
-                                 (8 #x1b))
-                               (aref k (1- block-length)))))
+                 (ecase block-length
+                   (8 (setf (aref k 7) (logxor (aref k 7) #x1b)))
+                   (16 (setf (aref k 15) (logxor (aref k 15) #x87)))
+                   (32 (setf (aref k 30) (logxor (aref k 30) #x4)
+                             (aref k 31) (logxor (aref k 31) #x25)))
+                   (64 (setf (aref k 62) (logxor (aref k 62) #x1)
+                             (aref k 63) (logxor (aref k 63) #x25)))
+                   (128 (setf (aref k 125) (logxor (aref k 125) #x8)
+                              (aref k 126) (logxor (aref k 126) #x0)
+                              (aref k 127) (logxor (aref k 127) #x43)))))
                k)))
       (let ((L.u (gen-subkey L)))
         (make-instance 'cmac
