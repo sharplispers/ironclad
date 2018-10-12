@@ -4,6 +4,8 @@
 
 ** new features
 
+Added the EAX authenticated encryption scheme.
+
 Some optimizations for Chacha and Salsa for ECL.
 
 Some optimizations for Poly1305 for ECL.

@@ -592,7 +592,7 @@
 
 (defun aead-test (mode-name input ad output tag &rest args)
   (let* ((parameters (case mode-name
-                       ((:gcm gcm crypto:gcm)
+                       ((:gcm gcm crypto:gcm :eax eax crypto:eax)
                         (list :cipher-name (car args)
                               :key (cadr args)
                               :initialization-vector (caddr args)))
@@ -612,7 +612,7 @@
               (mismatch (crypto:produce-tag ae) tag))
       (error "encryption failed for ~A, input ~A, output ~A" mode-name input output))
     (setf parameters (case mode-name
-                       ((:gcm gcm crypto:gcm)
+                       ((:gcm gcm crypto:gcm :eax eax crypto:eax)
                         parameters)
                        ((:etm etm crypto:etm)
                         (destructuring-bind (cipher-name ckey mode iv mac-name mkey mparam) args
@@ -632,7 +632,7 @@
 
 (defun aead-test/incremental (mode-name input ad output tag &rest args)
   (let* ((parameters (case mode-name
-                       ((:gcm gcm crypto:gcm)
+                       ((:gcm gcm crypto:gcm :eax eax crypto:eax)
                         (list :cipher-name (car args)
                               :key (cadr args)
                               :initialization-vector (caddr args)))
@@ -660,7 +660,7 @@
               (mismatch (crypto:produce-tag ae) tag))
       (error "encryption failed for ~A, input ~A, output ~A" mode-name input output))
     (setf parameters (case mode-name
-                       ((:gcm gcm crypto:gcm)
+                       ((:gcm gcm crypto:gcm :eax eax crypto:eax)
                         parameters)
                        ((:etm etm crypto:etm)
                         (destructuring-bind (cipher-name ckey mode iv mac-name mkey mparam) args

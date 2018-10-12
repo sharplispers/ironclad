@@ -35,6 +35,7 @@
                              (:module "aead"
                               :depends-on ("ciphers" "common" "conditions" "generic" "macro-utils" "macs" "package" "util")
                               :components ((:file "aead")
+                                           (:file "eax" :depends-on ("aead"))
                                            (:file "etm" :depends-on ("aead"))
                                            (:file "gcm" :depends-on ("aead"))))
                              (:module "ciphers"
@@ -190,6 +191,7 @@
                                            (:file "padding")
                                            ;; aead
                                            (:file "aead")
+                                           (:test-vector-file "eax")
                                            (:test-vector-file "etm")
                                            (:test-vector-file "gcm")
                                            ;; ciphers

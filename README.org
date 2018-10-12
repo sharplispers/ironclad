@@ -793,6 +793,7 @@ and decryption.
 
 /name/ denotes the mode to use. [[list-all-authenticated-encryption-modes][list-all-authenticated-encryption-modes]] will
 tell you the names of all the supported modes. They are:
+ - eax (Encrypt then authenticate then translate)
  - etm (Encrypt then MAC)
  - gcm (Galois counter mode)
 
@@ -801,6 +802,7 @@ tell you the names of all the supported modes. They are:
 /args/ depends on the chosen authenticated encryption mode.
 
 #+BEGIN_EXAMPLE
+(make-authenticated-encryption-mode :eax &key tag cipher-name key initialization-vector)
 (make-authenticated-encryption-mode :etm &key tag cipher mac)
 (make-authenticated-encryption-mode :gcm &key tag cipher-name key initialization-vector)
 #+END_EXAMPLE
@@ -810,6 +812,8 @@ If /tag/ is specified, it will be used at the end of decryption (when the
 A ~bad-authentication-tag~ error will be signaled if the data is not authentic.
 If you don't specify it, you will have to call [[produce-tag][produce-tag]] after decryption and
 check that the tags match (e.g. using [[constant-time-equal][constant-time-equal]]).
+
+When using EAX, /key/ must be a suitable key for the chosen /cipher-name/.
 
 When using ETM, /cipher/ must be a cipher object created by [[make-cipher][make-cipher]].
 /mac/ must be a mac object created by [[make-mac][make-mac]].
