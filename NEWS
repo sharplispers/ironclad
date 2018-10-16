@@ -6,7 +6,9 @@
 
 Added the EAX authenticated encryption scheme.
 
-Add support of 256, 512 and 1024 bit block ciphers to CMAC.
+Added support of 256, 512 and 1024 bit block ciphers to CMAC.
+
+Added the Kalyna128, Kalyna256 and Kalyna512 block ciphers (DSTU 7624:2014)
 
 Some optimizations for Chacha and Salsa for ECL.
 

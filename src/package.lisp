@@ -161,7 +161,8 @@
   (:export #:blowfish #:tea #:xtea #:square #:rc2 #:rc5 #:rc6 #:des #:3des
            #:aes #:twofish #:cast5 #:idea #:misty1 #:xor
            #:threefish256 #:threefish512 #:threefish1024
-           #:serpent #:camellia #:seed #:aria #:kuznyechik)
+           #:serpent #:camellia #:seed #:aria #:kuznyechik
+           #:kalyna128 #:kalyna256 #:kalyna512)
   ;; supported stream ciphers
   (:export #:arcfour
            #:salsa20 #:salsa20/12 #:salsa20/8

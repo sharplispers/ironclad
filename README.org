@@ -132,6 +132,9 @@ the names of all supported ciphers. They are:
  - chacha/8
  - des
  - idea
+ - kalyna128
+ - kalyna256
+ - kalyna512
  - kuznyechik
  - misty1
  - rc2
