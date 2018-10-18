@@ -10,6 +10,8 @@ Added support of 256, 512 and 1024 bit block ciphers to CMAC.
 
 Added the Kalyna128, Kalyna256 and Kalyna512 block ciphers (DSTU 7624:2014)
 
+Added the Kupyna and Kupyna/256 digests (DSTU 7564:2014)
+
 Some optimizations for Chacha and Salsa for ECL.
 
 Some optimizations for Poly1305 for ECL.

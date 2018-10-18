@@ -382,6 +382,8 @@ by calling [[list-all-digests][list-all-digests]]. They are:
  - keccak/224
  - keccak/256
  - keccak/384
+ - kupyna
+ - kupyna/256
  - md2
  - md4
  - md5
