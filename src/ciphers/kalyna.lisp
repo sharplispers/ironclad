@@ -2354,7 +2354,8 @@
        (m 0 2 40 1 -24) (m 1 3 40 2 -24) (m 2 0 40 3 -24) (m 3 1 40 0 -24))
       (8
        (m 0 3 40 2 -24) (m 1 4 40 3 -24) (m 2 5 40 4 -24) (m 3 6 40 5 -24)
-       (m 4 7 40 6 -24) (m 5 0 40 7 -24) (m 6 1 40 0 -24) (m 7 2 40 1 -24)))))
+       (m 4 7 40 6 -24) (m 5 0 40 7 -24) (m 6 1 40 0 -24) (m 7 2 40 1 -24))))
+  (values))
 
 (declaim (inline kalyna-swap-blocks))
 (defun kalyna-swap-blocks (n k)
@@ -2365,7 +2366,8 @@
     (2 (rotatef (aref k 0) (aref k 1)))
     (4 (rotatef (aref k 0) (aref k 1) (aref k 2) (aref k 3)))
     (8 (rotatef (aref k 0) (aref k 1) (aref k 2) (aref k 3)
-                (aref k 4) (aref k 5) (aref k 6) (aref k 7)))))
+                (aref k 4) (aref k 5) (aref k 6) (aref k 7))))
+  (values))
 
 (defmacro kalyna-add-key (n x x-start y k)
   `(dotimes-unrolled (i ,n)
@@ -2395,7 +2397,8 @@
                   (m 4 1 -32) (m 5 1 -40) (m 6 1 -48) (m 7 1 -56)))
     (setf (aref y 1)
           (logxor (m 0 1 0) (m 1 1 -8) (m 2 1 -16) (m 3 1 -24)
-                  (m 4 0 -32) (m 5 0 -40) (m 6 0 -48)(m 7 0 -56)))))
+                  (m 4 0 -32) (m 5 0 -40) (m 6 0 -48)(m 7 0 -56))))
+  (values))
 
 (declaim (inline kalyna-gl128))
 (defun kalyna-gl128 (x y y-start k k-start)
@@ -2411,7 +2414,8 @@
     (setf (aref y (+ y-start 1))
           (mod64+ (aref k (+ k-start 1))
                   (logxor (m 0 1 0) (m 1 1 -8) (m 2 1 -16) (m 3 1 -24)
-                          (m 4 0 -32) (m 5 0 -40) (m 6 0 -48) (m 7 0 -56))))))
+                          (m 4 0 -32) (m 5 0 -40) (m 6 0 -48) (m 7 0 -56)))))
+  (values))
 
 (declaim (inline kalyna-imc128))
 (defun kalyna-imc128 (x x-start)
@@ -2429,7 +2433,8 @@
                   (m 4 0 0 -32) (m 5 1 0 -40) (m 6 2 0 -48) (m 7 3 0 -56)))
     (setf (aref x (+ x-start 1))
           (logxor (m 0 0 1 0) (m 1 1 1 -8) (m 2 2 1 -16) (m 3 3 1 -24)
-                  (m 4 0 1 -32) (m 5 1 1 -40) (m 6 2 1 -48) (m 7 3 1 -56)))))
+                  (m 4 0 1 -32) (m 5 1 1 -40) (m 6 2 1 -48) (m 7 3 1 -56))))
+  (values))
 
 (declaim (inline kalyna-ig128))
 (defun kalyna-ig128 (x y k k-start)
@@ -2445,7 +2450,8 @@
     (setf (aref y 1)
           (logxor (aref k (+ k-start 1))
                   (m 0 1 0) (m 1 1 -8) (m 2 1 -16) (m 3 1 -24)
-                  (m 4 0 -32) (m 5 0 -40) (m 6 0 -48) (m 7 0 -56)))))
+                  (m 4 0 -32) (m 5 0 -40) (m 6 0 -48) (m 7 0 -56))))
+  (values))
 
 (declaim (inline kalyna-igl128))
 (defun kalyna-igl128 (x y k k-start)
@@ -2464,7 +2470,8 @@
     (setf (aref y 1)
           (mod64- (logxor (m 0 1 0 0) (m 1 1 -8 8) (m 2 1 -16 16) (m 3 1 -24 24)
                           (m 0 0 -32 32) (m 1 0 -40 40) (m 2 0 -48 48) (m 3 0 -56 56))
-                  (aref k (+ k-start 1))))))
+                  (aref k (+ k-start 1)))))
+  (values))
 
 (declaim (inline kalyna-g128))
 (defun kalyna-g128 (x y k k-start)
@@ -2480,7 +2487,8 @@
     (setf (aref y 1)
           (logxor (aref k (+ k-start 1))
                   (m 0 1 0) (m 1 1 -8) (m 2 1 -16) (m 3 1 -24)
-                  (m 4 0 -32) (m 5 0 -40) (m 6 0 -48) (m 7 0 -56)))))
+                  (m 4 0 -32) (m 5 0 -40) (m 6 0 -48) (m 7 0 -56))))
+  (values))
 
 (defclass kalyna128 (cipher 16-byte-block-mixin)
   ((encryption-round-keys :accessor encryption-round-keys
@@ -2716,7 +2724,8 @@
                   (m 4 0 -32) (m 5 0 -40) (m 6 3 -48) (m 7 3 -56)))
     (setf (aref y 3)
           (logxor (m 0 3 0) (m 1 3 -8) (m 2 2 -16) (m 3 2 -24)
-                  (m 4 1 -32) (m 5 1 -40) (m 6 0 -48) (m 7 0 -56)))))
+                  (m 4 1 -32) (m 5 1 -40) (m 6 0 -48) (m 7 0 -56))))
+  (values))
 
 (declaim (inline kalyna-gl256))
 (defun kalyna-gl256 (x y y-start k k-start)
@@ -2740,7 +2749,8 @@
     (setf (aref y (+ y-start 3))
           (mod64+ (aref k (+ k-start 3))
                   (logxor (m 0 3 0) (m 1 3 -8) (m 2 2 -16) (m 3 2 -24)
-                          (m 4 1 -32) (m 5 1 -40) (m 6 0 -48) (m 7 0 -56))))))
+                          (m 4 1 -32) (m 5 1 -40) (m 6 0 -48) (m 7 0 -56)))))
+  (values))
 
 (declaim (inline kalyna-imc256))
 (defun kalyna-imc256 (x x-start)
@@ -2764,7 +2774,8 @@
                   (m 4 0 2 -32) (m 5 1 2 -40) (m 6 2 2 -48) (m 7 3 2 -56)))
     (setf (aref x (+ x-start 3))
           (logxor (m 0 0 3 0) (m 1 1 3 -8) (m 2 2 3 -16) (m 3 3 3 -24)
-                  (m 4 0 3 -32) (m 5 1 3 -40) (m 6 2 3 -48) (m 7 3 3 -56)))))
+                  (m 4 0 3 -32) (m 5 1 3 -40) (m 6 2 3 -48) (m 7 3 3 -56))))
+  (values))
 
 (declaim (inline kalyna-ig256))
 (defun kalyna-ig256 (x y k k-start)
@@ -2788,7 +2799,8 @@
     (setf (aref y 3)
           (logxor (aref k (+ k-start 3))
                   (m 0 3 0) (m 1 3 -8) (m 2 0 -16) (m 3 0 -24)
-                  (m 4 1 -32) (m 5 1 -40) (m 6 2 -48) (m 7 2 -56)))))
+                  (m 4 1 -32) (m 5 1 -40) (m 6 2 -48) (m 7 2 -56))))
+  (values))
 
 (declaim (inline kalyna-igl256))
 (defun kalyna-igl256 (x y k k-start)
@@ -2815,7 +2827,8 @@
     (setf (aref y 3)
           (mod64- (logxor (m 0 3 0 0) (m 1 3 -8 8) (m 2 0 -16 16) (m 3 0 -24 24)
                           (m 0 1 -32 32) (m 1 1 -40 40) (m 2 2 -48 48) (m 3 2 -56 56))
-                  (aref k (+ k-start 3))))))
+                  (aref k (+ k-start 3)))))
+  (values))
 
 (declaim (inline kalyna-g256))
 (defun kalyna-g256 (x y k k-start)
@@ -2839,7 +2852,8 @@
     (setf (aref y 3)
           (logxor (aref k (+ k-start 3))
                   (m 0 3 0) (m 1 3 -8) (m 2 2 -16) (m 3 2 -24)
-                  (m 4 1 -32) (m 5 1 -40) (m 6 0 -48) (m 7 0 -56)))))
+                  (m 4 1 -32) (m 5 1 -40) (m 6 0 -48) (m 7 0 -56))))
+  (values))
 
 (defclass kalyna256 (cipher 32-byte-block-mixin)
   ((encryption-round-keys :accessor encryption-round-keys
@@ -3112,7 +3126,8 @@
                   (m 4 2 -32) (m 5 1 -40) (m 6 0 -48) (m 7 7 -56)))
     (setf (aref y 7)
           (logxor (m 0 7 0) (m 1 6 -8) (m 2 5 -16) (m 3 4 -24)
-                  (m 4 3 -32) (m 5 2 -40) (m 6 1 -48) (m 7 0 -56)))))
+                  (m 4 3 -32) (m 5 2 -40) (m 6 1 -48) (m 7 0 -56))))
+  (values))
 
 (declaim (inline kalyna-gl512))
 (defun kalyna-gl512 (x y y-start k k-start)
@@ -3152,7 +3167,8 @@
     (setf (aref y (+ y-start 7))
           (mod64+ (aref k (+ k-start 7))
                   (logxor (m 0 7 0) (m 1 6 -8) (m 2 5 -16) (m 3 4 -24)
-                          (m 4 3 -32) (m 5 2 -40) (m 6 1 -48) (m 7 0 -56))))))
+                          (m 4 3 -32) (m 5 2 -40) (m 6 1 -48) (m 7 0 -56)))))
+  (values))
 
 (declaim (inline kalyna-imc512))
 (defun kalyna-imc512 (x x-start)
@@ -3188,7 +3204,8 @@
                   (m 4 0 6 -32) (m 5 1 6 -40) (m 6 2 6 -48) (m 7 3 6 -56)))
     (setf (aref x (+ x-start 7))
           (logxor (m 0 0 7 0) (m 1 1 7 -8) (m 2 2 7 -16) (m 3 3 7 -24)
-                  (m 4 0 7 -32) (m 5 1 7 -40) (m 6 2 7 -48) (m 7 3 7 -56)))))
+                  (m 4 0 7 -32) (m 5 1 7 -40) (m 6 2 7 -48) (m 7 3 7 -56))))
+  (values))
 
 (declaim (inline kalyna-ig512))
 (defun kalyna-ig512 (x y k k-start)
@@ -3228,7 +3245,8 @@
     (setf (aref y 7)
           (logxor (aref k (+ k-start 7))
                   (m 0 7 0) (m 1 0 -8) (m 2 1 -16) (m 3 2 -24)
-                  (m 4 3 -32) (m 5 4 -40) (m 6 5 -48) (m 7 6 -56)))))
+                  (m 4 3 -32) (m 5 4 -40) (m 6 5 -48) (m 7 6 -56))))
+  (values))
 
 (declaim (inline kalyna-igl512))
 (defun kalyna-igl512 (x y k k-start)
@@ -3271,7 +3289,8 @@
     (setf (aref y 7)
           (mod64- (logxor (m 0 7 0 0) (m 1 0 -8 8) (m 2 1 -16 16) (m 3 2 -24 24)
                           (m 0 3 -32 32) (m 1 4 -40 40) (m 2 5 -48 48) (m 3 6 -56 56))
-                  (aref k (+ k-start 7))))))
+                  (aref k (+ k-start 7)))))
+  (values))
 
 (declaim (inline kalyna-g512))
 (defun kalyna-g512 (x y k k-start)
@@ -3311,7 +3330,8 @@
     (setf (aref y 7)
           (logxor (aref k (+ k-start 7))
                   (m 0 7 0) (m 1 6 -8) (m 2 5 -16) (m 3 4 -24)
-                  (m 4 3 -32) (m 5 2 -40) (m 6 1 -48) (m 7 0 -56)))))
+                  (m 4 3 -32) (m 5 2 -40) (m 6 1 -48) (m 7 0 -56))))
+  (values))
 
 (defclass kalyna512 (cipher 64-byte-block-mixin)
   ((encryption-round-keys :accessor encryption-round-keys
