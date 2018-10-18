@@ -2329,6 +2329,10 @@
                                      #xf3 #x83 #x28 #x32 #x45 #x1e #xa4 #xd3
                                      #xa2 #x46 #x6e #x9c #xdd #x63 #xd4 #x9d)))))
 
+(declaim (type (simple-array (unsigned-byte 64) (8 256)) +kalyna-t+ +kalyna-it+)
+         (type (simple-array (unsigned-byte 8) (4 256)) +kalyna-s+ +kalyna-is+))
+
+
 ;;;
 ;;; Common functions and macros
 ;;;
