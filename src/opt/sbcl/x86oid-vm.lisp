@@ -894,10 +894,10 @@
                  unsigned-num
                  unsigned-num)
   (:generator 1000
-    (dword-inst mov ra va)
-    (dword-inst mov rb vb)
-    (dword-inst mov rc vc)
-    (dword-inst mov rd vd)
+    (move ra va)
+    (move rb vb)
+    (move rc vc)
+    (move rd vd)
     (dword-inst add ra rb)
     (dword-inst add ra x)
     (dword-inst xor rd ra)
