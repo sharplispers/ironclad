@@ -1,5 +1,11 @@
 -*- mode: outline -*-
 
+* Changes since version 0.44
+
+** new features
+
+Added the SM3 digest (GM/T 0004-2012)
+
 * Version 0.44, released 2018-11-03
 
 ** new features

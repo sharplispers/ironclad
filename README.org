@@ -413,6 +413,7 @@ by calling [[list-all-digests][list-all-digests]]. They are:
  - skein512/224
  - skein512/256
  - skein512/384
+ - sm3
  - streebog
  - streebog/256
  - tiger
