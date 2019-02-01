@@ -6,6 +6,8 @@
 
 Added the SM3 digest (GM/T 0004-2012)
 
+Added the SM4 cipher (GM/T 0002-2012)
+
 * Version 0.44, released 2018-11-03
 
 ** new features

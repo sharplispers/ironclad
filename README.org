@@ -145,6 +145,7 @@ the names of all supported ciphers. They are:
  - salsa20/8
  - seed
  - serpent
+ - sm4
  - sosemanuk
  - square
  - tea

@@ -164,7 +164,8 @@
            #:aes #:twofish #:cast5 #:idea #:misty1 #:xor
            #:threefish256 #:threefish512 #:threefish1024
            #:serpent #:camellia #:seed #:aria #:kuznyechik
-           #:kalyna128 #:kalyna256 #:kalyna512)
+           #:kalyna128 #:kalyna256 #:kalyna512
+           #:sm4)
   ;; supported stream ciphers
   (:export #:arcfour
            #:salsa20 #:salsa20/12 #:salsa20/8
