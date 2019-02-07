@@ -645,7 +645,8 @@ Ironclad provides different kinds of MACs:
  - CMAC, specified in [[http://www.ietf.org/rfc/rfc4493.txt][RFC 4493]] and NIST document 800-38B
  - GMAC, specified in NIST document 800-38D
  - Blake2 and Blake2s MAC
- - Poly1305 MAC
+ - Poly1305
+ - SipHash
  - Skein MAC
 
 
@@ -663,6 +664,7 @@ MACs can be found by calling [[list-all-macs][list-all-macs]]. They are:
  - gmac
  - hmac
  - poly1305
+ - siphash
  - skein-mac
 
 Like for [[make-digest][make-digest]], /mac-name/ should be a symbol in the ~keyword~
@@ -677,6 +679,7 @@ Some MACs take extra arguments that can be specified in /args/.
 (make-mac :gmac key cipher-name initialization-vector)
 (make-mac :hmac key digest-name)
 (make-mac :poly1305 key)
+(make-mac :siphash key &key compression-rounds finalization-rounds digest-length)
 (make-mac :skein-mac key &key block-length digest-length)
 #+END_EXAMPLE
 
@@ -695,8 +698,12 @@ When making a GMAC, /cipher-name/ must have a [[block-length][block-length]] of 
 an acceptable key for /cipher-name/. The length of /initialization-vector/ must
 be 12 bytes.
 
-When making a Poly1305, the length of the /key/ passed to [[make-mac][make-mac]]
-must be 32 bytes.
+When making a Poly1305 MAC, the length of the /key/ passed to [[make-mac][make-mac]] must be
+32 bytes.
+
+When making a SipHash MAC, the length of the /key/ passed to [[make-mac][make-mac]] must be 16
+bytes. /digest-length/ is 8 by default, but it can also be set to 16. By
+default, /compression-rounds/ is 2 and /finalization-rounds/ is 4.
 
 When making a Skein MAC, /block-length/ can be 32 (to use the Skein256
 hash function internally), 64 (to use Skein512) or 128 (to use
@@ -765,6 +772,7 @@ kind of MAC and the extra arguments passed to [[make-mac][make-mac]]:
  - gmac: 16 bytes
  - hmac: [[digest-length][digest-length]] of the /digest-name/ passed to [[make-mac][make-mac]]
  - poly1305: 16 bytes
+ - siphash: /digest-length/ passed to [[make-mac][make-mac]] (8 by default)
  - skein-mac: /digest-length/ passed to [[make-mac][make-mac]] (64 by default)
 
 ** Inquiry functions

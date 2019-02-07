@@ -116,6 +116,7 @@
                                            (:file "gmac" :depends-on ("mac"))
                                            (:file "mac")
                                            (:file "poly1305" :depends-on ("mac"))
+                                           (:file "siphash" :depends-on ("mac"))
                                            (:file "skein-mac" :depends-on ("mac"))))
                              (:module "opt"
                               :depends-on ("macro-utils" "package")
@@ -321,6 +322,7 @@
                                            (:test-vector-file "hmac")
                                            (:test-vector-file "gmac")
                                            (:test-vector-file "poly1305")
+                                           (:test-vector-file "siphash")
                                            (:test-vector-file "skein-mac")
                                            ;; prng
                                            (:file "prng-tests")

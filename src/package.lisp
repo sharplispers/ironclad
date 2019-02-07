@@ -158,7 +158,7 @@
            #:sm3)
   ;; supported macs
   (:export #:blake2-mac #:blake2s-mac #:cmac #:hmac #:poly1305 #:skein-mac
-           #:gmac)
+           #:gmac #:siphash)
   ;; supported block ciphers
   (:export #:blowfish #:tea #:xtea #:square #:rc2 #:rc5 #:rc6 #:des #:3des
            #:aes #:twofish #:cast5 #:idea #:misty1 #:xor
