@@ -77,6 +77,7 @@
                            (ironclad:gmac 32)
                            (ironclad:hmac 32)
                            (ironclad:poly1305 32)
+                           (ironclad:siphash 16)
                            (ironclad:skein-mac 64)))
              (key (ironclad:random-data key-length))
              (iv (case mac-name
