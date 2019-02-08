@@ -52,6 +52,16 @@ general case it can't be guaranteed. This is due to the fact that
 integers and arithmetic functions of Common Lisp implementations are
 usually not safe against side channel attacks.
 
+
+*Ironclad's pseudo random number generation should not be considered thread
+safe*
+
+If you have a multi-threaded application in which you want to use functions
+requiring some random numbers (key derivation, key generation, public key
+encryption, signature, etc.) in several threads, each of these threads
+must have its own PRNG, or they might generate the same "random" numbers.
+There is an example showing how it can be done in the section about [[make-prng][make-prng]].
+
 * Installation
   :PROPERTIES:
   :CUSTOM_ID: installation
@@ -1317,8 +1327,23 @@ then a new seed will be generated and written back to the file
 (over-writing the old seed). Finally, if it is a byte vector, it will
 be used to seed the PRNG.
 
-You should very rarely need to call [[make-prng][make-prng]]; the default OS-provided
-PRNG should be appropriate in nearly all cases.
+In single-threaded applications, you should very rarely need to call [[make-prng][make-prng]];
+the default OS-provided PRNG should be appropriate in nearly all cases.
+
+In multi-threaded applications, each thread that will use functions requiring
+random data must have its own PRNG, or several threads might generate the same
+"random" data. This can be done by binding the =*prng*= special variable just
+after creating the threads, for example:
+
+#+BEGIN_EXAMPLE
+(make-thread (lambda ()
+               (let ((crypto:*prng* (crypto:make-prng :os)))
+                 (forms-for-thread-1))))
+
+(make-thread (lambda ()
+               (let ((crypto:*prng* (crypto:make-prng :os)))
+                 (forms-for-thread-2))))
+#+END_EXAMPLE
 
 
 #+NAME: list-all-prngs
@@ -1392,7 +1417,7 @@ Generate enough random data to reseed /prng/, then write it to /path/.
 ** Example
 
 #+BEGIN_EXAMPLE
-(random-data 16)
+(crypto:random-data 16)
 => #(61 145 133 130 220 200 90 86 0 101 62 169 0 40 101 78)
 
 (crypto:strong-random 16)
