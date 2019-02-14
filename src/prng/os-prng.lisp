@@ -37,3 +37,4 @@
   (make-instance 'os-prng))
 
 (setf *prng* (make-prng :os))
+#+thread-support(pushnew '(*prng* . (make-prng :os)) bt:*default-special-bindings* :test #'equal)
