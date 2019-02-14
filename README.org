@@ -62,6 +62,13 @@ encryption, signature, etc.) in several threads, each of these threads
 must have its own PRNG, or they might generate the same "random" numbers.
 There is an example showing how it can be done in the section about [[make-prng][make-prng]].
 
+
+*Ironclad's digest, MAC and cipher objects should not be considered thread safe*
+
+Creating a digest, a MAC or a cipher object and using it in several threads at
+the same time can lead to an undefined result. If you need to do that, you must
+put locks in your application where necessary.
+
 * Installation
   :PROPERTIES:
   :CUSTOM_ID: installation
