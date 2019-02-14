@@ -2,6 +2,11 @@
 
 * Changes since version 0.44
 
+** bug fixes
+
+Pseudo-random number generation is now thread safe, but only when the threads
+are created with the bordeaux-threads library.
+
 ** new features
 
 Added the SM3 digest (GM/T 0004-2012).

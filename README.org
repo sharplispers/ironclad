@@ -53,21 +53,26 @@ integers and arithmetic functions of Common Lisp implementations are
 usually not safe against side channel attacks.
 
 
-*Ironclad's pseudo random number generation should not be considered thread
-safe*
-
-If you have a multi-threaded application in which you want to use functions
-requiring some random numbers (key derivation, key generation, public key
-encryption, signature, etc.) in several threads, each of these threads
-must have its own PRNG, or they might generate the same "random" numbers.
-There is an example showing how it can be done in the section about [[make-prng][make-prng]].
-
-
 *Ironclad's digest, MAC and cipher objects should not be considered thread safe*
 
 Creating a digest, a MAC or a cipher object and using it in several threads at
 the same time can lead to an undefined result. If you need to do that, you must
 put locks in your application where necessary.
+
+
+*Ironclad's pseudo random number generation should only be considered thread
+safe with bordeaux-threads*
+
+If you have a multi-threaded application in which you want to use functions
+requiring some random numbers (key derivation, key generation, public key
+encryption, signature, etc.) in several threads, each of these threads must have
+its own PRNG, or they might generate the same "random" numbers. If the threads
+are created using the *bordeaux-threads* library (or by a library using
+*bordeaux-threads*, like *lparallel*), this is done automatically. However, if
+you are using the threading functions of your Common Lisp implementation
+directly, you have to bind the ~*prng*~ special variable to a new PRNG in each
+thread. There is an example showing how it can be done in the section about
+[[make-prng][make-prng]].
 
 * Installation
   :PROPERTIES:
@@ -1339,8 +1344,11 @@ the default OS-provided PRNG should be appropriate in nearly all cases.
 
 In multi-threaded applications, each thread that will use functions requiring
 random data must have its own PRNG, or several threads might generate the same
-"random" data. This can be done by binding the =*prng*= special variable just
-after creating the threads, for example:
+"random" data. If the threads are created using the *bordeaux-threads* library
+(or by a library using *bordeaux-threads*, like *lparallel*), this is done
+automatically. However, if you are using the threading functions of your Common
+Lisp implementation directly, you have to bind the ~*prng*~ special variable to
+a new PRNG in each thread. For example:
 
 #+BEGIN_EXAMPLE
 (make-thread (lambda ()
