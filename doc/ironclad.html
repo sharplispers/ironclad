@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<!-- 2019-02-08 ven. 11:16 -->
+<!-- 2019-02-18 lun. 15:06 -->
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Ironclad</title>
@@ -56,7 +56,7 @@ a level of confidence in the correctness of the implementations.
 <h2>Table of Contents</h2>
 <div id="text-table-of-contents">
 <ul>
-<li><a href="#warning">Warning</a></li>
+<li><a href="#warning">Warnings</a></li>
 <li><a href="#installation">Installation</a></li>
 <li><a href="#license">License</a></li>
 <li><a href="#ciphers">Ciphers</a></li>
@@ -73,8 +73,8 @@ a level of confidence in the correctness of the implementations.
 </div>
 </div>
 
-<div id="outline-container-org551ee71" class="outline-2">
-<h2 id="warning"><a id="org551ee71"></a>Warning</h2>
+<div id="outline-container-orge22d011" class="outline-2">
+<h2 id="warning"><a id="orge22d011"></a>Warnings</h2>
 <div class="outline-text-2" id="text-warning">
 <p>
 <b>Ironclad should not be considered safe against side channel attacks.</b>
@@ -90,26 +90,43 @@ usually not safe against side channel attacks.
 
 
 <p>
-<b>Ironclad's pseudo random number generation should not be considered thread
-safe</b>
+<b>Ironclad's digest, MAC and cipher objects should not be considered thread
+safe.</b>
+</p>
+
+<p>
+Creating a digest, a MAC or a cipher object and using it in several threads at
+the same time can lead to an undefined result. If you need to do that, you must
+put locks in your application where necessary.
+</p>
+
+
+<p>
+<b>Ironclad's pseudo random number generation should only be considered thread
+safe with bordeaux-threads.</b>
 </p>
 
 <p>
 If you have a multi-threaded application in which you want to use functions
 requiring some random numbers (key derivation, key generation, public key
-encryption, signature, etc.) in several threads, each of these threads
-must have its own PRNG, or they might generate the same "random" numbers.
-There is an example showing how it can be done in the section about <a href="#orgbe22db4">make-prng</a>.
+encryption, signature, etc.) in several threads, each of these threads must have
+its own PRNG, or they might generate the same "random" numbers. If the threads
+are created using the <b>bordeaux-threads</b> library (or by a library using
+<b>bordeaux-threads</b>, like <b>lparallel</b>), this is done automatically. However, if
+you are using the threading functions of your Common Lisp implementation
+directly, you have to bind the <code>*prng*</code> special variable to a new PRNG in each
+thread. There is an example showing how it can be done in the section about
+<a href="#orgcc70c75">make-prng</a>.
 </p>
 </div>
 </div>
 
-<div id="outline-container-org1a928f6" class="outline-2">
-<h2 id="installation"><a id="org1a928f6"></a>Installation</h2>
+<div id="outline-container-orgafb9a38" class="outline-2">
+<h2 id="installation"><a id="orgafb9a38"></a>Installation</h2>
 <div class="outline-text-2" id="text-installation">
 <p>
-The current version of Ironclad is 0.44. It can be downloaded
-at <a href="https://github.com/sharplispers/ironclad/archive/v0.44.tar.gz">https://github.com/sharplispers/ironclad/archive/v0.44.tar.gz</a>.
+The current version of Ironclad is 0.45. It can be downloaded
+at <a href="https://github.com/sharplispers/ironclad/archive/v0.45.tar.gz">https://github.com/sharplispers/ironclad/archive/v0.45.tar.gz</a>.
 If you are feeling adventurous, you can download a bleeding-edge version
 at <a href="https://github.com/sharplispers/ironclad">https://github.com/sharplispers/ironclad</a>.
 </p>
@@ -166,8 +183,8 @@ use the generic Lisp code, it can be achieved by commenting out the
 </div>
 </div>
 
-<div id="outline-container-orgdb46639" class="outline-2">
-<h2 id="license"><a id="orgdb46639"></a>License</h2>
+<div id="outline-container-org732f874" class="outline-2">
+<h2 id="license"><a id="org732f874"></a>License</h2>
 <div class="outline-text-2" id="text-license">
 <p>
 Ironclad is released under a MIT-like license; you can do pretty much
@@ -176,11 +193,11 @@ anything you want to with the code except claim that you wrote it.
 </div>
 </div>
 
-<div id="outline-container-org30f8785" class="outline-2">
-<h2 id="ciphers"><a id="org30f8785"></a>Ciphers</h2>
+<div id="outline-container-orgdec5334" class="outline-2">
+<h2 id="ciphers"><a id="orgdec5334"></a>Ciphers</h2>
 <div class="outline-text-2" id="text-ciphers">
 <div class="org-src-container">
-<pre class="src src-lisp" id="orgaa1aaf5">(make-cipher name <span style="font-weight: bold; text-decoration: underline;">&amp;key</span> key mode initialization-vector padding tweak) =&gt; cipher
+<pre class="src src-lisp" id="org73399d6">(make-cipher name <span style="font-weight: bold; text-decoration: underline;">&amp;key</span> key mode initialization-vector padding tweak) =&gt; cipher
 </pre>
 </div>
 
@@ -189,7 +206,7 @@ Return a cipher object suitable for use for both encryption and decryption.
 </p>
 
 <p>
-<i>name</i> denotes the encryption algorithm to use. <a href="#org00ade98">list-all-ciphers</a> will tell you
+<i>name</i> denotes the encryption algorithm to use. <a href="#org5fc15de">list-all-ciphers</a> will tell you
 the names of all supported ciphers. They are:
 </p>
 <ul class="org-ul">
@@ -250,7 +267,7 @@ such as AES and DES can operate in several different modes:
 <li>ecb</li>
 <li>cbc</li>
 <li>ofb</li>
-<li>cfb (note that Ironclad's CFB mode is <i>n</i>-bit CFB, where <i>n</i> is the <a href="#org70f4c54">block-length</a> of the cipher)</li>
+<li>cfb (note that Ironclad's CFB mode is <i>n</i>-bit CFB, where <i>n</i> is the <a href="#orgeaa4b9c">block-length</a> of the cipher)</li>
 <li>cfb8 (this seems to be the mode other crypto packages call CFB)</li>
 <li>ctr</li>
 </ul>
@@ -264,7 +281,7 @@ such as AES and DES can operate in several different modes:
 <p>
 <i>initialization-vector</i> (IV) should be supplied only if <i>mode</i> requires one.
 <i>initialization-vector</i> should be a <code>(simple-array (unsigned-byte 8) (*))</code>.
-The supplied IV should be the same length as the <a href="#org70f4c54">block-length</a> of <i>name</i>.
+The supplied IV should be the same length as the <a href="#orgeaa4b9c">block-length</a> of <i>name</i>.
 The Chacha and Salsa20 stream ciphers also use an initialization
 vector (nonce). It should be 8 bytes long for Chacha and Salsa20, and
 24 bytes long for XChacha and XSalsa20.
@@ -276,8 +293,8 @@ vector (nonce). It should be 8 bytes long for Chacha and Salsa20, and
 </p>
 
 <p>
-If <i>padding</i> is supplied, the specified padding method will be used by <a href="#orga6d905e">encrypt</a>
-and <a href="#org6df1160">decrypt</a> to handle short blocks when the <code>:handle-final-block</code> argument is
+If <i>padding</i> is supplied, the specified padding method will be used by <a href="#org3fde04c">encrypt</a>
+and <a href="#org38f987f">decrypt</a> to handle short blocks when the <code>:handle-final-block</code> argument is
 supplied. <i>padding</i> will only be used if the mode is ECB or CBC. The possible
 values for <i>padding</i> are <code>:pkcs7</code>, <code>:ansi-x923</code> and <code>:iso-7816-4</code>.
 </p>
@@ -289,7 +306,7 @@ with the <i>tweak</i> key parameter.
 
 
 <div class="org-src-container">
-<pre class="src src-lisp" id="orga6d905e">(encrypt cipher plaintext ciphertext <span style="font-weight: bold; text-decoration: underline;">&amp;key</span> plaintext-start plaintext-end ciphertext-start handle-final-block) =&gt; n-bytes-consumed, n-bytes-produced
+<pre class="src src-lisp" id="org3fde04c">(encrypt cipher plaintext ciphertext <span style="font-weight: bold; text-decoration: underline;">&amp;key</span> plaintext-start plaintext-end ciphertext-start handle-final-block) =&gt; n-bytes-consumed, n-bytes-produced
 </pre>
 </div>
 
@@ -301,7 +318,7 @@ data is placed in <i>ciphertext</i> starting at <i>ciphertext-start</i>.
 
 
 <div class="org-src-container">
-<pre class="src src-lisp" id="org6df1160">(decrypt cipher ciphertext plaintext <span style="font-weight: bold; text-decoration: underline;">&amp;key</span> ciphertext-start ciphertext-end plaintext-start handle-final-block) =&gt; n-bytes-consumed, n-bytes-produced
+<pre class="src src-lisp" id="org38f987f">(decrypt cipher ciphertext plaintext <span style="font-weight: bold; text-decoration: underline;">&amp;key</span> ciphertext-start ciphertext-end plaintext-start handle-final-block) =&gt; n-bytes-consumed, n-bytes-produced
 </pre>
 </div>
 
@@ -313,11 +330,11 @@ data is placed in <i>plaintext</i> starting at <i>plaintext-start</i>.
 
 
 <div class="org-src-container">
-<pre class="src src-lisp" id="org1ec0bb7">(encrypt-in-place cipher text <span style="font-weight: bold; text-decoration: underline;">&amp;key</span> start end) =&gt; n-bytes-consumed, n-bytes-produced
+<pre class="src src-lisp" id="org472d52e">(encrypt-in-place cipher text <span style="font-weight: bold; text-decoration: underline;">&amp;key</span> start end) =&gt; n-bytes-consumed, n-bytes-produced
 </pre>
 </div>
 <div class="org-src-container">
-<pre class="src src-lisp" id="org0c2ec07">(decrypt-in-place cipher text <span style="font-weight: bold; text-decoration: underline;">&amp;key</span> start end) =&gt; n-bytes-consumed, n-bytes-produced
+<pre class="src src-lisp" id="org76671a4">(decrypt-in-place cipher text <span style="font-weight: bold; text-decoration: underline;">&amp;key</span> start end) =&gt; n-bytes-consumed, n-bytes-produced
 </pre>
 </div>
 
@@ -331,17 +348,17 @@ according to <i>cipher</i>. These functions are shorthand for:
 </pre>
 
 <p>
-<span class="underline">Note:</span> <a href="#org1ec0bb7">encrypt-in-place</a> and <a href="#org0c2ec07">decrypt-in-place</a> do not support
-a <i>handle-final-block</i> parameter as <a href="#orga6d905e">encrypt</a> and <a href="#org6df1160">decrypt</a> do. If you
+<span class="underline">Note:</span> <a href="#org472d52e">encrypt-in-place</a> and <a href="#org76671a4">decrypt-in-place</a> do not support
+a <i>handle-final-block</i> parameter as <a href="#org3fde04c">encrypt</a> and <a href="#org38f987f">decrypt</a> do. If you
 need the functionality that <i>handle-final-block</i> provides, then you
-need to use <a href="#orga6d905e">encrypt</a> and <a href="#org6df1160">decrypt</a>.
+need to use <a href="#org3fde04c">encrypt</a> and <a href="#org38f987f">decrypt</a>.
 </p>
 
 <p>
 <span class="underline">Note:</span> <i>n-bytes-consumed</i> and <i>n-bytes-produced</i> may not always be
 equal to the length of the data specified in the call to
-<a href="#org1ec0bb7">encrypt-in-place</a> or <a href="#org0c2ec07">decrypt-in-place</a>. This subtlely is also present in
-<a href="#orga6d905e">encrypt</a> or <a href="#org6df1160">decrypt</a>.
+<a href="#org472d52e">encrypt-in-place</a> or <a href="#org76671a4">decrypt-in-place</a>. This subtlely is also present in
+<a href="#org3fde04c">encrypt</a> or <a href="#org38f987f">decrypt</a>.
 </p>
 
 
@@ -367,32 +384,32 @@ class of <i>cipher</i> determines the algorithm used to decrypt the message.
 </p>
 </div>
 
-<div id="outline-container-orgd808337" class="outline-3">
-<h3 id="orgd808337">Inquiry functions</h3>
-<div class="outline-text-3" id="text-orgd808337">
+<div id="outline-container-org2b16e0d" class="outline-3">
+<h3 id="org2b16e0d">Inquiry functions</h3>
+<div class="outline-text-3" id="text-org2b16e0d">
 <div class="org-src-container">
-<pre class="src src-lisp" id="org00ade98">(list-all-ciphers) =&gt; list
+<pre class="src src-lisp" id="org5fc15de">(list-all-ciphers) =&gt; list
 </pre>
 </div>
 
 <p>
-Returns a list of cipher-names that may be validly passed to <a href="#orgaa1aaf5">make-cipher</a>.
+Returns a list of cipher-names that may be validly passed to <a href="#org73399d6">make-cipher</a>.
 </p>
 
 
 <div class="org-src-container">
-<pre class="src src-lisp" id="org686459e">(cipher-supported-p name) =&gt; boolean
+<pre class="src src-lisp" id="org8ff165e">(cipher-supported-p name) =&gt; boolean
 </pre>
 </div>
 
 <p>
-Returns <code>t</code> if <i>name</i> would be in the list returned by <a href="#org00ade98">list-all-ciphers</a>,
+Returns <code>t</code> if <i>name</i> would be in the list returned by <a href="#org5fc15de">list-all-ciphers</a>,
 <code>nil</code> otherwise.
 </p>
 
 
 <div class="org-src-container">
-<pre class="src src-lisp" id="org95bb395">(key-lengths cipher) =&gt; list
+<pre class="src src-lisp" id="org21cde5d">(key-lengths cipher) =&gt; list
 </pre>
 </div>
 
@@ -402,7 +419,7 @@ Return a list of valid key lengths for <i>cipher</i>.
 
 
 <div class="org-src-container">
-<pre class="src src-lisp" id="org70f4c54">(block-length cipher) =&gt; number
+<pre class="src src-lisp" id="orgeaa4b9c">(block-length cipher) =&gt; number
 </pre>
 </div>
 
@@ -413,9 +430,9 @@ function always returns 1 for stream ciphers.
 </div>
 </div>
 
-<div id="outline-container-orgd1bbf2a" class="outline-3">
-<h3 id="orgd1bbf2a">Key stream position</h3>
-<div class="outline-text-3" id="text-orgd1bbf2a">
+<div id="outline-container-org68ef500" class="outline-3">
+<h3 id="org68ef500">Key stream position</h3>
+<div class="outline-text-3" id="text-org68ef500">
 <p>
 Block ciphers in CTR mode and some stream ciphers have the ability to change the
 current position within the key stream in constant time instead of having to
@@ -423,21 +440,21 @@ consume all the bytes until the desired position is reached.
 </p>
 
 <div class="org-src-container">
-<pre class="src src-lisp" id="org5287bef">(keystream-position cipher <span style="font-weight: bold; text-decoration: underline;">&amp;optional</span> position) =&gt; number or boolean
+<pre class="src src-lisp" id="orged190ec">(keystream-position cipher <span style="font-weight: bold; text-decoration: underline;">&amp;optional</span> position) =&gt; number or boolean
 </pre>
 </div>
 
 <p>
 Return or change the current <i>position</i> within the key stream of a <i>cipher</i>.
-When <i>position</i> is not supplied, <a href="#org5287bef">keystream-position</a> returns the current position
+When <i>position</i> is not supplied, <a href="#orged190ec">keystream-position</a> returns the current position
 in the key stream, or <i>nil</i> if it can't be determined. When <i>position</i> is
 supplied, the key stream position of the <i>cipher</i> is set to that <i>position</i> if
-possible. <a href="#org5287bef">keystream-position</a> returns <i>t</i> if the repositioning is performed
+possible. <a href="#orged190ec">keystream-position</a> returns <i>t</i> if the repositioning is performed
 successfully, or <i>nil</i> otherwise.
 </p>
 
 <p>
-<a href="#org5287bef">keystream-position</a> can be used with the following ciphers:
+<a href="#orged190ec">keystream-position</a> can be used with the following ciphers:
 </p>
 <ul class="org-ul">
 <li>all the block ciphers (aes, twofish, etc.) in CTR mode</li>
@@ -458,8 +475,8 @@ successfully, or <i>nil</i> otherwise.
 </div>
 </div>
 
-<div id="outline-container-orga55aff8" class="outline-2">
-<h2 id="digests"><a id="orga55aff8"></a>Digests</h2>
+<div id="outline-container-org58c0504" class="outline-2">
+<h2 id="digests"><a id="org58c0504"></a>Digests</h2>
 <div class="outline-text-2" id="text-digests">
 <p>
 Digest functions, also known as hash functions, produce fixed-length
@@ -487,14 +504,14 @@ See your local Unicode guru for more details.
 
 
 <div class="org-src-container">
-<pre class="src src-lisp" id="orgcfe879d">(make-digest digest-name <span style="font-weight: bold; text-decoration: underline;">&amp;rest</span> keys <span style="font-weight: bold; text-decoration: underline;">&amp;key</span> <span style="font-weight: bold; text-decoration: underline;">&amp;allow-other-keys</span>) =&gt; digester
+<pre class="src src-lisp" id="orgaea7009">(make-digest digest-name <span style="font-weight: bold; text-decoration: underline;">&amp;rest</span> keys <span style="font-weight: bold; text-decoration: underline;">&amp;key</span> <span style="font-weight: bold; text-decoration: underline;">&amp;allow-other-keys</span>) =&gt; digester
 </pre>
 </div>
 
 <p>
 Returns a digest object. <i>digest-name</i> is a keyword naming the
 algorithm you wish <i>digester</i> to use. The supported digest names can be found
-by calling <a href="#org837e304">list-all-digests</a>. They are:
+by calling <a href="#org8585dc9">list-all-digests</a>. They are:
 </p>
 <ul class="org-ul">
 <li>adler32</li>
@@ -560,7 +577,7 @@ by calling <a href="#org837e304">list-all-digests</a>. They are:
 </ul>
 
 <p>
-Like for <a href="#orgaa1aaf5">make-cipher</a>, <i>digest-name</i> should be a symbol in the
+Like for <a href="#org73399d6">make-cipher</a>, <i>digest-name</i> should be a symbol in the
 <code>keyword</code> or <code>ironclad</code> packages.
 </p>
 
@@ -576,7 +593,7 @@ any size. The size of the digest in bytes can be specified with the
 
 
 <div class="org-src-container">
-<pre class="src src-lisp" id="org834ba3c">(update-digest digester thing <span style="font-weight: bold; text-decoration: underline;">&amp;key</span> <span style="font-weight: bold; text-decoration: underline;">&amp;allow-other-keys</span>) =&gt; (values)
+<pre class="src src-lisp" id="orgbf3e01d">(update-digest digester thing <span style="font-weight: bold; text-decoration: underline;">&amp;key</span> <span style="font-weight: bold; text-decoration: underline;">&amp;allow-other-keys</span>) =&gt; (values)
 </pre>
 </div>
 
@@ -616,14 +633,14 @@ suffice.
 Update the internal state of <i>digester</i> with the contents of <i>stream</i>,
 which must respond to <code>read-byte</code> or <code>read-sequence</code> with
 a <code>(simple-array (unsigned-byte 8) (*))</code> and return <i>digester</i>. It
-differs from <a href="#org117be74">digest-stream</a>, below, in that you may need to digest data
+differs from <a href="#orgf6c1415">digest-stream</a>, below, in that you may need to digest data
 before or after the contents of <i>stream</i> (this happens, for instance,
 when signing the contents of some file).
 </p>
 
 
 <div class="org-src-container">
-<pre class="src src-lisp" id="orgda385b9">(produce-digest digester <span style="font-weight: bold; text-decoration: underline;">&amp;key</span> digest digest-start) =&gt; digest
+<pre class="src src-lisp" id="orgc4e5dff">(produce-digest digester <span style="font-weight: bold; text-decoration: underline;">&amp;key</span> digest digest-start) =&gt; digest
 </pre>
 </div>
 
@@ -634,19 +651,19 @@ Return the digest of the data processed by <i>digester</i> so far.
 <p>
 If <i>digest</i> is provided, the computed digest will be placed into
 <i>digest</i> starting at <i>digest-start</i>. <i>digest</i> must be a
-<code>(simple-array (unsigned-byte 8) (*))</code>. An <a href="#org606d38c">insufficient-buffer-space</a>
+<code>(simple-array (unsigned-byte 8) (*))</code>. An <a href="#org3ac55d7">insufficient-buffer-space</a>
 error will be signaled if there is insufficient space in <i>digest</i>.
 </p>
 </div>
 
-<div id="outline-container-org114f94b" class="outline-3">
-<h3 id="org114f94b">High-level convenience functions</h3>
-<div class="outline-text-3" id="text-org114f94b">
+<div id="outline-container-orgf992ec8" class="outline-3">
+<h3 id="orgf992ec8">High-level convenience functions</h3>
+<div class="outline-text-3" id="text-orgf992ec8">
 <p>
 Several high-level convenience functions that encapsulate common
-sequences of <a href="#orgcfe879d">make-digest</a>, <a href="#org834ba3c">update-digest</a> and <a href="#orgda385b9">produce-digest</a> are
+sequences of <a href="#orgaea7009">make-digest</a>, <a href="#orgbf3e01d">update-digest</a> and <a href="#orgc4e5dff">produce-digest</a> are
 provided by Ironclad as well. They come in two flavors: the first
-takes a digest name as would be provided to <a href="#orgcfe879d">make-digest</a>. The second
+takes a digest name as would be provided to <a href="#orgaea7009">make-digest</a>. The second
 way to call these functions is to provide an actual digest object as
 the first argument. So one can say:
 </p>
@@ -665,12 +682,12 @@ or, equivalently:
 </pre>
 
 <p>
-The second form comes in handy if you plan on <a href="#org0c077c0">reusing the digest object</a>.
+The second form comes in handy if you plan on <a href="#orgeac99b0">reusing the digest object</a>.
 </p>
 
 
 <div class="org-src-container">
-<pre class="src src-lisp" id="org478d30f">(digest-sequence digest-spec sequence <span style="font-weight: bold; text-decoration: underline;">&amp;rest</span> args <span style="font-weight: bold; text-decoration: underline;">&amp;key</span> start end digest digest-start) =&gt; digest
+<pre class="src src-lisp" id="org5b06eac">(digest-sequence digest-spec sequence <span style="font-weight: bold; text-decoration: underline;">&amp;rest</span> args <span style="font-weight: bold; text-decoration: underline;">&amp;key</span> start end digest digest-start) =&gt; digest
 </pre>
 </div>
 
@@ -678,12 +695,12 @@ The second form comes in handy if you plan on <a href="#org0c077c0">reusing the 
 Returns the digest of the subsequence of <i>sequence</i> bounded by <i>start</i>
 and <i>end</i>, according to <i>digest-name</i>. <i>sequence</i> must be
 a <code>(simple-array (unsigned-byte 8) (*))</code>. <i>digest</i> and <i>digest-start</i>
-are as in <a href="#orgda385b9">produce-digest</a>.
+are as in <a href="#orgc4e5dff">produce-digest</a>.
 </p>
 
 
 <div class="org-src-container">
-<pre class="src src-lisp" id="org117be74">(digest-stream digest-spec stream <span style="font-weight: bold; text-decoration: underline;">&amp;rest</span> args <span style="font-weight: bold; text-decoration: underline;">&amp;key</span> buffer start end digest digest-start) =&gt; digest
+<pre class="src src-lisp" id="orgf6c1415">(digest-stream digest-spec stream <span style="font-weight: bold; text-decoration: underline;">&amp;rest</span> args <span style="font-weight: bold; text-decoration: underline;">&amp;key</span> buffer start end digest digest-start) =&gt; digest
 </pre>
 </div>
 
@@ -692,7 +709,7 @@ Returns the digest of the contents of the stream specified by
 <i>stream</i>. <code>read-byte</code> must be a legal operation on <i>stream</i> and return
 an <code>(unsigned-byte 8)</code>. In a similar fashion, <code>read-sequence</code> on
 <i>stream</i> must support reading into a <code>(simple-array (unsigned-byte 8) (*))</code>.
-<i>digest</i> and <i>digest-start</i> are as in <a href="#orgda385b9">produce-digest</a>.
+<i>digest</i> and <i>digest-start</i> are as in <a href="#orgc4e5dff">produce-digest</a>.
 </p>
 
 <p>
@@ -703,13 +720,13 @@ the data from the stream.
 
 
 <div class="org-src-container">
-<pre class="src src-lisp" id="orgd8c0cb0">(digest-file digest-spec pathname <span style="font-weight: bold; text-decoration: underline;">&amp;rest</span> args <span style="font-weight: bold; text-decoration: underline;">&amp;key</span> buffer start end digest digest-start) =&gt; digest
+<pre class="src src-lisp" id="orgdeefa34">(digest-file digest-spec pathname <span style="font-weight: bold; text-decoration: underline;">&amp;rest</span> args <span style="font-weight: bold; text-decoration: underline;">&amp;key</span> buffer start end digest digest-start) =&gt; digest
 </pre>
 </div>
 
 <p>
 Returns the digest of the contents of the file named by <i>pathname</i>.
-<i>digest</i> and <i>digest-start</i> are as in <a href="#orgda385b9">produce-digest</a>.
+<i>digest</i> and <i>digest-start</i> are as in <a href="#orgc4e5dff">produce-digest</a>.
 </p>
 
 <p>
@@ -720,32 +737,32 @@ the data from the stream.
 </div>
 </div>
 
-<div id="outline-container-org3541b81" class="outline-3">
-<h3 id="org3541b81">Inquiry functions</h3>
-<div class="outline-text-3" id="text-org3541b81">
+<div id="outline-container-org40edfd8" class="outline-3">
+<h3 id="org40edfd8">Inquiry functions</h3>
+<div class="outline-text-3" id="text-org40edfd8">
 <div class="org-src-container">
-<pre class="src src-lisp" id="org837e304">(list-all-digests) =&gt; list
+<pre class="src src-lisp" id="org8585dc9">(list-all-digests) =&gt; list
 </pre>
 </div>
 
 <p>
-Returns a list whose elements may be validly passed to <a href="#orgcfe879d">make-digest</a>.
+Returns a list whose elements may be validly passed to <a href="#orgaea7009">make-digest</a>.
 </p>
 
 
 <div class="org-src-container">
-<pre class="src src-lisp" id="org7c7db06">(digest-supported-p name) =&gt; boolean
+<pre class="src src-lisp" id="org21abc45">(digest-supported-p name) =&gt; boolean
 </pre>
 </div>
 
 <p>
-Returns <code>t</code> if <i>name</i> would be in the list returned by <a href="#org837e304">list-all-digests</a>,
+Returns <code>t</code> if <i>name</i> would be in the list returned by <a href="#org8585dc9">list-all-digests</a>,
 <code>nil</code> otherwise.
 </p>
 
 
 <div class="org-src-container">
-<pre class="src src-lisp" id="orgbed4997">(digest-length digest) =&gt; number
+<pre class="src src-lisp" id="orgb2e1a3e">(digest-length digest) =&gt; number
 </pre>
 </div>
 
@@ -756,9 +773,9 @@ a digest-name or a digest instance.
 </div>
 </div>
 
-<div id="outline-container-org0c077c0" class="outline-3">
-<h3 id="org0c077c0">Miscellaneous</h3>
-<div class="outline-text-3" id="text-org0c077c0">
+<div id="outline-container-orgeac99b0" class="outline-3">
+<h3 id="orgeac99b0">Miscellaneous</h3>
+<div class="outline-text-3" id="text-orgeac99b0">
 <p>
 Ironclad digests are CLOS objects; the interesting thing about this
 for most purposes is that functions like <code>reinitialize-instance</code> are
@@ -783,9 +800,9 @@ supported. This means one can write a fairly efficient clone of the
 </div>
 </div>
 
-<div id="outline-container-org60eec45" class="outline-3">
-<h3 id="org60eec45">Tree hashes</h3>
-<div class="outline-text-3" id="text-org60eec45">
+<div id="outline-container-orgcdedef4" class="outline-3">
+<h3 id="orgcdedef4">Tree hashes</h3>
+<div class="outline-text-3" id="text-orgcdedef4">
 <p>
 Ironclad supports tree hashes, as described in <a href="http://web.archive.org/web/20080316033726/http://www.open-content.net/specs/draft-jchapweske-thex-02.html">Tree Hash EXchange format</a>.
 You create tree hashes as if you were creating a digest:
@@ -831,8 +848,8 @@ computed while computing the final tree hash.
 </div>
 </div>
 
-<div id="outline-container-org7845edc" class="outline-2">
-<h2 id="message-authentication-codes"><a id="org7845edc"></a>Message authentication codes</h2>
+<div id="outline-container-orgbe3bcff" class="outline-2">
+<h2 id="message-authentication-codes"><a id="orgbe3bcff"></a>Message authentication codes</h2>
 <div class="outline-text-2" id="text-message-authentication-codes">
 <p>
 A message authentication code is a cryptographic function of some data
@@ -856,14 +873,14 @@ Ironclad provides different kinds of MACs:
 
 
 <div class="org-src-container">
-<pre class="src src-lisp" id="orga8ff14a">(make-mac mac-name key <span style="font-weight: bold; text-decoration: underline;">&amp;rest</span> args) =&gt; mac
+<pre class="src src-lisp" id="orgf29f1fe">(make-mac mac-name key <span style="font-weight: bold; text-decoration: underline;">&amp;rest</span> args) =&gt; mac
 </pre>
 </div>
 
 <p>
 Return a MAC object initialized with a secret <i>key</i>. <i>mac-name</i> is
 a keyword naming the algorithm you wish <i>mac</i> to use. The supported
-MACs can be found by calling <a href="#orge849176">list-all-macs</a>. They are:
+MACs can be found by calling <a href="#org7fe3e17">list-all-macs</a>. They are:
 </p>
 <ul class="org-ul">
 <li>blake2-mac</li>
@@ -877,7 +894,7 @@ MACs can be found by calling <a href="#orge849176">list-all-macs</a>. They are:
 </ul>
 
 <p>
-Like for <a href="#orgcfe879d">make-digest</a>, <i>mac-name</i> should be a symbol in the <code>keyword</code>
+Like for <a href="#orgaea7009">make-digest</a>, <i>mac-name</i> should be a symbol in the <code>keyword</code>
 or <code>ironclad</code> packages.
 </p>
 
@@ -897,35 +914,35 @@ Some MACs take extra arguments that can be specified in <i>args</i>.
 </pre>
 
 <p>
-When making a Blake2 MAC, the length of the <i>key</i> passed to <a href="#orga8ff14a">make-mac</a>
+When making a Blake2 MAC, the length of the <i>key</i> passed to <a href="#orgf29f1fe">make-mac</a>
 must be 64 bytes.
 </p>
 
 <p>
-When making a Blake2s MAC, the length of the <i>key</i> passed to <a href="#orga8ff14a">make-mac</a>
+When making a Blake2s MAC, the length of the <i>key</i> passed to <a href="#orgf29f1fe">make-mac</a>
 must be 32 bytes.
 </p>
 
 <p>
-When making a CMAC, <i>cipher-name</i> must have a <a href="#org70f4c54">block-length</a> of either 8, 16, 32,
+When making a CMAC, <i>cipher-name</i> must have a <a href="#orgeaa4b9c">block-length</a> of either 8, 16, 32,
 64 or 128; this restriction is satisfied by many ciphers in Ironclad with the
 notable exception of stream ciphers. <i>key</i> must be an acceptable key for
 <i>cipher-name</i>.
 </p>
 
 <p>
-When making a GMAC, <i>cipher-name</i> must have a <a href="#org70f4c54">block-length</a> of 16. <i>key</i> must be
+When making a GMAC, <i>cipher-name</i> must have a <a href="#orgeaa4b9c">block-length</a> of 16. <i>key</i> must be
 an acceptable key for <i>cipher-name</i>. The length of <i>initialization-vector</i> must
 be 12 bytes.
 </p>
 
 <p>
-When making a Poly1305 MAC, the length of the <i>key</i> passed to <a href="#orga8ff14a">make-mac</a> must be
+When making a Poly1305 MAC, the length of the <i>key</i> passed to <a href="#orgf29f1fe">make-mac</a> must be
 32 bytes.
 </p>
 
 <p>
-When making a SipHash MAC, the length of the <i>key</i> passed to <a href="#orga8ff14a">make-mac</a> must be 16
+When making a SipHash MAC, the length of the <i>key</i> passed to <a href="#orgf29f1fe">make-mac</a> must be 16
 bytes. <i>digest-length</i> is 8 by default, but it can also be set to 16. By
 default, <i>compression-rounds</i> is 2 and <i>finalization-rounds</i> is 4.
 </p>
@@ -949,12 +966,12 @@ MAC objects support <code>reinitialize-instance</code>:
 </div>
 
 <p>
-The <i>:key</i> argument is the secret key, as provided to <a href="#orga8ff14a">make-mac</a>.
+The <i>:key</i> argument is the secret key, as provided to <a href="#orgf29f1fe">make-mac</a>.
 </p>
 
 
 <div class="org-src-container">
-<pre class="src src-lisp" id="orge76b7fb">(update-mac mac thing <span style="font-weight: bold; text-decoration: underline;">&amp;key</span> <span style="font-weight: bold; text-decoration: underline;">&amp;allow-other-keys</span>) =&gt; (values)
+<pre class="src src-lisp" id="org2421766">(update-mac mac thing <span style="font-weight: bold; text-decoration: underline;">&amp;key</span> <span style="font-weight: bold; text-decoration: underline;">&amp;allow-other-keys</span>) =&gt; (values)
 </pre>
 </div>
 
@@ -987,7 +1004,7 @@ suffice.
 
 
 <div class="org-src-container">
-<pre class="src src-lisp" id="org0b5d1a3">(produce-mac mac <span style="font-weight: bold; text-decoration: underline;">&amp;key</span> digest digest-start) =&gt; digest
+<pre class="src src-lisp" id="org6c9174d">(produce-mac mac <span style="font-weight: bold; text-decoration: underline;">&amp;key</span> digest digest-start) =&gt; digest
 </pre>
 </div>
 
@@ -1000,57 +1017,57 @@ compute a "rolling MAC" of a document.
 <p>
 If <i>digest</i> is provided, the computed digest will be placed into
 <i>digest</i> starting at <i>digest-start</i>. <i>digest</i> must be a
-<code>(simple-array (unsigned-byte 8) (*))</code>. An <a href="#org606d38c">insufficient-buffer-space</a>
+<code>(simple-array (unsigned-byte 8) (*))</code>. An <a href="#org3ac55d7">insufficient-buffer-space</a>
 error will be signaled if there is insufficient space in <i>digest</i>.
 </p>
 
 <p>
-The length of the digest returned by <a href="#org0b5d1a3">produce-mac</a> is determined by the
-kind of MAC and the extra arguments passed to <a href="#orga8ff14a">make-mac</a>:
+The length of the digest returned by <a href="#org6c9174d">produce-mac</a> is determined by the
+kind of MAC and the extra arguments passed to <a href="#orgf29f1fe">make-mac</a>:
 </p>
 <ul class="org-ul">
 <li>blake2-mac: from 1 to 64 bytes (64 by default)</li>
 <li>blake2s-mac: from 1 to 32 bytes (32 by default)</li>
-<li>cmac: <a href="#org70f4c54">block-length</a> of the <i>cipher-name</i> passed to <a href="#orga8ff14a">make-mac</a></li>
+<li>cmac: <a href="#orgeaa4b9c">block-length</a> of the <i>cipher-name</i> passed to <a href="#orgf29f1fe">make-mac</a></li>
 <li>gmac: 16 bytes</li>
-<li>hmac: <a href="#orgbed4997">digest-length</a> of the <i>digest-name</i> passed to <a href="#orga8ff14a">make-mac</a></li>
+<li>hmac: <a href="#orgb2e1a3e">digest-length</a> of the <i>digest-name</i> passed to <a href="#orgf29f1fe">make-mac</a></li>
 <li>poly1305: 16 bytes</li>
-<li>siphash: <i>digest-length</i> passed to <a href="#orga8ff14a">make-mac</a> (8 by default)</li>
-<li>skein-mac: <i>digest-length</i> passed to <a href="#orga8ff14a">make-mac</a> (64 by default)</li>
+<li>siphash: <i>digest-length</i> passed to <a href="#orgf29f1fe">make-mac</a> (8 by default)</li>
+<li>skein-mac: <i>digest-length</i> passed to <a href="#orgf29f1fe">make-mac</a> (64 by default)</li>
 </ul>
 </div>
 
-<div id="outline-container-org6f564b8" class="outline-3">
-<h3 id="org6f564b8">Inquiry functions</h3>
-<div class="outline-text-3" id="text-org6f564b8">
+<div id="outline-container-orgb90a983" class="outline-3">
+<h3 id="orgb90a983">Inquiry functions</h3>
+<div class="outline-text-3" id="text-orgb90a983">
 <div class="org-src-container">
-<pre class="src src-lisp" id="orge849176">(list-all-macs) =&gt; list
+<pre class="src src-lisp" id="org7fe3e17">(list-all-macs) =&gt; list
 </pre>
 </div>
 
 <p>
-Returns a list whose elements may be validly passed to <a href="#orga8ff14a">make-mac</a>.
+Returns a list whose elements may be validly passed to <a href="#orgf29f1fe">make-mac</a>.
 </p>
 
 
 <div class="org-src-container">
-<pre class="src src-lisp" id="org334811a">(mac-supported-p name) =&gt; boolean
+<pre class="src src-lisp" id="org9e33cc0">(mac-supported-p name) =&gt; boolean
 </pre>
 </div>
 
 <p>
-Returns <code>t</code> if <i>name</i> would be in the list returned by <a href="#orge849176">list-all-macs</a>,
+Returns <code>t</code> if <i>name</i> would be in the list returned by <a href="#org7fe3e17">list-all-macs</a>,
 <code>nil</code> otherwise.
 </p>
 </div>
 </div>
 </div>
 
-<div id="outline-container-org99971b9" class="outline-2">
-<h2 id="authenticated-encryption"><a id="org99971b9"></a>Authenticated encryption</h2>
+<div id="outline-container-org0bfaac2" class="outline-2">
+<h2 id="authenticated-encryption"><a id="org0bfaac2"></a>Authenticated encryption</h2>
 <div class="outline-text-2" id="text-authenticated-encryption">
 <div class="org-src-container">
-<pre class="src src-lisp" id="org131519f">(make-authenticated-encryption-mode name <span style="font-weight: bold; text-decoration: underline;">&amp;rest</span> args) =&gt; mode
+<pre class="src src-lisp" id="orga317270">(make-authenticated-encryption-mode name <span style="font-weight: bold; text-decoration: underline;">&amp;rest</span> args) =&gt; mode
 </pre>
 </div>
 
@@ -1060,7 +1077,7 @@ and decryption.
 </p>
 
 <p>
-<i>name</i> denotes the mode to use. <a href="#orgcc3825e">list-all-authenticated-encryption-modes</a> will
+<i>name</i> denotes the mode to use. <a href="#org2285bcd">list-all-authenticated-encryption-modes</a> will
 tell you the names of all the supported modes. They are:
 </p>
 <ul class="org-ul">
@@ -1087,8 +1104,8 @@ tell you the names of all the supported modes. They are:
 If <i>tag</i> is specified, it will be used at the end of decryption (when the
 <i>handle-final-block</i> flag is <code>t</code>) to check the authenticity of the data.
 A <code>bad-authentication-tag</code> error will be signaled if the data is not authentic.
-If you don't specify it, you will have to call <a href="#org61e94fb">produce-tag</a> after decryption and
-check that the tags match (e.g. using <a href="#org0a905df">constant-time-equal</a>).
+If you don't specify it, you will have to call <a href="#orgfebd94a">produce-tag</a> after decryption and
+check that the tags match (e.g. using <a href="#org8cf9406">constant-time-equal</a>).
 </p>
 
 <p>
@@ -1096,18 +1113,18 @@ When using EAX, <i>key</i> must be a suitable key for the chosen <i>cipher-name<
 </p>
 
 <p>
-When using ETM, <i>cipher</i> must be a cipher object created by <a href="#orgaa1aaf5">make-cipher</a>.
-<i>mac</i> must be a mac object created by <a href="#orga8ff14a">make-mac</a>.
+When using ETM, <i>cipher</i> must be a cipher object created by <a href="#org73399d6">make-cipher</a>.
+<i>mac</i> must be a mac object created by <a href="#orgf29f1fe">make-mac</a>.
 </p>
 
 <p>
-When using GCM, <i>cipher-name</i> must have a <a href="#org70f4c54">block-length</a> of 16 bytes. <i>key</i> must be a suitable key
+When using GCM, <i>cipher-name</i> must have a <a href="#orgeaa4b9c">block-length</a> of 16 bytes. <i>key</i> must be a suitable key
 for the chosen cipher. The length of <i>initialization-vector</i> must be 12 bytes.
 </p>
 
 
 <div class="org-src-container">
-<pre class="src src-lisp" id="orgf11aa50">(process-associated-data mode data <span style="font-weight: bold; text-decoration: underline;">&amp;key</span> start end) =&gt; (values)
+<pre class="src src-lisp" id="org573da93">(process-associated-data mode data <span style="font-weight: bold; text-decoration: underline;">&amp;key</span> start end) =&gt; (values)
 </pre>
 </div>
 
@@ -1118,8 +1135,8 @@ and <i>end</i> so that they are taken into consideration in the authentication t
 
 
 <p>
-An authenticated encryption object can be used with the <a href="#orga6d905e">encrypt</a>, <a href="#org6df1160">decrypt</a>,
-<a href="#org42d8b7a">encrypt-message</a> and <a href="#org1fb4a9f">decrypt-message</a> functions.
+An authenticated encryption object can be used with the <a href="#org3fde04c">encrypt</a>, <a href="#org38f987f">decrypt</a>,
+<a href="#org4faf3f9">encrypt-message</a> and <a href="#org1ed70c3">decrypt-message</a> functions.
 </p>
 
 <pre class="example">
@@ -1131,7 +1148,7 @@ An authenticated encryption object can be used with the <a href="#orga6d905e">en
 
 
 <div class="org-src-container">
-<pre class="src src-lisp" id="org61e94fb">(produce-tag mode <span style="font-weight: bold; text-decoration: underline;">&amp;key</span> tag tag-start) =&gt; tag
+<pre class="src src-lisp" id="orgfebd94a">(produce-tag mode <span style="font-weight: bold; text-decoration: underline;">&amp;key</span> tag tag-start) =&gt; tag
 </pre>
 </div>
 
@@ -1139,40 +1156,40 @@ An authenticated encryption object can be used with the <a href="#orga6d905e">en
 Return the authentication tag of the data processed by <i>mode</i> so far. If <i>tag</i>
 is provided, the computed tag will be placed into <i>tag</i> starting at <i>tag-start</i>.
 <i>tag</i> must be a <code>(simple-array (unsigned-byte 8) (*))</code>. An
-<a href="#org606d38c">insufficient-buffer-space</a> error will be signaled if there is insufficient space
+<a href="#org3ac55d7">insufficient-buffer-space</a> error will be signaled if there is insufficient space
 in <i>tag</i>.
 </p>
 </div>
 
-<div id="outline-container-orgf5bc7d5" class="outline-3">
-<h3 id="orgf5bc7d5">Inquiry functions</h3>
-<div class="outline-text-3" id="text-orgf5bc7d5">
+<div id="outline-container-org8d71d85" class="outline-3">
+<h3 id="org8d71d85">Inquiry functions</h3>
+<div class="outline-text-3" id="text-org8d71d85">
 <div class="org-src-container">
-<pre class="src src-lisp" id="orgcc3825e">(list-all-authenticated-encryption-modes) =&gt; list
+<pre class="src src-lisp" id="org2285bcd">(list-all-authenticated-encryption-modes) =&gt; list
 </pre>
 </div>
 
 <p>
 Returns a list whose elements may be validly passed to
-<a href="#org131519f">make-authenticated-encryption-mode</a>.
+<a href="#orga317270">make-authenticated-encryption-mode</a>.
 </p>
 
 
 <div class="org-src-container">
-<pre class="src src-lisp" id="org780041c">(authenticated-encryption-mode-supported-p name) =&gt; boolean
+<pre class="src src-lisp" id="org664b022">(authenticated-encryption-mode-supported-p name) =&gt; boolean
 </pre>
 </div>
 
 <p>
 Returns <code>t</code> if <i>name</i> would be in the list returned by
-<a href="#orgcc3825e">list-all-authenticated-encryption-modes</a> <code>nil</code> otherwise.
+<a href="#org2285bcd">list-all-authenticated-encryption-modes</a> <code>nil</code> otherwise.
 </p>
 </div>
 </div>
 </div>
 
-<div id="outline-container-org1430f4c" class="outline-2">
-<h2 id="key-derivation-functions"><a id="org1430f4c"></a>Key derivation functions</h2>
+<div id="outline-container-org5f99f6f" class="outline-2">
+<h2 id="key-derivation-functions"><a id="org5f99f6f"></a>Key derivation functions</h2>
 <div class="outline-text-2" id="text-key-derivation-functions">
 <p>
 Ironclad comes with a few key derivation functions:
@@ -1186,12 +1203,12 @@ Ironclad comes with a few key derivation functions:
 
 
 <div class="org-src-container">
-<pre class="src src-lisp" id="org4a80684">(derive-key kdf passphrase salt iteration-count key-length) =&gt; digest
+<pre class="src src-lisp" id="orgd4a5dfe">(derive-key kdf passphrase salt iteration-count key-length) =&gt; digest
 </pre>
 </div>
 
 <p>
-Given a key derivation function object (produced by <a href="#org018df03">make-kdf</a>),
+Given a key derivation function object (produced by <a href="#org02da8f6">make-kdf</a>),
 a password and salt (both must be of type
 <code>(simple-array (unsigned-byte 8) (*))</code>), and number of iterations,
 returns the password digest as a byte array of length <i>key-length</i>.
@@ -1203,7 +1220,7 @@ Scrypt ignores the <i>iteration-count</i> parameter.
 
 
 <div class="org-src-container">
-<pre class="src src-lisp" id="org018df03">(make-kdf kind <span style="font-weight: bold; text-decoration: underline;">&amp;key</span> digest n r p block-count additional-key additional-data) =&gt; kdf
+<pre class="src src-lisp" id="org02da8f6">(make-kdf kind <span style="font-weight: bold; text-decoration: underline;">&amp;key</span> digest n r p block-count additional-key additional-data) =&gt; kdf
 </pre>
 </div>
 
@@ -1224,14 +1241,14 @@ memory cost parameters that must be defined such that
 <p>
 The default Scrypt parameters are <i>N</i> = 4096, <i>r</i> = 8, and <i>p</i> = 2.
 Please note that depending on the values of <i>N</i> and <i>r</i>,
-<a href="#org4a80684">derive-key</a> may not be able to allocate sufficient space for its
+<a href="#orgd4a5dfe">derive-key</a> may not be able to allocate sufficient space for its
 temporary arrays.
 </p>
 </div>
 
-<div id="outline-container-orgd2f85bd" class="outline-3">
-<h3 id="orgd2f85bd">PBKDF convenience functions</h3>
-<div class="outline-text-3" id="text-orgd2f85bd">
+<div id="outline-container-orgdb9210e" class="outline-3">
+<h3 id="orgdb9210e">PBKDF convenience functions</h3>
+<div class="outline-text-3" id="text-orgdb9210e">
 <p>
 Ironclad comes with convenience functions for using PBKDF1 and PBKDF2
 to store passwords.
@@ -1239,7 +1256,7 @@ to store passwords.
 
 
 <div class="org-src-container">
-<pre class="src src-lisp" id="orgbcedbab">(pbkdf2-hash-password password <span style="font-weight: bold; text-decoration: underline;">&amp;key</span> salt digest iterations) =&gt; password
+<pre class="src src-lisp" id="orgb079b90">(pbkdf2-hash-password password <span style="font-weight: bold; text-decoration: underline;">&amp;key</span> salt digest iterations) =&gt; password
 </pre>
 </div>
 
@@ -1251,7 +1268,7 @@ byte vectors.
 
 
 <div class="org-src-container">
-<pre class="src src-lisp" id="orgaf56646">(pbkdf2-hash-password-to-combined-string password <span style="font-weight: bold; text-decoration: underline;">&amp;key</span> salt digest iterations) =&gt; password
+<pre class="src src-lisp" id="org79af512">(pbkdf2-hash-password-to-combined-string password <span style="font-weight: bold; text-decoration: underline;">&amp;key</span> salt digest iterations) =&gt; password
 </pre>
 </div>
 
@@ -1263,21 +1280,21 @@ encodes the given salt and PBKDF2 algorithm parameters.
 
 
 <div class="org-src-container">
-<pre class="src src-lisp" id="org4b43d8d">(pbkdf2-check-password password combined-salt-and-digest) =&gt; boolean
+<pre class="src src-lisp" id="org5392d4e">(pbkdf2-check-password password combined-salt-and-digest) =&gt; boolean
 </pre>
 </div>
 
 <p>
 Given a <i>password</i> byte vector and a combined salt and digest string
-produced by <a href="#orgaf56646">pbkdf2-hash-password-to-combined-string</a>, checks whether
+produced by <a href="#org79af512">pbkdf2-hash-password-to-combined-string</a>, checks whether
 the password is valid.
 </p>
 </div>
 </div>
 </div>
 
-<div id="outline-container-org31dc63e" class="outline-2">
-<h2 id="public-key-cryptography"><a id="org31dc63e"></a>Public key cryptography</h2>
+<div id="outline-container-org5d940af" class="outline-2">
+<h2 id="public-key-cryptography"><a id="org5d940af"></a>Public key cryptography</h2>
 <div class="outline-text-2" id="text-public-key-cryptography">
 <p>
 Ironclad includes support for a few public key cryptography algorithms.
@@ -1312,11 +1329,11 @@ Diffie-Hellman key exchange:
 </ul>
 </div>
 
-<div id="outline-container-orgc907ab2" class="outline-3">
-<h3 id="orgc907ab2">Key pair generation</h3>
-<div class="outline-text-3" id="text-orgc907ab2">
+<div id="outline-container-orga402877" class="outline-3">
+<h3 id="orga402877">Key pair generation</h3>
+<div class="outline-text-3" id="text-orga402877">
 <div class="org-src-container">
-<pre class="src src-lisp" id="orge77921e">(generate-key-pair kind <span style="font-weight: bold; text-decoration: underline;">&amp;key</span> num-bits <span style="font-weight: bold; text-decoration: underline;">&amp;allow-other-keys</span>) =&gt; private-key, public-key
+<pre class="src src-lisp" id="org7b7b700">(generate-key-pair kind <span style="font-weight: bold; text-decoration: underline;">&amp;key</span> num-bits <span style="font-weight: bold; text-decoration: underline;">&amp;allow-other-keys</span>) =&gt; private-key, public-key
 </pre>
 </div>
 
@@ -1339,11 +1356,11 @@ a Diffie-Hellman exchange with Bob's Elgamal key pair:
 </pre>
 </div>
 
-<div id="outline-container-orgb451392" class="outline-4">
-<h4 id="orgb451392">Key construction</h4>
-<div class="outline-text-4" id="text-orgb451392">
+<div id="outline-container-org4b73d27" class="outline-4">
+<h4 id="org4b73d27">Key construction</h4>
+<div class="outline-text-4" id="text-org4b73d27">
 <div class="org-src-container">
-<pre class="src src-lisp" id="org5355db0">(make-public-key kind <span style="font-weight: bold; text-decoration: underline;">&amp;key</span> <span style="font-weight: bold; text-decoration: underline;">&amp;allow-other-keys</span>) =&gt; public-key
+<pre class="src src-lisp" id="org7e48c8c">(make-public-key kind <span style="font-weight: bold; text-decoration: underline;">&amp;key</span> <span style="font-weight: bold; text-decoration: underline;">&amp;allow-other-keys</span>) =&gt; public-key
 </pre>
 </div>
 
@@ -1365,7 +1382,7 @@ methods that specialize on <i>kind</i>, below.
 
 
 <div class="org-src-container">
-<pre class="src src-lisp" id="org4e76c66">(make-private-key kind <span style="font-weight: bold; text-decoration: underline;">&amp;key</span> <span style="font-weight: bold; text-decoration: underline;">&amp;allow-other-keys</span>) =&gt; private-key
+<pre class="src src-lisp" id="org761f30f">(make-private-key kind <span style="font-weight: bold; text-decoration: underline;">&amp;key</span> <span style="font-weight: bold; text-decoration: underline;">&amp;allow-other-keys</span>) =&gt; private-key
 </pre>
 </div>
 
@@ -1417,43 +1434,43 @@ For RSA keys, the type of the parameters is <code>integer</code>:
 </div>
 </div>
 
-<div id="outline-container-org25fbd11" class="outline-4">
-<h4 id="org25fbd11">Key destructuring</h4>
-<div class="outline-text-4" id="text-org25fbd11">
+<div id="outline-container-org7a2d48a" class="outline-4">
+<h4 id="org7a2d48a">Key destructuring</h4>
+<div class="outline-text-4" id="text-org7a2d48a">
 <p>
-The <a href="#org5aaa70a">destructure-public-key</a> and <a href="#org8360125">destructure-private-key</a> functions can
+The <a href="#org6963710">destructure-public-key</a> and <a href="#orga4bb79b">destructure-private-key</a> functions can
 be useful if you need to store keys somewhere for future use.
 </p>
 
 <div class="org-src-container">
-<pre class="src src-lisp" id="org5aaa70a">(destructure-public-key public-key) =&gt; plist
+<pre class="src src-lisp" id="org6963710">(destructure-public-key public-key) =&gt; plist
 </pre>
 </div>
 
 <p>
 Return the elements of a public key in a plist. The indicators of the
-plist match the <i>&amp;key</i> arguments of the <a href="#org5355db0">make-public-key</a> method.
+plist match the <i>&amp;key</i> arguments of the <a href="#org7e48c8c">make-public-key</a> method.
 </p>
 
 
 <div class="org-src-container">
-<pre class="src src-lisp" id="org8360125">(destructure-private-key private-key) =&gt; plist
+<pre class="src src-lisp" id="orga4bb79b">(destructure-private-key private-key) =&gt; plist
 </pre>
 </div>
 
 <p>
 Return the elements of a private key in a plist. The indicators of the
-plist match the <i>&amp;key</i> arguments of the <a href="#org4e76c66">make-private-key</a> method.
+plist match the <i>&amp;key</i> arguments of the <a href="#org761f30f">make-private-key</a> method.
 </p>
 </div>
 </div>
 </div>
 
-<div id="outline-container-org63ac1a9" class="outline-3">
-<h3 id="org63ac1a9">Digital signatures</h3>
-<div class="outline-text-3" id="text-org63ac1a9">
+<div id="outline-container-org6674bf0" class="outline-3">
+<h3 id="org6674bf0">Digital signatures</h3>
+<div class="outline-text-3" id="text-org6674bf0">
 <div class="org-src-container">
-<pre class="src src-lisp" id="org749b89a">(sign-message key message <span style="font-weight: bold; text-decoration: underline;">&amp;key</span> start end <span style="font-weight: bold; text-decoration: underline;">&amp;allow-other-keys</span>) =&gt; signature
+<pre class="src src-lisp" id="orgb46302b">(sign-message key message <span style="font-weight: bold; text-decoration: underline;">&amp;key</span> start end <span style="font-weight: bold; text-decoration: underline;">&amp;allow-other-keys</span>) =&gt; signature
 </pre>
 </div>
 
@@ -1464,14 +1481,14 @@ Return a signature of <i>message</i> between <i>start</i> and <i>end</i> signed 
 </p>
 
 <p>
-<span class="underline">Note:</span> The <a href="#org749b89a">sign-message</a> does not perform the hashing of the data. You
+<span class="underline">Note:</span> The <a href="#orgb46302b">sign-message</a> does not perform the hashing of the data. You
 should hash your data using your favorite hash function, and then use
-this hash as the <i>message</i> passed to <a href="#org749b89a">sign-message</a>.
+this hash as the <i>message</i> passed to <a href="#orgb46302b">sign-message</a>.
 </p>
 
 
 <div class="org-src-container">
-<pre class="src src-lisp" id="org8f288bf">(verify-signature key message signature <span style="font-weight: bold; text-decoration: underline;">&amp;key</span> start end <span style="font-weight: bold; text-decoration: underline;">&amp;allow-other-keys</span>) =&gt; boolean
+<pre class="src src-lisp" id="org830fa18">(verify-signature key message signature <span style="font-weight: bold; text-decoration: underline;">&amp;key</span> start end <span style="font-weight: bold; text-decoration: underline;">&amp;allow-other-keys</span>) =&gt; boolean
 </pre>
 </div>
 
@@ -1482,9 +1499,9 @@ and <code>nil</code> otherwise.
 </p>
 </div>
 
-<div id="outline-container-org6b3f6be" class="outline-4">
-<h4 id="org6b3f6be">Padding</h4>
-<div class="outline-text-4" id="text-org6b3f6be">
+<div id="outline-container-orgc11ca07" class="outline-4">
+<h4 id="orgc11ca07">Padding</h4>
+<div class="outline-text-4" id="text-orgc11ca07">
 <p>
 To be secure, RSA signature requires the message to be padded.
 The <i>pss</i> key parameter is provided to pad (or unpad) the message
@@ -1505,22 +1522,22 @@ necessary.
 </div>
 </div>
 
-<div id="outline-container-orga1ad33a" class="outline-4">
-<h4 id="orga1ad33a">Format of signatures</h4>
-<div class="outline-text-4" id="text-orga1ad33a">
+<div id="outline-container-org45787db" class="outline-4">
+<h4 id="org45787db">Format of signatures</h4>
+<div class="outline-text-4" id="text-org45787db">
 <p>
-<a href="#org749b89a">sign-message</a> returns signatures as octet vectors. When the signature
+<a href="#orgb46302b">sign-message</a> returns signatures as octet vectors. When the signature
 contains several values (e.g. the R and S values of DSA signatures),
 the octet vector is the concatenation of these values (e.g. the first
 half of the vector is the R value, the second half is the S value).
-You can use the <a href="#org7b1de28">make-signature</a> and <a href="#org703c3fb">destructure-signature</a> functions if
+You can use the <a href="#orgcef64ba">make-signature</a> and <a href="#org85504bf">destructure-signature</a> functions if
 you need access to the elements of a signature (e.g. to use
 a different kind of serialization).
 </p>
 
 
 <div class="org-src-container">
-<pre class="src src-lisp" id="org7b1de28">(make-signature kind <span style="font-weight: bold; text-decoration: underline;">&amp;key</span> <span style="font-weight: bold; text-decoration: underline;">&amp;allow-other-keys</span>) =&gt; signature
+<pre class="src src-lisp" id="orgcef64ba">(make-signature kind <span style="font-weight: bold; text-decoration: underline;">&amp;key</span> <span style="font-weight: bold; text-decoration: underline;">&amp;allow-other-keys</span>) =&gt; signature
 </pre>
 </div>
 
@@ -1555,23 +1572,23 @@ For RSA signatures, the type of the parameters <i>s</i> and <i>n-bits</i> is
 
 
 <div class="org-src-container">
-<pre class="src src-lisp" id="org703c3fb">(destructure-signature kind signature) =&gt; plist
+<pre class="src src-lisp" id="org85504bf">(destructure-signature kind signature) =&gt; plist
 </pre>
 </div>
 
 <p>
 Return the elements of a signature in a plist. The indicators of the
-plist match the <i>&amp;key</i> arguments of the <a href="#org7b1de28">make-signature</a> method.
+plist match the <i>&amp;key</i> arguments of the <a href="#orgcef64ba">make-signature</a> method.
 </p>
 </div>
 </div>
 </div>
 
-<div id="outline-container-org13959f4" class="outline-3">
-<h3 id="org13959f4">Encryption and decryption</h3>
-<div class="outline-text-3" id="text-org13959f4">
+<div id="outline-container-org389506a" class="outline-3">
+<h3 id="org389506a">Encryption and decryption</h3>
+<div class="outline-text-3" id="text-org389506a">
 <div class="org-src-container">
-<pre class="src src-lisp" id="org42d8b7a">(encrypt-message key message <span style="font-weight: bold; text-decoration: underline;">&amp;key</span> start end <span style="font-weight: bold; text-decoration: underline;">&amp;allow-other-keys</span>) =&gt; encrypted-message
+<pre class="src src-lisp" id="org4faf3f9">(encrypt-message key message <span style="font-weight: bold; text-decoration: underline;">&amp;key</span> start end <span style="font-weight: bold; text-decoration: underline;">&amp;allow-other-keys</span>) =&gt; encrypted-message
 </pre>
 </div>
 
@@ -1582,7 +1599,7 @@ the class of <i>key</i> determines the algorithm used to encrypt the message.
 
 
 <div class="org-src-container">
-<pre class="src src-lisp" id="org1fb4a9f">(decrypt-message key message <span style="font-weight: bold; text-decoration: underline;">&amp;key</span> start end n-bits <span style="font-weight: bold; text-decoration: underline;">&amp;allow-other-keys</span>) =&gt; decrypted-message
+<pre class="src src-lisp" id="org1ed70c3">(decrypt-message key message <span style="font-weight: bold; text-decoration: underline;">&amp;key</span> start end n-bits <span style="font-weight: bold; text-decoration: underline;">&amp;allow-other-keys</span>) =&gt; decrypted-message
 </pre>
 </div>
 
@@ -1595,9 +1612,9 @@ without padding, which is probably a bad idea, c.f. Padding section).
 </p>
 </div>
 
-<div id="outline-container-orgfab4617" class="outline-4">
-<h4 id="orgfab4617">Padding</h4>
-<div class="outline-text-4" id="text-orgfab4617">
+<div id="outline-container-orgdb9ca6a" class="outline-4">
+<h4 id="orgdb9ca6a">Padding</h4>
+<div class="outline-text-4" id="text-orgdb9ca6a">
 <p>
 To be secure, RSA encryption requires the message to be padded. The
 <i>oaep</i> key parameter is provided to pad (or unpad) the message during
@@ -1618,23 +1635,23 @@ necessary.
 </div>
 </div>
 
-<div id="outline-container-orgf1640fe" class="outline-4">
-<h4 id="orgf1640fe">Format of messages</h4>
-<div class="outline-text-4" id="text-orgf1640fe">
+<div id="outline-container-orgab6864a" class="outline-4">
+<h4 id="orgab6864a">Format of messages</h4>
+<div class="outline-text-4" id="text-orgab6864a">
 <p>
-<a href="#org42d8b7a">encrypt-message</a> returns encrypted messages as octet vectors. When the
+<a href="#org4faf3f9">encrypt-message</a> returns encrypted messages as octet vectors. When the
 message contains several values (e.g. the C1 and C2 values of Elgamal
 messages), the octet vector is the concatenation of these values (e.g.
 the first half of the vector is the big-endian representation of the
 C1 value, the second half is the C2 value). You can use the
-<a href="#org671f556">make-message</a> and <a href="#org37925de">destructure-message</a> functions if you need access to
+<a href="#org2175cb8">make-message</a> and <a href="#org629b616">destructure-message</a> functions if you need access to
 the elements of a message (e.g. to use a different kind of
 serialization).
 </p>
 
 
 <div class="org-src-container">
-<pre class="src src-lisp" id="org671f556">(make-message kind <span style="font-weight: bold; text-decoration: underline;">&amp;key</span> <span style="font-weight: bold; text-decoration: underline;">&amp;allow-other-keys</span>) =&gt; message
+<pre class="src src-lisp" id="org2175cb8">(make-message kind <span style="font-weight: bold; text-decoration: underline;">&amp;key</span> <span style="font-weight: bold; text-decoration: underline;">&amp;allow-other-keys</span>) =&gt; message
 </pre>
 </div>
 
@@ -1661,23 +1678,23 @@ For RSA signatures, the type of the parameters <i>m</i> and <i>n-bits</i> is
 
 
 <div class="org-src-container">
-<pre class="src src-lisp" id="org37925de">(destructure-message kind message) =&gt; plist
+<pre class="src src-lisp" id="org629b616">(destructure-message kind message) =&gt; plist
 </pre>
 </div>
 
 <p>
 Return the elements of a message in a plist. The indicators of the
-plist match the <i>&amp;key</i> arguments of the <a href="#org671f556">make-message</a> method.
+plist match the <i>&amp;key</i> arguments of the <a href="#org2175cb8">make-message</a> method.
 </p>
 </div>
 </div>
 </div>
 
-<div id="outline-container-org31f4a1b" class="outline-3">
-<h3 id="org31f4a1b">Diffie-Hellman key exchange</h3>
-<div class="outline-text-3" id="text-org31f4a1b">
+<div id="outline-container-org8fcec69" class="outline-3">
+<h3 id="org8fcec69">Diffie-Hellman key exchange</h3>
+<div class="outline-text-3" id="text-org8fcec69">
 <div class="org-src-container">
-<pre class="src src-lisp" id="org5479b07">(diffie-hellman private-key public-key) =&gt; bytes
+<pre class="src src-lisp" id="orgb39c79f">(diffie-hellman private-key public-key) =&gt; bytes
 </pre>
 </div>
 
@@ -1690,8 +1707,8 @@ compatible, i.e. have the same group parameters).
 </div>
 </div>
 
-<div id="outline-container-org1e4b785" class="outline-2">
-<h2 id="pseudo-random-number-generation"><a id="org1e4b785"></a>Pseudo-random number generation</h2>
+<div id="outline-container-orgc994e20" class="outline-2">
+<h2 id="pseudo-random-number-generation"><a id="orgc994e20"></a>Pseudo-random number generation</h2>
 <div class="outline-text-2" id="text-pseudo-random-number-generation">
 <p>
 The <code>*prng*</code> special variable indicates which pseudo-random number
@@ -1712,7 +1729,7 @@ use <code>os-prng</code>, which is the default.
 
 
 <div class="org-src-container">
-<pre class="src src-lisp" id="orgbe22db4">(make-prng name <span style="font-weight: bold; text-decoration: underline;">&amp;key</span> seed) =&gt; prng
+<pre class="src src-lisp" id="orgcc70c75">(make-prng name <span style="font-weight: bold; text-decoration: underline;">&amp;key</span> seed) =&gt; prng
 </pre>
 </div>
 
@@ -1721,7 +1738,7 @@ Create a pseudo-random number generator.
 </p>
 
 <p>
-<i>name</i> denotes the style of PRNG to use. <a href="#org558b829">list-all-prngs</a> will tell you
+<i>name</i> denotes the style of PRNG to use. <a href="#org55dd8da">list-all-prngs</a> will tell you
 the names of all supported PRNGs. Currently supported PRNGs are:
 </p>
 <ul class="org-ul">
@@ -1749,15 +1766,18 @@ be used to seed the PRNG.
 </p>
 
 <p>
-In single-threaded applications, you should very rarely need to call <a href="#orgbe22db4">make-prng</a>;
+In single-threaded applications, you should very rarely need to call <a href="#orgcc70c75">make-prng</a>;
 the default OS-provided PRNG should be appropriate in nearly all cases.
 </p>
 
 <p>
 In multi-threaded applications, each thread that will use functions requiring
 random data must have its own PRNG, or several threads might generate the same
-"random" data. This can be done by binding the <code>*prng*</code> special variable just
-after creating the threads, for example:
+"random" data. If the threads are created using the <b>bordeaux-threads</b> library
+(or by a library using <b>bordeaux-threads</b>, like <b>lparallel</b>), this is done
+automatically. However, if you are using the threading functions of your Common
+Lisp implementation directly, you have to bind the <code>*prng*</code> special variable to
+a new PRNG in each thread. For example:
 </p>
 
 <pre class="example">
@@ -1772,7 +1792,7 @@ after creating the threads, for example:
 
 
 <div class="org-src-container">
-<pre class="src src-lisp" id="org558b829">(list-all-prngs) =&gt; list
+<pre class="src src-lisp" id="org55dd8da">(list-all-prngs) =&gt; list
 </pre>
 </div>
 
@@ -1782,7 +1802,7 @@ List all known PRNG types.
 
 
 <div class="org-src-container">
-<pre class="src src-lisp" id="org308e1b0">(random-data num-bytes <span style="font-weight: bold; text-decoration: underline;">&amp;optional</span> prng) =&gt; bytes
+<pre class="src src-lisp" id="org372d879">(random-data num-bytes <span style="font-weight: bold; text-decoration: underline;">&amp;optional</span> prng) =&gt; bytes
 </pre>
 </div>
 
@@ -1793,7 +1813,7 @@ state of the generator.
 
 
 <div class="org-src-container">
-<pre class="src src-lisp" id="org79c7a03">(random-bits num-bits <span style="font-weight: bold; text-decoration: underline;">&amp;optional</span> prng) =&gt; integer
+<pre class="src src-lisp" id="org9de49ec">(random-bits num-bits <span style="font-weight: bold; text-decoration: underline;">&amp;optional</span> prng) =&gt; integer
 </pre>
 </div>
 
@@ -1803,19 +1823,19 @@ Generate an integer with <i>num-bits</i> bits.
 
 
 <div class="org-src-container">
-<pre class="src src-lisp" id="orgca722fd">(strong-random limit <span style="font-weight: bold; text-decoration: underline;">&amp;optional</span> prng) =&gt; number
+<pre class="src src-lisp" id="orge6bed6d">(strong-random limit <span style="font-weight: bold; text-decoration: underline;">&amp;optional</span> prng) =&gt; number
 </pre>
 </div>
 
 <p>
-A drop-in replacement for <code>common-lisp:random</code>, <a href="#orgca722fd">strong-random</a>
+A drop-in replacement for <code>common-lisp:random</code>, <a href="#orge6bed6d">strong-random</a>
 generates a number (an integer if <i>limit</i> is an integer and a float if
 it is a float) between 0 and <i>limit</i> - 1 in an unbiased fashion.
 </p>
 
 
 <div class="org-src-container">
-<pre class="src src-lisp" id="org88bc4c3">(read-os-random-seed source <span style="font-weight: bold; text-decoration: underline;">&amp;optional</span> prng) =&gt; reseed-count
+<pre class="src src-lisp" id="org9717faa">(read-os-random-seed source <span style="font-weight: bold; text-decoration: underline;">&amp;optional</span> prng) =&gt; reseed-count
 </pre>
 </div>
 
@@ -1832,14 +1852,14 @@ on Unix; <code>CryptGenRandom</code> on Windows) and reseed <i>prng</i>.
 
 
 <div class="org-src-container">
-<pre class="src src-lisp" id="orgdfd4ea6">(read-seed path <span style="font-weight: bold; text-decoration: underline;">&amp;optional</span> prng) =&gt; t
+<pre class="src src-lisp" id="orgf98ea00">(read-seed path <span style="font-weight: bold; text-decoration: underline;">&amp;optional</span> prng) =&gt; t
 </pre>
 </div>
 
 <p>
 Read enough bytes from <i>path</i> to reseed <i>prng</i>, then generate
 a pseudo-random seed and write it back to <i>path</i>. If <i>path</i> doesn't
-exist, calls <a href="#org88bc4c3">read-os-random-seed</a> to get a truly random seed from the
+exist, calls <a href="#org9717faa">read-os-random-seed</a> to get a truly random seed from the
 OS. Note that reseeding does <b>not</b> reset the generator's state to the
 seed value; rather, it <b>combines</b> the generator's state with the seed
 to form a new state.
@@ -1847,7 +1867,7 @@ to form a new state.
 
 
 <div class="org-src-container">
-<pre class="src src-lisp" id="orgc624ac0">(write-seed path <span style="font-weight: bold; text-decoration: underline;">&amp;optional</span> prng) =&gt; t
+<pre class="src src-lisp" id="org766d547">(write-seed path <span style="font-weight: bold; text-decoration: underline;">&amp;optional</span> prng) =&gt; t
 </pre>
 </div>
 
@@ -1856,9 +1876,9 @@ Generate enough random data to reseed <i>prng</i>, then write it to <i>path</i>.
 </p>
 </div>
 
-<div id="outline-container-org3cf4d33" class="outline-3">
-<h3 id="org3cf4d33">Example</h3>
-<div class="outline-text-3" id="text-org3cf4d33">
+<div id="outline-container-orgb8fe663" class="outline-3">
+<h3 id="orgb8fe663">Example</h3>
+<div class="outline-text-3" id="text-orgb8fe663">
 <pre class="example">
 (crypto:random-data 16)
 =&gt; #(61 145 133 130 220 200 90 86 0 101 62 169 0 40 101 78)
@@ -1872,9 +1892,9 @@ Generate enough random data to reseed <i>prng</i>, then write it to <i>path</i>.
 </div>
 </div>
 
-<div id="outline-container-orge80b658" class="outline-3">
-<h3 id="orge80b658">Fortuna</h3>
-<div class="outline-text-3" id="text-orge80b658">
+<div id="outline-container-orgcac07c8" class="outline-3">
+<h3 id="orgcac07c8">Fortuna</h3>
+<div class="outline-text-3" id="text-orgcac07c8">
 <p>
 You should only use the Fortuna PRNG if your OS does not provided
 a sufficiently-good PRNG. If you use a Unix or Unix-like OS (e.g.
@@ -1903,7 +1923,7 @@ spread entropy across all 32 pools.
 
 <p>
 Fortuna automatically feeds entropy from the pools back into its
-random state when <a href="#org308e1b0">random-data</a> is called, using a method designed to
+random state when <a href="#org372d879">random-data</a> is called, using a method designed to
 make it resistant to various avenues of attack; even in case of
 generator compromise it will return to a safe state within a bounded
 time.
@@ -1923,7 +1943,7 @@ It also will not reseed more than ten times per second.
 
 
 <div class="org-src-container">
-<pre class="src src-lisp" id="orge2aee12">(add-random-event source pool-id event <span style="font-weight: bold; text-decoration: underline;">&amp;optional</span> prng) =&gt; pool-length
+<pre class="src src-lisp" id="org4bc546d">(add-random-event source pool-id event <span style="font-weight: bold; text-decoration: underline;">&amp;optional</span> prng) =&gt; pool-length
 </pre>
 </div>
 
@@ -1949,8 +1969,8 @@ or break them up into chunks).
 </div>
 </div>
 
-<div id="outline-container-orgcda34fb" class="outline-2">
-<h2 id="gray-streams"><a id="orgcda34fb"></a>Gray streams</h2>
+<div id="outline-container-orgff97257" class="outline-2">
+<h2 id="gray-streams"><a id="orgff97257"></a>Gray streams</h2>
 <div class="outline-text-2" id="text-gray-streams">
 <p>
 Ironclad includes support for several convenient stream abstractions
@@ -1959,9 +1979,9 @@ for SBCL, CMUCL, OpenMCL/CCL, Lispworks, ABCL, ECL, Clisp and Allegro.
 </p>
 </div>
 
-<div id="outline-container-orgfe74837" class="outline-3">
-<h3 id="orgfe74837">Octet streams</h3>
-<div class="outline-text-3" id="text-orgfe74837">
+<div id="outline-container-orgd0034a5" class="outline-3">
+<h3 id="orgd0034a5">Octet streams</h3>
+<div class="outline-text-3" id="text-orgd0034a5">
 <p>
 Octet streams are very similar to Common Lisp's <code>string-stream</code> except
 they deal in octets instead of characters.
@@ -1969,7 +1989,7 @@ they deal in octets instead of characters.
 
 
 <div class="org-src-container">
-<pre class="src src-lisp" id="org6f775a6">(make-octet-input-stream buffer <span style="font-weight: bold; text-decoration: underline;">&amp;optional</span> start end) =&gt; octet-input-stream
+<pre class="src src-lisp" id="org58220d3">(make-octet-input-stream buffer <span style="font-weight: bold; text-decoration: underline;">&amp;optional</span> start end) =&gt; octet-input-stream
 </pre>
 </div>
 
@@ -1979,7 +1999,7 @@ As <code>make-string-input-stream</code>, only with octets instead of characters
 
 
 <div class="org-src-container">
-<pre class="src src-lisp" id="orga37d94d">(make-octet-output-stream) =&gt; octet-output-stream
+<pre class="src src-lisp" id="orgd3e8e01">(make-octet-output-stream) =&gt; octet-output-stream
 </pre>
 </div>
 
@@ -1989,7 +2009,7 @@ As <code>make-string-output-stream</code>, only with octets instead of character
 
 
 <div class="org-src-container">
-<pre class="src src-lisp" id="org1617cc4">(get-output-stream-octets stream) =&gt; octet-vector
+<pre class="src src-lisp" id="orgdfca5c4">(get-output-stream-octets stream) =&gt; octet-vector
 </pre>
 </div>
 
@@ -2000,7 +2020,7 @@ of a string output-stream.
 
 
 <div class="org-src-container">
-<pre class="src src-lisp" id="orgf2e1882">(with-octet-input-stream ((var buffer <span style="font-weight: bold; text-decoration: underline;">&amp;optional</span> (start 0) end) <span style="font-weight: bold; text-decoration: underline;">&amp;body</span> body))
+<pre class="src src-lisp" id="org65a3136">(with-octet-input-stream ((var buffer <span style="font-weight: bold; text-decoration: underline;">&amp;optional</span> (start 0) end) <span style="font-weight: bold; text-decoration: underline;">&amp;body</span> body))
 </pre>
 </div>
 
@@ -2012,7 +2032,7 @@ Within <i>body</i>, <i>var</i> is bound to an octet input stream. Reading from
 
 
 <div class="org-src-container">
-<pre class="src src-lisp" id="orgee6b7f0">(with-octet-output-stream ((var) <span style="font-weight: bold; text-decoration: underline;">&amp;body</span> body)) =&gt; bytes
+<pre class="src src-lisp" id="org7238b5e">(with-octet-output-stream ((var) <span style="font-weight: bold; text-decoration: underline;">&amp;body</span> body)) =&gt; bytes
 </pre>
 </div>
 
@@ -2020,14 +2040,14 @@ Within <i>body</i>, <i>var</i> is bound to an octet input stream. Reading from
 Within <i>body</i>, <i>var</i> is bound to an octet output stream. After all the
 forms in <i>body</i> have been executed, the data that has been written to
 <i>var</i> (and that hasn't been consumed by a call to
-<a href="#org1617cc4">get-output-stream-octets</a> within <i>body</i>) is returned.
+<a href="#orgdfca5c4">get-output-stream-octets</a> within <i>body</i>) is returned.
 </p>
 </div>
 </div>
 
-<div id="outline-container-org1948a4e" class="outline-3">
-<h3 id="org1948a4e">Digest streams</h3>
-<div class="outline-text-3" id="text-org1948a4e">
+<div id="outline-container-org1cc540a" class="outline-3">
+<h3 id="org1cc540a">Digest streams</h3>
+<div class="outline-text-3" id="text-org1cc540a">
 <p>
 Digest streams compute a digest of the data written to them according
 to a specific digest algorithm.
@@ -2051,7 +2071,7 @@ Example:
 
 
 <div class="org-src-container">
-<pre class="src src-lisp" id="orgd40200e">(make-digesting-stream digest <span style="font-weight: bold; text-decoration: underline;">&amp;rest</span> args) =&gt; stream
+<pre class="src src-lisp" id="org0247a6a">(make-digesting-stream digest <span style="font-weight: bold; text-decoration: underline;">&amp;rest</span> args) =&gt; stream
 </pre>
 </div>
 
@@ -2059,18 +2079,18 @@ Example:
 Make a stream that computes a digest of the data written to it
 according to the algorithm <i>digest</i>. The parameters that can be used
 by some algorithms can be specified as <i>args</i>.
-<a href="#orgda385b9">produce-digest</a> may be used to obtain a digest of all the data written
+<a href="#orgc4e5dff">produce-digest</a> may be used to obtain a digest of all the data written
 to the stream.
 </p>
 
 <p>
-<span class="underline">Note:</span> Calling <a href="#orgda385b9">produce-digest</a> on a digest stream does not alter
+<span class="underline">Note:</span> Calling <a href="#orgc4e5dff">produce-digest</a> on a digest stream does not alter
 the internal state of the digest.
 </p>
 
 
 <div class="org-src-container">
-<pre class="src src-lisp" id="orga75b5fb">(with-digesting-stream (var digest-name <span style="font-weight: bold; text-decoration: underline;">&amp;rest</span> args) <span style="font-weight: bold; text-decoration: underline;">&amp;body</span> body) =&gt; digest
+<pre class="src src-lisp" id="org7a0c5a6">(with-digesting-stream (var digest-name <span style="font-weight: bold; text-decoration: underline;">&amp;rest</span> args) <span style="font-weight: bold; text-decoration: underline;">&amp;body</span> body) =&gt; digest
 </pre>
 </div>
 
@@ -2083,9 +2103,9 @@ returned.
 </div>
 </div>
 
-<div id="outline-container-orgb1391cf" class="outline-3">
-<h3 id="orgb1391cf">Cipher streams</h3>
-<div class="outline-text-3" id="text-orgb1391cf">
+<div id="outline-container-org25e729b" class="outline-3">
+<h3 id="org25e729b">Cipher streams</h3>
+<div class="outline-text-3" id="text-org25e729b">
 <p>
 Cipher streams encrypt or decrypt the data written to or read from
 them according to a specific cipher algorithm.
@@ -2093,7 +2113,7 @@ them according to a specific cipher algorithm.
 
 
 <div class="org-src-container">
-<pre class="src src-lisp" id="org71ed3c5">(make-encrypting-stream stream cipher mode key <span style="font-weight: bold; text-decoration: underline;">&amp;key</span> initialization-vector direction) =&gt; stream
+<pre class="src src-lisp" id="org15e198a">(make-encrypting-stream stream cipher mode key <span style="font-weight: bold; text-decoration: underline;">&amp;key</span> initialization-vector direction) =&gt; stream
 </pre>
 </div>
 
@@ -2109,7 +2129,7 @@ stream is encrypted before being sent to <i>stream</i>.
 
 
 <div class="org-src-container">
-<pre class="src src-lisp" id="org2e1ff10">(make-decrypting-stream stream cipher mode key <span style="font-weight: bold; text-decoration: underline;">&amp;key</span> initialization-vector direction) =&gt; stream
+<pre class="src src-lisp" id="org8f3203f">(make-decrypting-stream stream cipher mode key <span style="font-weight: bold; text-decoration: underline;">&amp;key</span> initialization-vector direction) =&gt; stream
 </pre>
 </div>
 
@@ -2126,12 +2146,12 @@ stream is decrypted before being sent to <i>stream</i>.
 
 <p>
 <span class="underline">Note:</span> Only stream ciphers and block ciphers in CTR, CFB, CFB8 or OFB mode are
-supported by <a href="#org71ed3c5">make-encrypting-stream</a> and <a href="#org2e1ff10">make-decrypting-stream</a>.
+supported by <a href="#org15e198a">make-encrypting-stream</a> and <a href="#org8f3203f">make-decrypting-stream</a>.
 </p>
 
 
 <div class="org-src-container">
-<pre class="src src-lisp" id="org241fe36">(with-encrypting-stream ((var stream cipher mode key <span style="font-weight: bold; text-decoration: underline;">&amp;key</span> initialization-vector direction) <span style="font-weight: bold; text-decoration: underline;">&amp;body</span> body))
+<pre class="src src-lisp" id="orgeb407ed">(with-encrypting-stream ((var stream cipher mode key <span style="font-weight: bold; text-decoration: underline;">&amp;key</span> initialization-vector direction) <span style="font-weight: bold; text-decoration: underline;">&amp;body</span> body))
 </pre>
 </div>
 
@@ -2142,7 +2162,7 @@ the last form of <i>body</i> is returned.
 
 
 <div class="org-src-container">
-<pre class="src src-lisp" id="orga3873ad">(with-decrypting-stream ((var stream cipher mode key <span style="font-weight: bold; text-decoration: underline;">&amp;key</span> initialization-vector direction) <span style="font-weight: bold; text-decoration: underline;">&amp;body</span> body))
+<pre class="src src-lisp" id="orgc118024">(with-decrypting-stream ((var stream cipher mode key <span style="font-weight: bold; text-decoration: underline;">&amp;key</span> initialization-vector direction) <span style="font-weight: bold; text-decoration: underline;">&amp;body</span> body))
 </pre>
 </div>
 
@@ -2153,16 +2173,16 @@ the last form of <i>body</i> is returned.
 </div>
 </div>
 
-<div id="outline-container-org14abea3" class="outline-3">
-<h3 id="org14abea3">MAC streams</h3>
-<div class="outline-text-3" id="text-org14abea3">
+<div id="outline-container-org1d7fc91" class="outline-3">
+<h3 id="org1d7fc91">MAC streams</h3>
+<div class="outline-text-3" id="text-org1d7fc91">
 <p>
 MAC streams compute a message authentication code of the data written
 to them according to a specific MAC algorithm.
 </p>
 
 <div class="org-src-container">
-<pre class="src src-lisp" id="org44deb31">(make-authenticating-stream mac key <span style="font-weight: bold; text-decoration: underline;">&amp;rest</span> args) =&gt; stream
+<pre class="src src-lisp" id="org7529e09">(make-authenticating-stream mac key <span style="font-weight: bold; text-decoration: underline;">&amp;rest</span> args) =&gt; stream
 </pre>
 </div>
 
@@ -2170,12 +2190,12 @@ to them according to a specific MAC algorithm.
 Make a stream that computes a MAC of the data written to it according
 to the algorithm <i>mac</i> initialized with a <i>key</i>. The parameters used
 to create the MAC can be specified as <i>args</i>.
-<a href="#org0b5d1a3">produce-mac</a> may be used to obtain a MAC of all the data written to the
+<a href="#org6c9174d">produce-mac</a> may be used to obtain a MAC of all the data written to the
 stream.
 </p>
 
 <p>
-<span class="underline">Note:</span> Calling <a href="#org0b5d1a3">produce-mac</a> on a MAC stream does not alter the
+<span class="underline">Note:</span> Calling <a href="#org6c9174d">produce-mac</a> on a MAC stream does not alter the
 internal state of the MAC.
 </p>
 
@@ -2206,7 +2226,7 @@ Example: encrypt some data and compute a MAC of the ciphertext
 
 
 <div class="org-src-container">
-<pre class="src src-lisp" id="org011c4d6">(with-authenticating-stream (var mac-name key <span style="font-weight: bold; text-decoration: underline;">&amp;rest</span> args) <span style="font-weight: bold; text-decoration: underline;">&amp;body</span> body) =&gt; mac
+<pre class="src src-lisp" id="org3665483">(with-authenticating-stream (var mac-name key <span style="font-weight: bold; text-decoration: underline;">&amp;rest</span> args) <span style="font-weight: bold; text-decoration: underline;">&amp;body</span> body) =&gt; mac
 </pre>
 </div>
 
@@ -2220,11 +2240,11 @@ written to <i>var</i> is returned.
 </div>
 </div>
 
-<div id="outline-container-orgdd6f21d" class="outline-2">
-<h2 id="utility-functions"><a id="orgdd6f21d"></a>Utility functions</h2>
+<div id="outline-container-org9812480" class="outline-2">
+<h2 id="utility-functions"><a id="org9812480"></a>Utility functions</h2>
 <div class="outline-text-2" id="text-utility-functions">
 <div class="org-src-container">
-<pre class="src src-lisp" id="org160d95a">(ub16ref/le vector index) =&gt; value
+<pre class="src src-lisp" id="org7f85cbe">(ub16ref/le vector index) =&gt; value
 (ub32ref/le vector index) =&gt; value
 (ub64ref/le vector index) =&gt; value
 </pre>
@@ -2239,7 +2259,7 @@ functions are SETFable.
 
 
 <div class="org-src-container">
-<pre class="src src-lisp" id="org7859852">(ub16ref/be vector index) =&gt; value
+<pre class="src src-lisp" id="org8051bf4">(ub16ref/be vector index) =&gt; value
 (ub32ref/be vector index) =&gt; value
 (ub64ref/be vector index) =&gt; value
 </pre>
@@ -2251,41 +2271,41 @@ As the above, only the value is stored in big-endian order.
 
 
 <div class="org-src-container">
-<pre class="src src-lisp" id="org5d21b8c">(byte-array-to-hex-string vector <span style="font-weight: bold; text-decoration: underline;">&amp;key</span> start end element-type) =&gt; string
+<pre class="src src-lisp" id="org62e1df2">(byte-array-to-hex-string vector <span style="font-weight: bold; text-decoration: underline;">&amp;key</span> start end element-type) =&gt; string
 (hex-string-to-byte-array string <span style="font-weight: bold; text-decoration: underline;">&amp;key</span> start end) =&gt; string
 (ascii-string-to-byte-array string <span style="font-weight: bold; text-decoration: underline;">&amp;key</span> start end) =&gt; vector
 </pre>
 </div>
 
 <p>
-<a href="#org5d21b8c">byte-array-to-hex-string</a> converts the bytes of <i>vector</i> between
+<a href="#org62e1df2">byte-array-to-hex-string</a> converts the bytes of <i>vector</i> between
 <i>start</i> and <i>end</i> into a hexadecimal string. It is useful for
 converting digests to a more readable form. <i>element-type</i> indicates
 the element-type of the returned string.
 </p>
 
 <p>
-<a href="#org5d21b8c">hex-string-to-byte-array</a> parses a substring of <i>string</i> delimited
+<a href="#org62e1df2">hex-string-to-byte-array</a> parses a substring of <i>string</i> delimited
 <i>start</i> and <i>end</i> of hexadecimal digits into a byte array.
 </p>
 
 <p>
-<a href="#org5d21b8c">ascii-string-to-byte-array</a> is provided as a quick and dirty way to
-convert a string to a byte array suitable for feeding to <a href="#org834ba3c">update-digest</a>
-or <a href="#orga6d905e">encrypt</a>. Care should be taken to ensure that the provided string is
+<a href="#org62e1df2">ascii-string-to-byte-array</a> is provided as a quick and dirty way to
+convert a string to a byte array suitable for feeding to <a href="#orgbf3e01d">update-digest</a>
+or <a href="#org3fde04c">encrypt</a>. Care should be taken to ensure that the provided string is
 actually an ASCII string. <i>start</i> and <i>end</i> have their usual
 interpretations.
 </p>
 
 
 <div class="org-src-container">
-<pre class="src src-lisp" id="orgaac8c68">(octets-to-integer octet-vec <span style="font-weight: bold; text-decoration: underline;">&amp;key</span> start end big-endian n-bits) =&gt; number
+<pre class="src src-lisp" id="org4b7137e">(octets-to-integer octet-vec <span style="font-weight: bold; text-decoration: underline;">&amp;key</span> start end big-endian n-bits) =&gt; number
 (integer-to-octets bignum <span style="font-weight: bold; text-decoration: underline;">&amp;key</span> n-bits big-endian) =&gt; vector
 </pre>
 </div>
 
 <p>
-<a href="#orgaac8c68">octets-to-integer</a> converts the bytes of <i>octet-vec</i> between <i>start</i>
+<a href="#org4b7137e">octets-to-integer</a> converts the bytes of <i>octet-vec</i> between <i>start</i>
 and <i>end</i> to an integer as though the bytes denoted a number in
 base 256. <i>big-endian</i> is a boolean indicating whether the bytes are
 to be read in big-endian or little-endian order. <i>n-bits</i> specifies
@@ -2294,12 +2314,12 @@ number.
 </p>
 
 <p>
-<a href="#orgaac8c68">integer-to-octets</a> is the reverse operation.
+<a href="#org4b7137e">integer-to-octets</a> is the reverse operation.
 </p>
 
 
 <div class="org-src-container">
-<pre class="src src-lisp" id="orgf6c223e">(expt-mod n exponent modulus) =&gt; number
+<pre class="src src-lisp" id="orga6dfb32">(expt-mod n exponent modulus) =&gt; number
 (expt-mod/unsafe n exponent modulus) =&gt; number
 </pre>
 </div>
@@ -2307,15 +2327,15 @@ number.
 <p>
 Raises <i>n</i> to the <i>exponent</i> power modulo <i>modulus</i> in a more
 efficient fashion than <code>(mod (expt n exponent) modulus)</code>.
-<a href="#orgf6c223e">expt-mod</a> is using the Montgomery ladder algorithm to be more robust
+<a href="#orga6dfb32">expt-mod</a> is using the Montgomery ladder algorithm to be more robust
 against timing attacks.
-<a href="#orgf6c223e">expt-mod/unsafe</a> runs faster than <a href="#orgf6c223e">expt-mod</a> but is not safe against
+<a href="#orga6dfb32">expt-mod/unsafe</a> runs faster than <a href="#orga6dfb32">expt-mod</a> but is not safe against
 timing attacks; don't use it on secret data.
 </p>
 
 
 <div class="org-src-container">
-<pre class="src src-lisp" id="orge509402">make-random-salt <span style="font-weight: bold; text-decoration: underline;">&amp;optional</span> size =&gt; bytes
+<pre class="src src-lisp" id="orgc50bcab">make-random-salt <span style="font-weight: bold; text-decoration: underline;">&amp;optional</span> size =&gt; bytes
 </pre>
 </div>
 
@@ -2326,7 +2346,7 @@ for use as a password salt.
 
 
 <div class="org-src-container">
-<pre class="src src-lisp" id="org0a905df">constant-time-equal data1 data2 =&gt; boolean
+<pre class="src src-lisp" id="org8cf9406">constant-time-equal data1 data2 =&gt; boolean
 </pre>
 </div>
 
@@ -2339,11 +2359,11 @@ or MACs.
 </div>
 </div>
 
-<div id="outline-container-org723eab3" class="outline-2">
-<h2 id="conditions"><a id="org723eab3"></a>Conditions</h2>
+<div id="outline-container-org31fbe24" class="outline-2">
+<h2 id="conditions"><a id="org31fbe24"></a>Conditions</h2>
 <div class="outline-text-2" id="text-conditions">
 <div class="org-src-container">
-<pre class="src src-lisp" id="org639cbc6">ironclad-error
+<pre class="src src-lisp" id="orgf3fc55e">ironclad-error
 </pre>
 </div>
 
@@ -2354,152 +2374,152 @@ a direct subtype of <code>simple-error</code> without any extra slots or options
 
 
 <div class="org-src-container">
-<pre class="src src-lisp" id="orgc5f2bc9">initialization-vector-not-supplied
+<pre class="src src-lisp" id="org9da0afc">initialization-vector-not-supplied
 </pre>
 </div>
 
 <p>
-This error is signaled by <a href="#orgaa1aaf5">make-cipher</a> when an initialization vector is
+This error is signaled by <a href="#org73399d6">make-cipher</a> when an initialization vector is
 not provided and the requested mode requires an initialization vector.
 </p>
 
 
 <div class="org-src-container">
-<pre class="src src-lisp" id="org3d0433a">invalid-initialization-vector
+<pre class="src src-lisp" id="org3a5815d">invalid-initialization-vector
 </pre>
 </div>
 
 <p>
 This error is signaled when an invalid initialization vector is
-supplied to <a href="#orgaa1aaf5">make-cipher</a> (e.g. when the length of the initialization
+supplied to <a href="#org73399d6">make-cipher</a> (e.g. when the length of the initialization
 vector does not match the block length of the cipher).
 </p>
 
 
 <div class="org-src-container">
-<pre class="src src-lisp" id="orgc943a87">invalid-key-length
+<pre class="src src-lisp" id="org64ebcab">invalid-key-length
 </pre>
 </div>
 
 <p>
-This error is signaled when the key provided to <a href="#orgaa1aaf5">make-cipher</a> is not of
+This error is signaled when the key provided to <a href="#org73399d6">make-cipher</a> is not of
 an acceptable length for the requested cipher.
 </p>
 
 
 <div class="org-src-container">
-<pre class="src src-lisp" id="org60f78e9">unsupported-cipher
+<pre class="src src-lisp" id="org41b1744">unsupported-cipher
 </pre>
 </div>
 
 <p>
-This error is signaled when the <i>cipher-name</i> provided to <a href="#orgaa1aaf5">make-cipher</a>
-is not <a href="#org686459e">cipher-supported-p</a>.
+This error is signaled when the <i>cipher-name</i> provided to <a href="#org73399d6">make-cipher</a>
+is not <a href="#org8ff165e">cipher-supported-p</a>.
 </p>
 
 
 <div class="org-src-container">
-<pre class="src src-lisp" id="orgd529663">unsupported-mode
+<pre class="src src-lisp" id="orgb9b2aa6">unsupported-mode
 </pre>
 </div>
 
 <p>
 This error is signaled when the <i>mode</i> provided to
-<a href="#orgaa1aaf5">make-cipher</a> is not <i>mode-supported-p</i>.
+<a href="#org73399d6">make-cipher</a> is not <i>mode-supported-p</i>.
 </p>
 
 
 <div class="org-src-container">
-<pre class="src src-lisp" id="org2f2f594">unsupported-padding
+<pre class="src src-lisp" id="orga6cdb05">unsupported-padding
 </pre>
 </div>
 
 <p>
-This error is signaled when the <i>padding</i> provided to <a href="#orgaa1aaf5">make-cipher</a> is not
+This error is signaled when the <i>padding</i> provided to <a href="#org73399d6">make-cipher</a> is not
 supported.
 </p>
 
 
 <div class="org-src-container">
-<pre class="src src-lisp" id="orgc32c817">unsupported-digest
+<pre class="src src-lisp" id="orgb48705d">unsupported-digest
 </pre>
 </div>
 
 <p>
 This error is signaled when the <i>digest-name</i> provided to
-<a href="#orgcfe879d">make-digest</a> is not <a href="#org7c7db06">digest-supported-p</a>.
+<a href="#orgaea7009">make-digest</a> is not <a href="#org21abc45">digest-supported-p</a>.
 </p>
 
 
 <div class="org-src-container">
-<pre class="src src-lisp" id="org94416a1">unsupported-mac
+<pre class="src src-lisp" id="org5cd76c9">unsupported-mac
 </pre>
 </div>
 
 <p>
 This error is signaled when the <i>mac-name</i> provided to
-<a href="#orga8ff14a">make-mac</a> is not <a href="#org334811a">mac-supported-p</a>.
+<a href="#orgf29f1fe">make-mac</a> is not <a href="#org9e33cc0">mac-supported-p</a>.
 </p>
 
 
 <div class="org-src-container">
-<pre class="src src-lisp" id="org606d38c">insufficient-buffer-space
+<pre class="src src-lisp" id="org3ac55d7">insufficient-buffer-space
 </pre>
 </div>
 
 <p>
 This error is signaled when Ironclad needs to stuff some data into
-a buffer (e.g. when the user provides <i>digest</i> to <a href="#orgda385b9">produce-digest</a> and
+a buffer (e.g. when the user provides <i>digest</i> to <a href="#orgc4e5dff">produce-digest</a> and
 there is insufficient space).
 </p>
 
 
 <div class="org-src-container">
-<pre class="src src-lisp" id="org304ac58">key-not-supplied
+<pre class="src src-lisp" id="org3f8744c">key-not-supplied
 </pre>
 </div>
 
 <p>
 This error is signaled when a <i>:key</i> argument is not provided
-to <a href="#orgaa1aaf5">make-cipher</a>.
+to <a href="#org73399d6">make-cipher</a>.
 </p>
 
 
 <div class="org-src-container">
-<pre class="src src-lisp" id="org5ac683c">unsupported-kdf
+<pre class="src src-lisp" id="org36b123b">unsupported-kdf
 </pre>
 </div>
 
 <p>
 This error is signaled when an invalid KDF name is provided
-to <a href="#org018df03">make-kdf</a>.
+to <a href="#org02da8f6">make-kdf</a>.
 </p>
 
 
 <div class="org-src-container">
-<pre class="src src-lisp" id="org4603e39">unsupported-scrypt-cost-factors
+<pre class="src src-lisp" id="org24dcb77">unsupported-scrypt-cost-factors
 </pre>
 </div>
 
 <p>
 This error is signaled when invalid Scrypt cost factors are provided
-to <a href="#org018df03">make-kdf</a>.
+to <a href="#org02da8f6">make-kdf</a>.
 </p>
 
 
 <div class="org-src-container">
-<pre class="src src-lisp" id="org5e063e7">unsupported-argon2i-cost-factors
+<pre class="src src-lisp" id="orgac03fd7">unsupported-argon2i-cost-factors
 </pre>
 </div>
 
 <p>
 This error is signaled when invalid Argon2i parameters are provided
-to <a href="#org018df03">make-kdf</a>.
+to <a href="#org02da8f6">make-kdf</a>.
 </p>
 
 
 <div class="org-src-container">
-<pre class="src src-lisp" id="org1780269">invalid-padding
+<pre class="src src-lisp" id="orgb7f9b97">invalid-padding
 </pre>
 </div>
 
@@ -2510,84 +2530,84 @@ invalid.
 
 
 <div class="org-src-container">
-<pre class="src src-lisp" id="orgb04d850">invalid-mac-parameter
+<pre class="src src-lisp" id="orga59acd5">invalid-mac-parameter
 </pre>
 </div>
 
 <p>
 This error is signaled when an invalid parameter is provided
-to <a href="#orga8ff14a">make-mac</a>.
+to <a href="#orgf29f1fe">make-mac</a>.
 </p>
 
 
 <div class="org-src-container">
-<pre class="src src-lisp" id="org077ba9b">invalid-signature-length
+<pre class="src src-lisp" id="org272dbe0">invalid-signature-length
 </pre>
 </div>
 
 <p>
 This error is signaled when a signature with an invalid length is provided
-to <a href="#org8f288bf">verify-signature</a> or <a href="#org703c3fb">destructure-signature</a>.
+to <a href="#org830fa18">verify-signature</a> or <a href="#org85504bf">destructure-signature</a>.
 </p>
 
 
 <div class="org-src-container">
-<pre class="src src-lisp" id="orgfb7dd35">invalid-message-length
+<pre class="src src-lisp" id="org27763a8">invalid-message-length
 </pre>
 </div>
 
 <p>
 This error is signaled when a message with an invalid length is provided
-to <a href="#org42d8b7a">encrypt-message</a>, <a href="#org1fb4a9f">decrypt-message</a> or <a href="#org37925de">destructure-message</a>.
+to <a href="#org4faf3f9">encrypt-message</a>, <a href="#org1ed70c3">decrypt-message</a> or <a href="#org629b616">destructure-message</a>.
 </p>
 
 
 <div class="org-src-container">
-<pre class="src src-lisp" id="org092a927">missing-key-parameter
+<pre class="src src-lisp" id="orgb4e7b82">missing-key-parameter
 </pre>
 </div>
 
 <p>
 This error is signaled when it is determined that a parameter is
-missing in a call to <a href="#org5355db0">make-public-key</a> or <a href="#org4e76c66">make-private-key</a>.
+missing in a call to <a href="#org7e48c8c">make-public-key</a> or <a href="#org761f30f">make-private-key</a>.
 </p>
 
 
 <div class="org-src-container">
-<pre class="src src-lisp" id="org2f0dd94">missing-message-parameter
+<pre class="src src-lisp" id="orga9f2235">missing-message-parameter
 </pre>
 </div>
 
 <p>
 This error is signaled when it is determined that a parameter is
-missing in a call to <a href="#org671f556">make-message</a>.
+missing in a call to <a href="#org2175cb8">make-message</a>.
 </p>
 
 
 <div class="org-src-container">
-<pre class="src src-lisp" id="orgb2799c6">missing-signature-parameter
+<pre class="src src-lisp" id="org763f389">missing-signature-parameter
 </pre>
 </div>
 
 <p>
 This error is signaled when it is determined that a parameter is
-missing in a call to <a href="#org7b1de28">make-signature</a>.
+missing in a call to <a href="#orgcef64ba">make-signature</a>.
 </p>
 
 
 <div class="org-src-container">
-<pre class="src src-lisp" id="org5fdef48">incompatible-keys
+<pre class="src src-lisp" id="orgf80a2c1">incompatible-keys
 </pre>
 </div>
 
 <p>
 This error is signaled when incompatible keys are provided to
-<a href="#org5479b07">diffie-hellman</a>.
+<a href="#orgb39c79f">diffie-hellman</a>.
 </p>
 
 
 <div class="org-src-container">
-<pre class="src src-lisp" id="orga465169">invalid-curve-point
+<pre class="src src-lisp" id="org0af5b0f">invalid-curve-point
 </pre>
 </div>
 
@@ -2597,18 +2617,18 @@ This error is signaled when trying to use an invalid curve point.
 
 
 <div class="org-src-container">
-<pre class="src src-lisp" id="org181c1a5">invalid-public-key-length
+<pre class="src src-lisp" id="org6c9a344">invalid-public-key-length
 </pre>
 </div>
 
 <p>
 This error is signaled when a public key with an invalid length is
-provided to <a href="#org8f288bf">verify-signature</a>.
+provided to <a href="#org830fa18">verify-signature</a>.
 </p>
 
 
 <div class="org-src-container">
-<pre class="src src-lisp" id="org6f898ab">oaep-decoding-error
+<pre class="src src-lisp" id="org407221a">oaep-decoding-error
 </pre>
 </div>
 
@@ -2618,18 +2638,18 @@ This error is signaled when the OAEP decoding of a message fails.
 
 
 <div class="org-src-container">
-<pre class="src src-lisp" id="org2db78f4">unsupported-authenticated-encryption-mode
+<pre class="src src-lisp" id="org197e2eb">unsupported-authenticated-encryption-mode
 </pre>
 </div>
 
 <p>
 This error is signaled when an invalid mode name is provided to
-<a href="#org131519f">make-authenticated-encryption-mode</a>.
+<a href="#orga317270">make-authenticated-encryption-mode</a>.
 </p>
 
 
 <div class="org-src-container">
-<pre class="src src-lisp" id="org7899c13">bad-authentication-tag
+<pre class="src src-lisp" id="org0ca5e63">bad-authentication-tag
 </pre>
 </div>
 

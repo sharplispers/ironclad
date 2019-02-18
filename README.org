@@ -39,7 +39,7 @@ a level of confidence in the correctness of the implementations.
 
 #+TOC: headlines 1
 
-* Warning
+* Warnings
   :PROPERTIES:
   :CUSTOM_ID: warning
   :END:
@@ -53,7 +53,8 @@ integers and arithmetic functions of Common Lisp implementations are
 usually not safe against side channel attacks.
 
 
-*Ironclad's digest, MAC and cipher objects should not be considered thread safe*
+*Ironclad's digest, MAC and cipher objects should not be considered thread
+safe.*
 
 Creating a digest, a MAC or a cipher object and using it in several threads at
 the same time can lead to an undefined result. If you need to do that, you must
@@ -61,7 +62,7 @@ put locks in your application where necessary.
 
 
 *Ironclad's pseudo random number generation should only be considered thread
-safe with bordeaux-threads*
+safe with bordeaux-threads.*
 
 If you have a multi-threaded application in which you want to use functions
 requiring some random numbers (key derivation, key generation, public key
@@ -79,8 +80,8 @@ thread. There is an example showing how it can be done in the section about
   :CUSTOM_ID: installation
   :END:
 
-The current version of Ironclad is 0.44. It can be downloaded
-at [[https://github.com/sharplispers/ironclad/archive/v0.44.tar.gz]].
+The current version of Ironclad is 0.45. It can be downloaded
+at [[https://github.com/sharplispers/ironclad/archive/v0.45.tar.gz]].
 If you are feeling adventurous, you can download a bleeding-edge version
 at [[https://github.com/sharplispers/ironclad]].
 
