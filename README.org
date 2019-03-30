@@ -916,7 +916,7 @@ Returns ~t~ if /name/ would be in the list returned by
   :END:
 
 Ironclad comes with a few key derivation functions:
- - Argon2i
+ - Argon2 (only Argon2d and Argon2i without parallelism are implemented)
  - PBKDF1
  - PBKDF2
  - Scrypt
@@ -941,8 +941,8 @@ Scrypt ignores the /iteration-count/ parameter.
 #+END_SRC
 
 Returns a key derivation function instance (/kind/ must either be
-/ARGON2I/, /PBKDF1/, /PBKDF2/ or /SCRYPT-KDF/).
-The Argon2i key derivation uses the /block-count/, /additional-key/
+/ARGON2D/, /ARGON2I/, /PBKDF1/, /PBKDF2/ or /SCRYPT-KDF/).
+The Argon2 key derivations use the /block-count/, /additional-key/
 and /additional-data/ parameters (/block-count/ is the number of 1 KiB
 memory blocks used by the function and it must be at least 8,
 /additional-key/ and /additional-data/ are optional).
@@ -1932,12 +1932,12 @@ This error is signaled when invalid Scrypt cost factors are provided
 to [[make-kdf][make-kdf]].
 
 
-#+NAME: unsupported-argon2i-cost-factors
+#+NAME: unsupported-argon2-cost-factors
 #+BEGIN_SRC lisp
-unsupported-argon2i-cost-factors
+unsupported-argon2-cost-factors
 #+END_SRC
 
-This error is signaled when invalid Argon2i parameters are provided
+This error is signaled when invalid Argon2 parameters are provided
 to [[make-kdf][make-kdf]].
 
 

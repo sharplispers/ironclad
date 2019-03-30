@@ -1,5 +1,11 @@
 -*- mode: outline -*-
 
+* Changes since version 0.45
+
+** new features
+
+Added the Argon2d key derivation function (without parallelism).
+
 * Version 0.45, released 2019-02-18
 
 ** bug fixes

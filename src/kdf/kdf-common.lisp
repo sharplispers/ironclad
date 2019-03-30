@@ -12,19 +12,25 @@
   (r :initarg :r :reader scrypt-kdf-r)
   (p :initarg :p :reader scrypt-kdf-p)))
 
-(defclass argon2i ()
-  ((block :accessor argon2i-block :type (simple-array (unsigned-byte 64) (128)))
-   (pass-number :accessor argon2i-pass-number)
-   (slice-number :accessor argon2i-slice-number)
-   (nb-blocks :accessor argon2i-nb-blocks)
-   (block-count :accessor argon2i-block-count)
-   (nb-iterations :accessor argon2i-nb-iterations)
-   (counter :accessor argon2i-counter)
-   (offset :accessor argon2i-offset)
-   (additional-key :accessor argon2i-additional-key :type (simple-array (unsigned-byte 8) (*)))
-   (additional-data :accessor argon2i-additional-data :type (simple-array (unsigned-byte 8) (*)))
-   (work-area :accessor argon2i-work-area :type (simple-array (unsigned-byte 64) (*)))
-   (digester :accessor argon2i-digester)))
+(defclass argon2 ()
+  ((block :accessor argon2-block :type (simple-array (unsigned-byte 64) (128)))
+   (pass-number :accessor argon2-pass-number)
+   (slice-number :accessor argon2-slice-number)
+   (nb-blocks :accessor argon2-nb-blocks)
+   (block-count :accessor argon2-block-count)
+   (nb-iterations :accessor argon2-nb-iterations)
+   (counter :accessor argon2-counter)
+   (offset :accessor argon2-offset)
+   (additional-key :accessor argon2-additional-key :type (simple-array (unsigned-byte 8) (*)))
+   (additional-data :accessor argon2-additional-data :type (simple-array (unsigned-byte 8) (*)))
+   (work-area :accessor argon2-work-area :type (simple-array (unsigned-byte 64) (*)))
+   (digester :accessor argon2-digester)))
+
+(defclass argon2i (argon2)
+  ())
+
+(defclass argon2d (argon2)
+  ())
 
 (defun make-kdf (kind &key digest
                       (N 4096) (r 8) (p 2)
@@ -33,7 +39,7 @@
   "digest is used for pbkdf1 and pbkdf2.
 N, p, and r are cost factors for scrypt.
 block-count, additional-key and additional-data are parameters for
-argon2i"
+argon2"
   (case kind
     ((pbkdf1 :pbkdf1)
      (unless (digestp digest)
@@ -51,8 +57,15 @@ argon2i"
      (make-instance 'scrypt-kdf :N N :r r :p p))
     ((argon2i :argon2i)
      (when (< block-count 8)
-       (error 'unsupported-argon2i-parameters))
+       (error 'unsupported-argon2-parameters))
      (make-instance 'argon2i
+                    :block-count block-count
+                    :additional-key additional-key
+                    :additional-data additional-data))
+    ((argon2d :argon2d)
+     (when (< block-count 8)
+       (error 'unsupported-argon2-parameters))
+     (make-instance 'argon2d
                     :block-count block-count
                     :additional-key additional-key
                     :additional-data additional-data))

@@ -57,7 +57,7 @@
    #:gcm #:etm #:eax
 
    ;; KDFs
-   #:pbkdf1 #:pbkdf2 #:scrypt-kdf #:argon2i
+   #:pbkdf1 #:pbkdf2 #:scrypt-kdf #:argon2i #:argon2d
    #:make-kdf #:derive-key
 
    ;; KDF convenience functions
@@ -110,7 +110,7 @@
    #:unsupported-cipher #:unsupported-mode #:unsupported-padding
    #:unsupported-digest
    #:unsupported-kdf #:unsupported-scrypt-cost-factors
-   #:unsupported-argon2i-parameters
+   #:unsupported-argon2-parameters
    #:insufficient-buffer-space #:invalid-padding
    #:key-not-supplied #:unsupported-mac
    #:invalid-mac-parameter #:invalid-signature-length

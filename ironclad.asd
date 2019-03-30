@@ -102,7 +102,7 @@
                                            (:file "whirlpool" :depends-on ("digest"))))
                              (:module "kdf"
                               :depends-on ("ciphers" "common" "conditions" "digests" "generic" "macs" "package" "prng" "util")
-                              :components ((:file "argon2i" :depends-on ("kdf-common"))
+                              :components ((:file "argon2" :depends-on ("kdf-common"))
                                            (:file "kdf-common")
                                            (:file "password-hash" :depends-on ("pkcs5"))
                                            (:file "pkcs5" :depends-on ("kdf-common"))
@@ -311,6 +311,7 @@
                                            (:test-vector-file "tree-hash")
                                            (:test-vector-file "whirlpool")
                                            ;; kdf
+                                           (:file "argon2d")
                                            (:file "argon2i")
                                            (:file "pkcs5")
                                            (:file "scrypt")
