@@ -2,6 +2,10 @@
 
 * Changes since version 0.45
 
+** bug fixes
+
+Allow the 'digest' parameter of the 'make-kdf' function to be a keyword.
+
 ** new features
 
 Added the Argon2d key derivation function (without parallelism).

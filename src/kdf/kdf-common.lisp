@@ -40,29 +40,31 @@
 N, p, and r are cost factors for scrypt.
 block-count, additional-key and additional-data are parameters for
 argon2"
-  (case kind
-    ((pbkdf1 :pbkdf1)
-     (unless (digestp digest)
-       (error 'unsupported-digest :name digest))
-     (make-instance 'pbkdf1 :digest digest))
-    ((pbkdf2 :pbkdf2)
-     (unless (digestp digest)
-       (error 'unsupported-digest :name digest))
-     (make-instance 'pbkdf2 :digest digest))
-    ((scrypt-kdf :scrypt-kdf)
+  (case (massage-symbol kind)
+    (pbkdf1
+     (let ((digest-name (massage-symbol digest)))
+       (unless (digestp digest-name)
+         (error 'unsupported-digest :name digest))
+       (make-instance 'pbkdf1 :digest digest-name)))
+    (pbkdf2
+     (let ((digest-name (massage-symbol digest)))
+       (unless (digestp digest-name)
+         (error 'unsupported-digest :name digest))
+       (make-instance 'pbkdf2 :digest digest-name)))
+    (scrypt-kdf
      (when (or (<= N 1)
                (not (zerop (logand N (1- N))))
                (>= (* r p) (expt 2 30)))
        (error 'unsupported-scrypt-cost-factors :N N :r r :p p))
      (make-instance 'scrypt-kdf :N N :r r :p p))
-    ((argon2i :argon2i)
+    (argon2i
      (when (< block-count 8)
        (error 'unsupported-argon2-parameters))
      (make-instance 'argon2i
                     :block-count block-count
                     :additional-key additional-key
                     :additional-data additional-data))
-    ((argon2d :argon2d)
+    (argon2d
      (when (< block-count 8)
        (error 'unsupported-argon2-parameters))
      (make-instance 'argon2d
