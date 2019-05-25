@@ -940,8 +940,17 @@ Scrypt ignores the /iteration-count/ parameter.
 (make-kdf kind &key digest n r p block-count additional-key additional-data) => kdf
 #+END_SRC
 
-Returns a key derivation function instance (/kind/ must either be
-/ARGON2D/, /ARGON2I/, /PBKDF1/, /PBKDF2/ or /SCRYPT-KDF/).
+Returns a key derivation function instance.
+
+/kind/ denotes the key derivation function to use. They are:
+ - argon2d
+ - argon2i
+ - pbkdf1
+ - pbkdf2
+ - scrypt-kdf
+
+/kind/ can be a symbol in the ~keyword~  or ~ironclad~ packages.
+
 The Argon2 key derivations use the /block-count/, /additional-key/
 and /additional-data/ parameters (/block-count/ is the number of 1 KiB
 memory blocks used by the function and it must be at least 8,
