@@ -230,4 +230,5 @@
   (pushnew f *features*))
 
 ;; Enable assembly optimizations
+#-ecl-bytecmp
 (pushnew :ironclad-assembly *features*)
