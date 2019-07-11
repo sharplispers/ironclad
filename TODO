@@ -106,7 +106,7 @@ originally designed.
 One way of getting around this limitation would be to use Common Lisp's
 provision of the COMPILE function at create-the-cipher time.  One could
 compile--on demand--specialized encryption/decryption routines that only
-accomodated a fixed number of rounds (or other static configuration
+accommodated a fixed number of rounds (or other static configuration
 parameters).  This facility would be particularly helpful for those
 ciphers whose round keys are variable in the number of rounds chosen;
 bounds checking for accesses to these keys could be done away with

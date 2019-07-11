@@ -31,7 +31,7 @@ support Gray streams, support is included for convenient [[#gray-streams][stream
 Most of the algorithms were written with efficiency for specific
 Common Lisp implementations in mind, although portable code is
 provided as an alternative in nearly all instances. The framework
-should be flexible enough to accomodate implementation-specific
+should be flexible enough to accommodate implementation-specific
 optimizations when possible.
 
 Test vectors for many of the algorithms are included to provide

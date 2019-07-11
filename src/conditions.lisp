@@ -105,7 +105,7 @@ for a particular mode of operation but not supplied."))
    (start :initarg :start :reader insufficient-buffer-space-start)
    (length :initarg :length :reader insufficient-buffer-space-length))
   (:report (lambda (condition stream)
-             (format stream "Buffer ~A cannot accomodate ~D elements starting at index ~D."
+             (format stream "Buffer ~A cannot accommodate ~D elements starting at index ~D."
                      (insufficient-buffer-space-buffer condition)
                      (insufficient-buffer-space-length condition)
                      (insufficient-buffer-space-start condition))))

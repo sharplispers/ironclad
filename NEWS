@@ -737,7 +737,7 @@ of the message, not the message itself.  Please also note that the
 DSA signing routine requires *random* numbers; it currently uses
 CL:RANDOM for this purpose, which is probably *NOT* secure enough for
 your needs.  Please make any changes you deem necessary to the signing
-routine to accomodate your security level.
+routine to accommodate your security level.
 
 Feedback is sought on the interface to the routines:
 
