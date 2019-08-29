@@ -106,7 +106,8 @@
                                            (:file "kdf-common")
                                            (:file "password-hash" :depends-on ("pkcs5"))
                                            (:file "pkcs5" :depends-on ("kdf-common"))
-                                           (:file "scrypt" :depends-on ("kdf-common" "pkcs5"))))
+                                           (:file "scrypt" :depends-on ("kdf-common" "pkcs5"))
+                                           (:file "hmac" :depends-on ("kdf-common"))))
                              (:module "macs"
                               :depends-on ("ciphers" "common" "conditions" "digests" "generic" "opt" "package")
                               :components ((:file "blake2-mac" :depends-on ("mac"))
@@ -315,6 +316,7 @@
                                            (:file "argon2i")
                                            (:file "pkcs5")
                                            (:file "scrypt")
+                                           (:file "hmac-kdf")
                                            ;; macs
                                            (:file "macs")
                                            (:test-vector-file "blake2-mac")

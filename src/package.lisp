@@ -57,7 +57,7 @@
    #:gcm #:etm #:eax
 
    ;; KDFs
-   #:pbkdf1 #:pbkdf2 #:scrypt-kdf #:argon2i #:argon2d
+   #:pbkdf1 #:pbkdf2 #:hmac-kdf #:scrypt-kdf #:argon2i #:argon2d
    #:make-kdf #:derive-key
 
    ;; KDF convenience functions

@@ -7,6 +7,11 @@
 (defclass pbkdf2 ()
   ((digest-name :initarg :digest :reader kdf-digest)))
 
+(defclass hmac-kdf ()
+  ((digest-name :initarg :digest :reader kdf-digest)
+   (info :initarg :info :accessor hmac-kdf-info :type (simple-array (unsigned-byte 8) (*))
+         :documentation "Optional context and application specific information")))
+
 (defclass scrypt-kdf ()
  ((N :initarg :N :reader scrypt-kdf-N)
   (r :initarg :r :reader scrypt-kdf-r)
@@ -51,6 +56,11 @@ argon2"
        (unless (digestp digest-name)
          (error 'unsupported-digest :name digest))
        (make-instance 'pbkdf2 :digest digest-name)))
+    (hmac-kdf
+     (let ((digest-name (massage-symbol digest)))
+       (unless (digestp digest-name)
+         (error 'unsupported-digest :name digest))
+       (make-instance 'hmac-kdf :digest digest-name :info additional-data)))
     (scrypt-kdf
      (when (or (<= N 1)
                (not (zerop (logand N (1- N))))
