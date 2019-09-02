@@ -1,5 +1,15 @@
 -*- mode: outline -*-
 
+* Changes since version 0.46
+
+** bug fixes
+
+Allow running in ECL even if there is no C compiler available.
+
+** new features
+
+Added the HMAC-KDF key derivation function.
+
 * Version 0.46, released 2019-06-04
 
 ** bug fixes
