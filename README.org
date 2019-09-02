@@ -920,6 +920,7 @@ Ironclad comes with a few key derivation functions:
  - PBKDF1
  - PBKDF2
  - Scrypt
+ - HMAC
 
 
 #+NAME: derive-key
@@ -932,7 +933,7 @@ a password and salt (both must be of type
 ~(simple-array (unsigned-byte 8) (*))~), and number of iterations,
 returns the password digest as a byte array of length /key-length/.
 
-Scrypt ignores the /iteration-count/ parameter.
+Scrypt and HMAC ignore the /iteration-count/ parameter.
 
 
 #+NAME: make-kdf
@@ -948,6 +949,7 @@ Returns a key derivation function instance.
  - pbkdf1
  - pbkdf2
  - scrypt-kdf
+ - hmac-kdf
 
 /kind/ can be a symbol in the ~keyword~  or ~ironclad~ packages.
 
@@ -965,6 +967,10 @@ The default Scrypt parameters are /N/ = 4096, /r/ = 8, and /p/ = 2.
 Please note that depending on the values of /N/ and /r/,
 [[derive-key][derive-key]] may not be able to allocate sufficient space for its
 temporary arrays.
+
+The HMAC-KDF algorithm uses the /digest/ parameter to precise what
+hash function is used. It also optionally uses the /additional-data/
+to precise the ~info~ vector from the [[https://tools.ietf.org/html/rfc5869][RFC]].
 
 ** PBKDF convenience functions
 
