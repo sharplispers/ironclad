@@ -80,8 +80,8 @@ thread. There is an example showing how it can be done in the section about
   :CUSTOM_ID: installation
   :END:
 
-The current version of Ironclad is 0.46. It can be downloaded
-at [[https://github.com/sharplispers/ironclad/archive/v0.46.tar.gz]].
+The current version of Ironclad is 0.47. It can be downloaded
+at [[https://github.com/sharplispers/ironclad/archive/v0.47.tar.gz]].
 If you are feeling adventurous, you can download a bleeding-edge version
 at [[https://github.com/sharplispers/ironclad]].
 
