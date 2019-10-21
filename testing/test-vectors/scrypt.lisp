@@ -23,7 +23,7 @@
 ;; adjusting the scrypt implementation.
 #+x86-64
 (rtest:deftest scryptkdf1
-    (run-kdf-test (crypto:make-kdf 'crypto:scrypt-kdf :N 16384 :r 8 :p 1)
+    (run-kdf-test (crypto:make-kdf 'crypto:scrypt-kdf :n 16384 :r 8 :p 1)
                   *scrypt1-password* *scrypt1-salt* 1000 (length *scrypt1-key*) *scrypt1-key*)
   t)
 
@@ -42,7 +42,7 @@
 ;; Avoid issues around ARRAY-DIMENSION-LIMIT.
 #+x86-64
 (rtest:deftest scryptkdf2
-    (run-kdf-test (crypto:make-kdf 'crypto:scrypt-kdf :N 16384 :r 8 :p 2)
+    (run-kdf-test (crypto:make-kdf 'crypto:scrypt-kdf :n 16384 :r 8 :p 2)
                   *scrypt2-password* *scrypt2-salt* 1000 (length *scrypt2-key*) *scrypt2-key*)
   t)
 
@@ -59,6 +59,6 @@
           '(vector (unsigned-byte 8))))
 
 (rtest:deftest scryptkdf3
-    (run-kdf-test (crypto:make-kdf 'crypto:scrypt-kdf :N 16 :r 100 :p 100)
+    (run-kdf-test (crypto:make-kdf 'crypto:scrypt-kdf :n 16 :r 100 :p 100)
                   *scrypt3-password* *scrypt3-salt* 1000 (length *scrypt3-key*) *scrypt3-key*)
   t)

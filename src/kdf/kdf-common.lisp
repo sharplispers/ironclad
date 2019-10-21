@@ -13,7 +13,7 @@
          :documentation "Optional context and application specific information")))
 
 (defclass scrypt-kdf ()
- ((N :initarg :N :reader scrypt-kdf-N)
+ ((n :initarg :n :reader scrypt-kdf-N)
   (r :initarg :r :reader scrypt-kdf-r)
   (p :initarg :p :reader scrypt-kdf-p)))
 
@@ -38,7 +38,7 @@
   ())
 
 (defun make-kdf (kind &key digest
-                      (N 4096) (r 8) (p 2)
+                      (n 4096) (r 8) (p 2)
                       (block-count 10000) additional-key additional-data)
   ;; PBKDF1, at least, will do stricter checking; this is good enough for now.
   "digest is used for pbkdf1 and pbkdf2.
@@ -62,11 +62,11 @@ argon2"
          (error 'unsupported-digest :name digest))
        (make-instance 'hmac-kdf :digest digest-name :info additional-data)))
     (scrypt-kdf
-     (when (or (<= N 1)
-               (not (zerop (logand N (1- N))))
+     (when (or (<= n 1)
+               (not (zerop (logand n (1- n))))
                (>= (* r p) (expt 2 30)))
-       (error 'unsupported-scrypt-cost-factors :N N :r r :p p))
-     (make-instance 'scrypt-kdf :N N :r r :p p))
+       (error 'unsupported-scrypt-cost-factors :n n :r r :p p))
+     (make-instance 'scrypt-kdf :n n :r r :p p))
     (argon2i
      (when (< block-count 8)
        (error 'unsupported-argon2-parameters))

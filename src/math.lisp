@@ -22,7 +22,7 @@ denominator."
 
 ;;; modular arithmetic utilities
 
-(defun modular-inverse (N modulus)
+(defun modular-inverse (n modulus)
   "Returns M such that N * M mod MODULUS = 1"
   (declare (type (integer 1 *) modulus))
   (declare (type (integer 0 *) n))
@@ -50,7 +50,7 @@ denominator."
                            0
                            inverse)))))
 
-(defun modular-inverse-with-blinding (N modulus)
+(defun modular-inverse-with-blinding (n modulus)
   "As modular-inverse, but mask N with a blinding factor before
 computing the modular inverse."
   (declare (type (integer 1 *) modulus))

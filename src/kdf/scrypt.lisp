@@ -52,11 +52,11 @@
 
 (defmethod derive-key ((kdf scrypt-kdf) passphrase salt iteration-count key-length)
   (declare (ignore iteration-count))
-  (let* ((pb-kdf (make-kdf 'PBKDF2 :digest 'SHA256))
+  (let* ((pb-kdf (make-kdf 'pbkdf2 :digest 'sha256))
          (xy (make-array (* 256 (scrypt-kdf-r kdf)) :element-type '(unsigned-byte 8)))
          (v (make-array (* 128 (scrypt-kdf-r kdf) (scrypt-kdf-N kdf)) :element-type '(unsigned-byte 8)))
          (b (derive-key pb-kdf passphrase salt 1 (* (scrypt-kdf-p kdf) 128 (scrypt-kdf-r kdf)))))
     (dotimes (i (scrypt-kdf-p kdf))
       (smix b (* i 128 (scrypt-kdf-r kdf)) (scrypt-kdf-r kdf) (scrypt-kdf-N kdf) v xy))
-    (reinitialize-instance pb-kdf :digest 'SHA256)
+    (reinitialize-instance pb-kdf :digest 'sha256)
     (derive-key pb-kdf passphrase b 1 key-length)))

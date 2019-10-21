@@ -1,5 +1,11 @@
 -*- mode: outline -*-
 
+* Changes since version 0.47
+
+** bug fixes
+
+Fixed compiling with the ':invert' readtable-case.
+
 * Version 0.47, released 2019-09-11
 
 ** bug fixes
