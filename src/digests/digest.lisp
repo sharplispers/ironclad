@@ -78,10 +78,10 @@
 ;;; macros for "mid-level" functions
 
 (defmacro define-digest-registers ((digest-name &key (endian :big) (size 4) (digest-registers nil)) &rest registers)
-  (let* ((struct-name (intern (format nil "~A-~A" digest-name '#:regs)))
-         (constructor (intern (format nil "~A-~A" '#:initial struct-name)))
-         (copier (intern (format nil "%~A-~A" '#:copy struct-name)))
-         (digest-fun (intern (format nil "~A~A" digest-name '#:regs-digest)))
+  (let* ((struct-name (read-from-string (format nil "~A-~A" digest-name '#:regs)))
+         (constructor (read-from-string (format nil "~A-~A" '#:initial struct-name)))
+         (copier (read-from-string (format nil "%~A-~A" '#:copy struct-name)))
+         (digest-fun (read-from-string (format nil "~A~A" digest-name '#:regs-digest)))
          (register-bit-size (* size 8))
          (digest-size (* size (or digest-registers
                                   (length registers))))
@@ -107,7 +107,7 @@
                  `(setf ,@(loop for (reg value) in registers
                              for index from 0 below digest-size by size
                              nconc `((,ref-fun buffer (+ start ,index))
-                                     (,(intern (format nil "~A-~A-~A" digest-name '#:regs reg)) regs))))))
+                                     (,(read-from-string (format nil "~A-~A-~A" digest-name '#:regs reg)) regs))))))
                (cond
                  #+(and sbcl :little-endian)
                  ((eq endian :little)
@@ -144,7 +144,7 @@
 (defmacro define-digest-finalizer (specs &body body)
   (let* ((single-digest-p (not (consp (car specs))))
          (specs (if single-digest-p (list specs) specs))
-         (inner-fun-name (intern (format nil "%~A-~A-~A" '#:finalize (caar specs) '#:state))))
+         (inner-fun-name (read-from-string (format nil "%~A-~A-~A" '#:finalize (caar specs) '#:state))))
     (destructuring-bind (maybe-doc-string &rest rest) body
       (let ((primary-digest (caar specs)))
         `(defmethod produce-digest ((state ,primary-digest)
@@ -163,7 +163,7 @@
                                  (let ((clauses
                                         (loop for (digest-name digest-length) in ',specs
                                               collect `(,digest-name
-                                                         (,(intern (format nil "~A~A"
+                                                         (,(read-from-string (format nil "~A~A"
                                                                            digest-name '#:regs-digest))
                                                                    ,regs digest digest-start)))))
                                    (if ,single-digest-p

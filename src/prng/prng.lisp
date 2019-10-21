@@ -112,7 +112,7 @@ exist, reseed from /dev/random and then write that seed to PATH."
     (write-sequence (random-data (prng-seed-length prng)) seed-file))
   ;; FIXME: this only works under SBCL.  It's important, though,
   ;; as it sets the proper permissions for reading a seedfile.
-  #+sbcl(sb-posix:chmod path (logior sb-posix:S-IRUSR sb-posix:S-IWUSR))
+  #+sbcl(sb-posix:chmod path (logior sb-posix:s-irusr sb-posix:s-iwusr))
   (values))
 
 (defun feed-fifo (prng path)
