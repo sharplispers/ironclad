@@ -2,10 +2,6 @@
 (cl:defpackage :ironclad
   (:use :cl)
   (:nicknames :crypto)
-  (:import-from #:nibbles
-                #:ub16ref/le #:ub16ref/be
-                #:ub32ref/le #:ub32ref/be
-                #:ub64ref/le #:ub64ref/be)
   (:export
    ;; referencing multiple-octet values in an octet vector (SETF-able)
    #:ub16ref/be #:ub16ref/le #:ub32ref/be #:ub32ref/le #:ub64ref/le #:ub64ref/be

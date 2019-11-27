@@ -2,7 +2,7 @@
 #+sbcl
 (in-package :sb-c)
 
-#+(and sbcl ironclad-assembly)
+#+(and sbcl (or x86 x86-64) ironclad-assembly)
 (progn
 
 (defknown (ironclad::fill-block-ub8-le ironclad::fill-block-ub8-be)
@@ -144,6 +144,19 @@
    (simple-array (unsigned-byte 8) (*))
    (integer 0 #.array-dimension-limit))
   (values)
+  (any)
+  :overwrite-fndb-silently t)
+
+(defknown ironclad::swap32
+  ((unsigned-byte 32))
+  (unsigned-byte 32)
+  (any)
+  :overwrite-fndb-silently t)
+
+#+x86-64
+(defknown ironclad::swap64
+  ((unsigned-byte 64))
+  (unsigned-byte 64)
   (any)
   :overwrite-fndb-silently t)
 

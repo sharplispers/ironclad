@@ -38,7 +38,15 @@
         (setf (fdefinition 'ea) (fdefinition 'sb-vm::ea))
         (setf (fdefinition 'dword-ea) (fdefinition 'ea))
         (defmacro dword-inst (name &rest operands)
-          `(inst ,name :dword ,@operands)))
+          (case name
+            (bswap
+             ;; The '(bswap :dword r)' notation is only supported
+             ;; on SBCL > 1.5.9.
+             (if (ignore-errors (sb-ext:assert-version->= 1 5 9 17) t)
+                 `(inst bswap :dword ,@operands)
+                 `(inst bswap (sb-vm::reg-in-size ,@operands :dword))))
+             (t
+              `(inst ,name :dword ,@operands)))))
 
       (progn ; Older SBCL (< 1.4.11)
         (defun ea (displacement &optional base index (scale 1))
@@ -1028,6 +1036,29 @@
                (ea disp base offset))))
       (inst movdqu x0 (buffer-mem in start-in))
       (inst movdqu (buffer-mem out start-out) x0))))
+
+(define-vop (swap32)
+  (:translate ironclad::swap32)
+  (:policy :fast-safe)
+  (:args (n :scs (unsigned-reg) :target r))
+  (:arg-types unsigned-num)
+  (:results (r :scs (unsigned-reg)))
+  (:result-types unsigned-num)
+  (:generator 2
+    (move r n)
+    (dword-inst bswap r)))
+
+#+x86-64
+(define-vop (swap64)
+  (:translate ironclad::swap64)
+  (:policy :fast-safe)
+  (:args (n :scs (unsigned-reg) :target r))
+  (:arg-types unsigned-num)
+  (:results (r :scs (unsigned-reg)))
+  (:result-types unsigned-num)
+  (:generator 2
+    (move r n)
+    (inst bswap r)))
 
 (define-vop (inc-counter-block)
   (:translate ironclad::inc-counter-block)
