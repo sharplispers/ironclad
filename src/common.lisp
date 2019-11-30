@@ -213,11 +213,11 @@
                 (t :unsigned-int)
                 :uint32-t
                 "{
-uint8_t *data = (#0)->array.self.b8 + #1;
-uint32_t r = ((uint32_t) data[0] << 24)
-           | ((uint32_t) data[1] << 16)
-           | ((uint32_t) data[2] << 8)
-           | data[3];
+uint32_t n = *((uint32_t *) ((#0)->array.self.b8 + #1));
+uint32_t r = (n << 24)
+           | ((n & 0xff00) << 8)
+           | ((n >> 8) & 0xff00)
+           | (n >> 24);
 @(return 0) = r;
 }"
                 :side-effects nil)
@@ -248,11 +248,12 @@ uint32_t r = ((uint32_t) data[0] << 24)
                 (t :unsigned-int :uint32-t)
                 :void
                 "{
-uint8_t *data = (#0)->array.self.b8 + #1;
-data[0] = (#2 >> 24) & 0xff;
-data[1] = (#2 >> 16) & 0xff;
-data[2] = (#2 >> 8) & 0xff;
-data[3] = #2 & 0xff;
+uint32_t n = #2;
+uint32_t r = (n << 24)
+           | ((n & 0xff00) << 8)
+           | ((n >> 8) & 0xff00)
+           | (n >> 24);
+*((uint32_t *) ((#0)->array.self.b8 + #1)) = r;
 }")
 
   #+(and sbcl big-endian)
@@ -319,15 +320,15 @@ data[3] = #2 & 0xff;
                 (t :unsigned-int)
                 :uint64-t
                 "{
-uint8_t *data = (#0)->array.self.b8 + #1;
-uint64_t r = ((uint64_t) data[0] << 56)
-           | ((uint64_t) data[1] << 48)
-           | ((uint64_t) data[2] << 40)
-           | ((uint64_t) data[3] << 32)
-           | ((uint64_t) data[4] << 24)
-           | ((uint64_t) data[5] << 16)
-           | ((uint64_t) data[6] << 8)
-           | data[7];
+uint64_t n = *((uint64_t *) ((#0)->array.self.b8 + #1));
+uint64_t r = (n << 56)
+           | ((n & 0xff00) << 40)
+           | ((n & 0xff0000) << 24)
+           | ((n & 0xff000000) << 8)
+           | ((n >> 8) & 0xff000000)
+           | ((n >> 24) & 0xff0000)
+           | ((n >> 40) & 0xff00)
+           | (n >> 56);
 @(return 0) = r;
 }"
                 :side-effects nil)
@@ -354,15 +355,16 @@ uint64_t r = ((uint64_t) data[0] << 56)
                 (t :unsigned-int :uint64-t)
                 :void
                 "{
-uint8_t *data = (#0)->array.self.b8 + #1;
-data[0] = (#2 >> 56) & 0xff;
-data[1] = (#2 >> 48) & 0xff;
-data[2] = (#2 >> 40) & 0xff;
-data[3] = (#2 >> 32) & 0xff;
-data[4] = (#2 >> 24) & 0xff;
-data[5] = (#2 >> 16) & 0xff;
-data[6] = (#2 >> 8) & 0xff;
-data[7] = #2 & 0xff;
+uint64_t n = #2;
+uint64_t r = (n << 56)
+           | ((n & 0xff00) << 40)
+           | ((n & 0xff0000) << 24)
+           | ((n & 0xff000000) << 8)
+           | ((n >> 8) & 0xff000000)
+           | ((n >> 24) & 0xff0000)
+           | ((n >> 40) & 0xff00)
+           | (n >> 56);
+*((uint64_t *) ((#0)->array.self.b8 + #1)) = r;
 }")
 
   #+(and sbcl big-endian 64-bit)
