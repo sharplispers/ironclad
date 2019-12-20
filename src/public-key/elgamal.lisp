@@ -96,7 +96,7 @@
                       256))
                (q (generate-prime n))
                (p (loop for z = (logior (ash 1 (- num-bits n 1))
-                                        (random-bits (- num-bits n)))
+                                        (dpb 0 (byte 1 0) (random-bits (- num-bits n))))
                         for p = (1+ (* z q))
                         until (and (= num-bits (integer-length p))
                                    (prime-p p))
