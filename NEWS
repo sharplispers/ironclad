@@ -6,6 +6,10 @@
 
 Fixed compiling with the ':invert' readtable-case.
 
+** improvements
+
+Some improvements of assembly functions for CCL and ECL.
+
 * Version 0.47, released 2019-09-11
 
 ** bug fixes
