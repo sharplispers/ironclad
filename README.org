@@ -1804,6 +1804,20 @@ against timing attacks.
 timing attacks; don't use it on secret data.
 
 
+#+NAME: prime-p
+#+BEGIN_SRC lisp
+(prime-p n &optional prng) => boolean
+#+END_SRC
+
+[[prime-p][prime-p]] returns ~t~ if /n/ has a high probability of being a prime number, and
+~nil~ if it is a composite number. The probable primality is determined by
+first doing trial divisions with small primes, then running several
+Miller-Rabin tests with random bases, and finally doing a Lucas test. The
+number of Miller-Rabin tests can be configured using the
+~*number-of-miller-rabin-tests*~ variable. It is 64 by default, which makes the
+probability of returning ~t~ for a composite number to be at most 1/2^128.
+
+
 #+NAME: make-random-salt
 #+BEGIN_SRC lisp
 make-random-salt &optional size => bytes
