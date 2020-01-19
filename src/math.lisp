@@ -20,6 +20,145 @@ denominator."
    (setq q (floor d c))))
 
 
+;;; Some number theory functions taken from Maxima
+
+(defun jacobi (a b)
+  (declare (integer a b) (optimize (speed 3)))
+  (cond ((zerop b)
+         (if (= 1 (abs a)) 1 0))
+        ((and (evenp a) (evenp b))
+         0)
+        (t
+         (let ((k 1)
+               (tab2 (make-array 8 :element-type '(integer -1 1)
+                                   :initial-contents #(0 1 0 -1 0 -1 0 1))))
+           (declare (type (integer -1 1) k))
+           (loop for v fixnum = 0 then (1+ v) ;remove 2's from b
+                 while (evenp b) do (setf b (ash b -1))
+                 finally (when (oddp v)
+                           (setf k (aref tab2 (logand a 7))))) ; (-1)^(a^2-1)/8
+           (when (minusp b)
+             (setf b (- b))
+             (when (minusp a)
+               (setf k (- k))))
+           (loop
+              (when (zerop a)
+                (return-from jacobi (if (> b 1) 0 k)))
+              (loop for v fixnum = 0 then (1+ v)
+                    while (evenp a) do (setf a (ash a -1))
+                    finally (when (oddp v)
+                              (when (minusp (aref tab2 (logand b 7))); (-1)^(b^2-1)/8
+                                (setf k (- k)))))
+              (when (plusp (logand a b 2)) ;compute (-1)^(a-1)(b-1)/4
+                (setf k (- k)))
+              (let ((r (abs a)))
+                (setf a (rem b r))
+                (setf b r)))))))
+
+(defun power-mod-tab (b k m)
+  (declare (optimize (speed 3) (safety 0)))
+  (let* ((l (ash 1 (1- k)))
+         (tab (make-array l :element-type 'integer :initial-element 1))
+         (bi b)
+         (bb (mod (* b b) m)))
+    (setf (svref tab 0) b)
+    (do ((i 1 (1+ i)))
+        ((= i l) tab)
+      (setq bi (mod (* bi bb) m))
+      (setf (svref tab i) bi))))
+
+(defun power-mod (b e m)
+  (declare (optimize (speed 3) (safety 0)))
+  (cond
+    ((zerop e)
+      (mod 1 m))
+    ((typep e 'fixnum)
+      (do ((res 1)) (())
+        (when (logbitp 0 e)
+          (setq res (mod (* res b) m))
+          (when (= 1 e) (return res)))
+        (setq e (ash e -1)
+              b (mod (* b b) m))))
+    (t ;; sliding window variant:
+      (let* ((l (integer-length e))
+             (k (cond ((< l  65) 3)
+                      ((< l 161) 4)
+                      ((< l 385) 5)
+                      ((< l 897) 6)
+                      (t         7)))
+             (tab (power-mod-tab b k m))
+             (res 1) s u tmp)
+        (do ((i (1- l)))
+            ((< i 0) res)
+          (cond
+            ((logbitp i e)
+              (setq s (max (1+ (- i k)) 0))
+              (do () ((logbitp s e)) (incf s))
+              (setq tmp (1+ (- i s)))
+              (dotimes (h tmp) (setq res (mod (* res res) m)))
+              (setq u (ldb (byte tmp s) e))
+              (unless (= u 0) (setq res (mod (* res (svref tab (ash u -1))) m)))
+              (setq i (1- s)))
+            (t
+              (setq res (mod (* res res) m))
+              (decf i))))))))
+
+(defun miller-rabin-decomposition (n) ;; assume n > 2 (n-1 is even)
+  ;; return values q,k with n-1 = q*2^k
+  (declare (optimize (speed 3) (safety 0)))
+  (do ((k 1 (1+ k))
+       (q (ash n -1) (ash q -1)))
+      ((logbitp 0 q) (values q k))))
+
+(defun miller-rabin-kernel (n q k &optional x)
+  ;; now assume n-1 = q*2^k, k >= 1
+  (declare (optimize (speed 3) (safety 0)))
+  (unless x
+    (setq x (+ (strong-random (- n 2)) 2)))
+  (let ((y (power-mod x q n)) ;; j = 0
+        (minus1 (1- n)))
+    (if (or (= y 1) (= y minus1))
+      t
+      (do ((j 1 (1+ j)))
+          ((= j k))
+        (setq y (power-mod y 2 n))
+        (when (= y minus1) (return t))
+        (when (= y 1) (return)))))) ;; n prime => last y must have been 1 or -1
+
+(defun lucas-sequence (k p n)
+  (declare (optimize (speed 3) (safety 0)))
+  (let ((uh 1) (vl 2) (vh p) (s 0) l)
+    (do ()
+	((logbitp 0 k))
+      (setq k (ash k -1))
+      (setq s (1+ s)))
+    (setq l (integer-length k))
+    (do ((j (1- l) (1- j)))
+	((= 0 j))
+      (if (logbitp j k)
+	  (progn
+	    (setq uh (mod (* uh vh) n))
+	    (setq vl (mod (- (* vh vl) p) n))
+	    (setq vh (mod (- (* vh vh) 2) n)))
+	  (progn
+	    (setq uh (mod (1- (* uh vl)) n))
+	    (setq vh (mod (- (* vh vl) p) n))
+	    (setq vl (mod (- (* vl vl) 2) n)))))
+    (setq uh (mod (1- (* uh vl)) n))
+    (setq vl (mod (- (* vh vl) p) n))
+    (dotimes (j s)
+      (setq uh (mod (* uh vl) n))
+      (setq vl (mod (- (* vl vl) 2) n)))
+    uh))
+
+(defun primep-lucas (n)
+  (declare (optimize (speed 3) (safety 0)))
+  (let ((b 3))
+    (loop until (= (jacobi (- (* b b) 4) n) -1) do
+      (incf b))
+    (zerop (lucas-sequence (1+ n) b n))))
+
+
 ;;; modular arithmetic utilities
 
 (defun modular-inverse (n modulus)
@@ -82,54 +221,9 @@ computing the modular inverse."
               r0 (mod (* r0 r0) modulus)))))
 
 (defun expt-mod/unsafe (n exponent modulus)
-  "As (mod (expt n exponent) modulus), but more efficient (2^k-ary method).
-This function is faster than expt-mod, but it is not safe against
-side channel timing attacks."
-  (declare (optimize (speed 3) (safety 0) (space 0) (debug 0)))
-  (assert (>= exponent 0))
-  (assert (> modulus 1))
-  (let* ((result 1)
-
-         ;; Choose the optimal value for k
-         (l (integer-length exponent))
-         (k (cond ((< l 9) 1)
-                  ((< l 25) 2)
-                  ((< l 70) 3)
-                  ((< l 197) 4)
-                  ((< l 539) 5)
-                  ((< l 1434) 6)
-                  ((< l 3715) 7)
-                  ((< l 9400) 8)
-                  ((< l 23291) 9)
-                  ((< l 56652) 10)
-                  ((< l 135599) 11)
-                  ((< l 320035) 12)
-                  ((< l 746156) 13)
-                  ((< l 1721161) 14)
-                  ((< l 3933181) 15)
-                  (t 16)))
-
-         ;; Compute the digits of the exponent in base 2^k
-         (base (expt 2 k))
-         (digits (do ((q exponent)
-                      r
-                      digits)
-                     ((zerop q) digits)
-                   (multiple-value-setq (q r) (floor q base))
-                   (push r digits)))
-
-         (powers (make-array base :element-type 'integer :initial-element 1)))
-
-    ;; Precompute the powers of n
-    (dotimes (i (1- base))
-      (setf (aref powers (1+ i)) (mod (* (aref powers i) n) modulus)))
-
-    ;; Compute the result
-    (dolist (digit digits result)
-      (dotimes (i k)
-        (setf result (mod (* result result) modulus)))
-      (unless (zerop digit)
-        (setf result (mod (* result (aref powers digit)) modulus))))))
+  "As (mod (expt n exponent) modulus), but more efficient. This function is
+faster than expt-mod, but it is not safe against side channel timing attacks."
+  (power-mod n exponent modulus))
 
 
 ;;; prime numbers utilities
@@ -157,6 +251,7 @@ side channel timing attacks."
           1511 1523 1531 1543 1549 1553 1559 1567 1571 1579 1583 1597
           1601 1607 1609 1613 1619 1621 1627 1637 1657 1663 1667 1669
           1693 1697 1699 1709 1721 1723)))
+(defconstant +last-small-prime+ 1723)
 
 (defun generate-small-primes (n)
   "Generates a list of all primes up to N using the Sieve of
@@ -172,41 +267,23 @@ mathematical interest."
                         unless (zerop (aref array j))
                         collect j))))
 
-(defun prime-p (n &optional (prng *prng*))
-  "True if N is a prime number (with very high probability; 1:2^128
-chance of returning true for a composite number."
-  (assert (>= n 3))
-  (if (find n +small-primes+)
-      t
-      (loop for p across +small-primes+
-         while (< p n)
-         when (zerop (mod n p))
-         do (return nil)
-         end
-         finally (return (rabin-miller n prng)))))
+(defparameter *number-of-miller-rabin-tests* 64)
 
-(defun rabin-miller (n prng)
-  "Rabin-Miller probabalistic primality test.  There is a 1:2^128
-chance that a composite number will be determined to be a prime number
-using this test."
-  (declare (optimize (speed 3) (safety 0) (space 0) (debug 0))
-           (type integer n))
-  (assert (and (>= n 3) (oddp n)))
-  (loop for s of-type integer = (1- n) then (the integer (/ s 2))
-     and tt of-type integer = 0 then (1+ tt)
-     while (zerop (mod s 2))
-     finally (return
-               (loop for k from 0 to 128 by 2
-                  for a = (+ 2 (strong-random (- n 2) prng))
-                  for v = (expt-mod/unsafe a s n)
-                  if (not (= v 1))
-                  do (loop for i = 0 then (1+ i)
-                        while (not (= v (1- n)))
-                        if (= i (1- tt))
-                        do (return-from rabin-miller)
-                        else
-                        do (setf v (expt-mod/unsafe v 2 n)))
-                  finally (return t)))))
+(defun prime-p (n &optional (prng *prng*))
+  "True if N is a prime number (with very high probability; at most 1:2^128
+chance of returning true for a composite number with the default
+*NUMBER-OF-MILLER-RABIN-TESTS* of 64)."
+  (declare (type integer n)
+           (optimize (speed 3)))
+  (if (<= n +last-small-prime+)
+      (when (find n +small-primes+) t)
+      (let ((*prng* prng))
+        (and (loop for p across +small-primes+
+                   never (zerop (mod n p)))
+             (multiple-value-bind (q k) (miller-rabin-decomposition n)
+               (loop repeat *number-of-miller-rabin-tests*
+                     always (miller-rabin-kernel n q k)))
+             (primep-lucas n)))))
 
 (defun generate-prime-in-range (lower-limit upper-limit &optional (prng *prng*))
   (assert (< 0 lower-limit upper-limit))

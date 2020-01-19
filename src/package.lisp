@@ -97,6 +97,7 @@
    #:fortuna-generator
 
    ;; cryptographic math
+   #:*number-of-miller-rabin-tests*
    #:generate-prime #:prime-p #:generate-prime-in-range #:egcd
    #:generate-safe-prime #:find-generator
 
