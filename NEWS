@@ -1,14 +1,22 @@
 -*- mode: outline -*-
 
-* Changes since version 0.47
+* Version 0.48, released 2020-01-20
 
 ** bug fixes
 
 Fixed compiling with the ':invert' readtable-case.
 
+** new features
+
+Added the '*number-of-miller-rabin-tests*' parameter allowing to configure the
+number of rounds of Miller-Rabin to do in the 'prime-p' function.
+
 ** improvements
 
 Some improvements of assembly functions for CCL and ECL.
+
+Improved the probable primality test by adding a Lucas test after the
+Miller-Rabin tests.
 
 * Version 0.47, released 2019-09-11
 
