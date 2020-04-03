@@ -13,7 +13,7 @@
       (error 'ironclad-error :format-control "Failed to get random data."))
     seq)
 
-  #+(and win32 sb-dynamic-core)
+  #+(and win32 sbcl)
   (sb-win32:crypt-gen-random num-bytes)
 
   #+(and os-windows ccl)
@@ -43,7 +43,7 @@
     (copy-seq buff))
 
   #-(or unix
-        (and win32 sb-dynamic-core)
+        (and win32 sbcl)
         (and os-windows ccl)
         (and os-windows allegro)
         (and mswindows lispworks))
