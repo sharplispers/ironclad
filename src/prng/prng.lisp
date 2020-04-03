@@ -71,7 +71,7 @@ replacement for COMMON-LISP:RANDOM."
           (with-open-file (seed-file path :element-type '(unsigned-byte 8))
             (assert (>= (read-sequence seq seed-file) num-bytes))
             seq))
-  #+(and win32 sb-dynamic-core)(sb-win32:crypt-gen-random num-bytes)
+  #+(and win32 sbcl)(sb-win32:crypt-gen-random num-bytes)
   #+(and os-windows ccl) (multiple-value-bind (buff buffp)
                              (ccl:make-heap-ivector num-bytes '(unsigned-byte 8))
                            (when (= (ccl:external-call "SystemFunction036" :address buffp :unsigned-long num-bytes :boolean) 0)
@@ -87,7 +87,7 @@ replacement for COMMON-LISP:RANDOM."
   #+(and mswindows lispworks)(let ((buff (sys:in-static-area (make-array num-bytes :element-type '(unsigned-byte 8)))))
                                 (unless (fli:with-dynamic-lisp-array-pointer (buff buff) (rtl-gen-random buff num-bytes)) (error 'ironclad-error :format-control "RtlGenRandom failed"))
                                 (copy-seq buff))
-  #-(or unix (and win32 sb-dynamic-core) (and os-windows ccl) (and os-windows allegro) (and mswindows lispworks))(error 'ironclad-error :format-control "OS-RANDOM-SEED is not supported on your platform."))
+  #-(or unix (and win32 sbcl) (and os-windows ccl) (and os-windows allegro) (and mswindows lispworks))(error 'ironclad-error :format-control "OS-RANDOM-SEED is not supported on your platform."))
 
 (defun read-seed (path &optional (prng *prng*))
   "Reseed PRNG from PATH.  If PATH doesn't
