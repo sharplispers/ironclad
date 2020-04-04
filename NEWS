@@ -1,5 +1,18 @@
 -*- mode: outline -*-
 
+* Changes since version 0.48
+
+** bug fixes
+
+Fixed possible file descriptor leak with OS PRNGs.
+
+Fixed compilation with recent SBCL on Windows.
+
+** new features
+
+Public and private key types are now exported, so that users can use them to
+specialize their generic functions.
+
 * Version 0.48, released 2020-01-20
 
 ** bug fixes
