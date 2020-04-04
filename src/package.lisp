@@ -74,6 +74,15 @@
    ;; public-key encryption/signature padding
    #:oaep-encode #:oaep-decode #:pss-encode #:pss-verify
 
+   ;; public/private keys
+   #:curve25519-public-key #:curve25519-private-key
+   #:curve448-public-key #:curve448-private-key
+   #:dsa-public-key #:dsa-private-key
+   #:ed25519-public-key #:ed25519-private-key
+   #:ed448-public-key #:ed448-private-key
+   #:elgamal-public-key #:elgamal-private-key
+   #:rsa-public-key #:rsa-private-key
+
    ;; public-key slot readers
    #:dsa-key-p #:dsa-key-q #:dsa-key-g #:dsa-key-y #:dsa-key-x
    #:elgamal-key-p #:elgamal-key-g #:elgamal-key-y #:elgamal-key-x
