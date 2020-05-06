@@ -58,7 +58,8 @@
                         #+ccl :sharing #+ccl :external
                         :element-type '(unsigned-byte 8))))
       (setf (slot-value prng 'source) source)
-      (trivial-garbage:finalize prng (lambda () (close source))))
+      ;; sbcl already does this
+      #-sbcl (trivial-garbage:finalize prng (lambda () (close source))))
     prng))
 
 (setf *prng* (make-prng :os))
