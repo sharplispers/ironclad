@@ -9,6 +9,12 @@
 (defmethod prng-random-data (num-bytes (prng os-prng))
   #+unix
   (let ((seq (make-array num-bytes :element-type '(unsigned-byte 8))))
+    (unless (slot-boundp prng 'source)
+      (let ((source (open #P"/dev/urandom"
+                          #+ccl :sharing #+ccl :external
+                          :element-type '(unsigned-byte 8))))
+        (setf (slot-value prng 'source) source)
+        (trivial-garbage:finalize prng (lambda () (close source)))))
     (unless (>= (read-sequence seq (slot-value prng 'source)) num-bytes)
       (error 'ironclad-error :format-control "Failed to get random data."))
     seq)
@@ -52,14 +58,7 @@
 
 (defmethod make-prng ((name (eql :os)) &key seed)
   (declare (ignorable seed))
-  (let ((prng (make-instance 'os-prng)))
-    #+unix
-    (let ((source (open #P"/dev/urandom"
-                        #+ccl :sharing #+ccl :external
-                        :element-type '(unsigned-byte 8))))
-      (setf (slot-value prng 'source) source)
-      (trivial-garbage:finalize prng (lambda () (close source))))
-    prng))
+  (make-instance 'os-prng))
 
 (setf *prng* (make-prng :os))
 #+thread-support
