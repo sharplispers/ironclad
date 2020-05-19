@@ -1,5 +1,16 @@
 -*- mode: outline -*-
 
+* Changes since version 0.49
+
+** bug fixes
+
+Fixed default OS PRNG getting stuck in dumped images.
+
+** improvements
+
+Open only one stream to /dev/urandom for OS PRNGs on unix-like systems even if
+there are many OS PRNGs instantiated.
+
 * Version 0.49, released 2020-04-14
 
 ** bug fixes

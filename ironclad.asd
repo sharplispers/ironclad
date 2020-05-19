@@ -14,7 +14,7 @@
   :description "A cryptographic toolkit written in pure Common Lisp"
   :license "BSD 3-Clause"
   :default-component-class ironclad-source-file
-  :depends-on (#+sbcl "sb-rotate-byte" #+sbcl "sb-posix" "bordeaux-threads" "trivial-garbage")
+  :depends-on (#+sbcl "sb-rotate-byte" #+sbcl "sb-posix" "bordeaux-threads")
   :in-order-to ((test-op (test-op "ironclad/tests")))
   :components ((:static-file "LICENSE")
                (:static-file "NEWS")
