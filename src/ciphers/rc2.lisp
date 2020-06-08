@@ -91,8 +91,8 @@
                              `(progn
                                (setf ,x0 (ldb (byte 16 0)
                                           (+ ,x0
-                                             (aref round-keys (+ (* 4 ,index) ,i))
                                              (logand ,x1 ,x2)
+                                             (aref round-keys (+ (* 4 ,index) ,i))
                                              (logandc1 ,x1 ,x3))))
                                (setf ,x0 (rol16 ,x0 ,(case i
                                                            (0 1)
