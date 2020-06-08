@@ -478,7 +478,7 @@
   (%reinitialize-skein256 state 224))
 
 (defmethod copy-digest ((state skein256) &optional copy)
-  (declare (type (or null skein256) copy))
+  (check-type copy (or null skein256))
   (let ((copy (if copy
                   copy
                   (etypecase state

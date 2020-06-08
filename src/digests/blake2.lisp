@@ -174,7 +174,7 @@
   state)
 
 (defmethod copy-digest ((state blake2) &optional copy)
-  (declare (type (or null blake2) copy))
+  (check-type copy (or null blake2))
   (let ((copy (if copy
                   copy
                   (etypecase state

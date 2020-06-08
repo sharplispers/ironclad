@@ -20,7 +20,7 @@
   state)
 
 (defmethod copy-digest ((state adler32) &optional copy)
-  (declare (type (or null adler32) copy))
+  (check-type copy (or null adler32))
   (cond
     (copy
      (setf (adler32-s1 copy) (adler32-s1 state)

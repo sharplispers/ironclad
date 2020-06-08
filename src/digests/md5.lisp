@@ -161,7 +161,7 @@ accordingly."
   state)
 
 (defmethod copy-digest ((state md5) &optional copy)
-  (declare (type (or null md5) copy))
+  (check-type copy (or null md5))
   (cond
    (copy
     (replace (md5-regs copy) (md5-regs state))

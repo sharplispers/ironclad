@@ -250,7 +250,7 @@
   state)
 
 (defmethod copy-digest ((state sm3) &optional copy)
-  (declare (type (or null sm3) copy))
+  (check-type copy (or null sm3))
   (let ((copy (if copy copy (%make-sm3-digest))))
     (declare (type sm3 copy))
     (replace (sm3-state copy) (sm3-state state))

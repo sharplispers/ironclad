@@ -140,7 +140,7 @@
   state)
 
 (defmethod copy-digest ((state sha256) &optional copy)
-  (declare (type (or null sha256) copy))
+  (check-type copy (or null sha256))
   (let ((copy (if copy
                   copy
                   (etypecase state
