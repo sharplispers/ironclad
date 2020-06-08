@@ -1056,10 +1056,7 @@
          (ftype (function ((integer 0 2048)) (unsigned-byte 64)) groestl-table))
 (defun groestl-table (i)
   (declare (type (integer 0 2048) i))
-  (let ((constants (load-time-value +groestl-table+ t)))
-    (declare (type (simple-array (unsigned-byte 64) (2048)) constants))
-    (aref constants i)))
-
+  (aref +groestl-table+ i))
 
 ;;;
 ;;; Rounds
@@ -1367,7 +1364,7 @@
   state)
 
 (defmethod copy-digest ((state groestl) &optional copy)
-  (declare (type (or null groestl) copy))
+  (check-type copy (or null groestl))
   (let ((copy (if copy
                   copy
                   (etypecase state
