@@ -6,6 +6,8 @@
 
 Fixed default OS PRNG getting stuck in dumped images.
 
+Fixes/workarounds for CCL on ARM32.
+
 ** improvements
 
 Open only one stream to /dev/urandom for OS PRNGs on unix-like systems even if
