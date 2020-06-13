@@ -62,7 +62,7 @@
   state)
 
 (defmethod copy-digest ((state crc32) &optional copy)
-  (declare (type (or null crc32) copy))
+  (check-type copy (or null crc32))
   (cond
     (copy
      (setf (crc32-crc copy) (crc32-crc state))

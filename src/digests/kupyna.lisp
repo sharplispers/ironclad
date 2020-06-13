@@ -271,6 +271,7 @@
   state)
 
 (defmethod copy-digest ((state kupyna) &optional copy)
+  (check-type copy (or null kupyna))
   (let ((copy (if copy
                   copy
                   (etypecase state

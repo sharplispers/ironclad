@@ -43,7 +43,7 @@
   state)
 
 (defmethod copy-digest ((state tree-hash) &optional copy)
-  (declare (type (or null tree-hash) copy))
+  (check-type copy (or null tree-hash))
   (cond
     (copy
      (copy-digest (tree-hash-state state) (tree-hash-state copy))

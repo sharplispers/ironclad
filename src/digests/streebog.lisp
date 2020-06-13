@@ -1223,7 +1223,7 @@
   state)
 
 (defmethod copy-digest ((state streebog) &optional copy)
-  (declare (type (or null streebog) copy))
+  (check-type copy (or null streebog))
   (let ((copy (if copy
                   copy
                   (etypecase state

@@ -78,7 +78,7 @@
   state)
 
 (defmethod copy-digest ((state md4) &optional copy)
-  (declare (type (or null md4) copy))
+  (check-type copy (or null md4))
   (cond
     (copy
      (replace (md4-regs copy) (md4-regs state))

@@ -362,7 +362,7 @@ the content on normal form exit."
   state)
 
 (defmethod copy-digest ((state sha3) &optional copy)
-  (declare (type (or null sha3) copy))
+  (check-type copy (or null sha3))
   (let ((copy (if copy
                   copy
                   (etypecase state

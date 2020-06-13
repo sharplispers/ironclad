@@ -831,7 +831,7 @@
   state)
 
 (defmethod copy-digest ((state tiger) &optional copy)
-  (declare (type (or null tiger) copy))
+  (check-type copy (or null tiger))
   (cond
     (copy
      (replace (tiger-regs copy) (tiger-regs state))

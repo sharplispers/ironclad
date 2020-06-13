@@ -410,7 +410,7 @@
   state)
 
 (defmethod copy-digest ((state jh) &optional copy)
-  (declare (type (or null jh) copy))
+  (check-type copy (or null jh))
   (let ((copy (if copy
                   copy
                   (etypecase state
