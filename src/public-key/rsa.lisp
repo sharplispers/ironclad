@@ -3,7 +3,6 @@
 
 (in-package :crypto)
 
-
 ;;; class definitions
 
 (defclass rsa-key ()
@@ -13,9 +12,10 @@
   ((e :initarg :e :reader rsa-key-exponent :type integer)))
 
 (defclass rsa-private-key (rsa-key)
-  ((d :initarg :d :reader rsa-key-exponent :type integer)))
+  ((d :initarg :d :reader rsa-key-exponent :type integer)
+   (p :initarg :p :reader rsa-key-prime-p :type integer)
+   (q :initarg :q :reader rsa-key-prime-q :type integer)))
 
-
 ;;; function definitions
 
 (defmethod make-public-key ((kind (eql :rsa))
@@ -37,7 +37,7 @@
         :n (rsa-key-modulus public-key)))
 
 (defmethod make-private-key ((kind (eql :rsa))
-                             &key d n &allow-other-keys)
+                             &key d n p q &allow-other-keys)
   (unless d
     (error 'missing-key-parameter
            :kind 'rsa
@@ -48,11 +48,13 @@
            :kind 'rsa
            :parameter 'n
            :description "modulus"))
-  (make-instance 'rsa-private-key :d d :n n))
+  (make-instance 'rsa-private-key :d d :n n :p p :q q))
 
 (defmethod destructure-private-key ((private-key rsa-private-key))
   (list :d (rsa-key-exponent private-key)
-        :n (rsa-key-modulus private-key)))
+        :n (rsa-key-modulus private-key)
+        :p (rsa-key-prime-p private-key)
+        :q (rsa-key-prime-q private-key)))
 
 (defmethod generate-key-pair ((kind (eql :rsa)) &key num-bits &allow-other-keys)
   (unless num-bits
@@ -72,7 +74,7 @@
                       until (= 1 (gcd e phi))
                       finally (return e)))
              (d (modular-inverse-with-blinding e phi)))
-        (values (make-private-key :rsa :d d :n n)
+        (values (make-private-key :rsa :d d :n n :p p :q q)
                 (make-public-key :rsa :e e :n n))))))
 
 (defun rsa-core (msg exponent modulus)
