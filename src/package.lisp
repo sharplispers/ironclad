@@ -86,7 +86,7 @@
    ;; public-key slot readers
    #:dsa-key-p #:dsa-key-q #:dsa-key-g #:dsa-key-y #:dsa-key-x
    #:elgamal-key-p #:elgamal-key-g #:elgamal-key-y #:elgamal-key-x
-   #:rsa-key-modulus #:rsa-key-exponent
+   #:rsa-key-modulus #:rsa-key-exponent #:rsa-key-prime-p #:rsa-key-prime-q
    #:ed25519-key-x #:ed25519-key-y
    #:ed448-key-x #:ed448-key-y
    #:curve25519-key-x #:curve25519-key-y
