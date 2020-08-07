@@ -1,5 +1,12 @@
 -*- mode: outline -*-
 
+* Changes since version 0.50
+
+** new features
+
+The prime factors (p and q) of the modulus of a RSA private key can be
+retreived using the rsa-key-prime-p and rsa-key-prime-q functions.
+
 * Version 0.50, released 2020-07-01
 
 ** bug fixes

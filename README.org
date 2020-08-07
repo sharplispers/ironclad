@@ -1089,7 +1089,7 @@ specialize on /kind/, below.
 (make-private-key :ed25519 &key x y) => private-key
 (make-private-key :ed448 &key x y) => private-key
 (make-private-key :elgamal &key p g y x) => private-key
-(make-private-key :rsa &key d n) => private-key
+(make-private-key :rsa &key d n p q) => private-key
 #+END_EXAMPLE
 
 
@@ -1109,6 +1109,8 @@ For RSA keys, the type of the parameters is ~integer~:
  - /n/, the modulus
  - /e/, the public key
  - /d/, the private key
+ - /p/, the first prime factor of /n/
+ - /q/, the second prime factor of /n/
 
 *** Key destructuring
 
