@@ -37,7 +37,7 @@
         :n (rsa-key-modulus public-key)))
 
 (defmethod make-private-key ((kind (eql :rsa))
-                             &key d n p q &allow-other-keys)
+                             &key d n (p 0) (q 0) &allow-other-keys)
   (unless d
     (error 'missing-key-parameter
            :kind 'rsa
