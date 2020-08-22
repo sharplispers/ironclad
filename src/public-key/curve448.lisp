@@ -13,9 +13,12 @@
   ((x :initarg :x :reader curve448-key-x :type (simple-array (unsigned-byte 8) (*)))
    (y :initarg :y :reader curve448-key-y :type (simple-array (unsigned-byte 8) (*)))))
 
-;; Internally, we represent a point (x, y) using only the projective
-;; coordinate (X, Z) for x, with x = X / Z.
-(deftype curve448-point () '(vector integer 2))
+(eval-when (:compile-toplevel :load-toplevel :execute)
+  (defclass curve448-point ()
+    ;; Internally, we represent a point (x, y) using only the projective
+    ;; coordinate (X, Z) for x, with x = X / Z.
+    ((x :initarg :x :type integer)
+     (z :initarg :z :type integer))))
 
 
 ;;; constants and function definitions
@@ -24,13 +27,12 @@
 (defconstant +curve448-p+ 726838724295606890549323807888004534353641360687318060281490199180612328166730772686396383698676545930088884461843637361053498018365439)
 (defconstant +curve448-a24+ 39081)
 
-(declaim (type curve448-point +curve448-g+))
-(defconst +curve448-g+ (vector 5 1))
+(defconst +curve448-g+
+  (make-instance 'curve448-point :x 5 :z 1))
 
 
-(declaim (inline curve448-inv))
-(defun curve448-inv (x)
-  (expt-mod x (- +curve448-p+ 2) +curve448-p+))
+(defmethod ec-scalar-inv ((kind (eql :curve448)) n)
+  (expt-mod n (- +curve448-p+ 2) +curve448-p+))
 
 (defun curve448-double-and-add (x1 z1 x2 z2 x3)
   "Point doubling and addition on curve448 curve."
@@ -57,66 +59,58 @@
     (declare (type integer t1 t2 t3 t4 t5 t6 t7 t8 t9 t10 t11 t12 t13 t14 x4 z4 x5 z5))
     (values x4 z4 x5 z5)))
 
-(defun curve448-scalar-mult (p n)
-  "Point multiplication on curve448 curve using the Montgomery ladder."
+(defmethod ec-scalar-mult ((p curve448-point) n)
+  ;; Point multiplication on curve448 curve using the Montgomery ladder.
   (declare (optimize (speed 3) (safety 0) (space 0) (debug 0))
-           (type curve448-point p)
            (type integer n))
-  (assert (= 1 (aref p 1)))
-  (do ((x (aref p 0))
-       (x1 1)
-       (z1 0)
-       (x2 (aref p 0))
-       (z2 1)
-       (i 447 (1- i)))
-      ((minusp i) (vector x1 z1))
-    (declare (type integer x x1 z1 x2 z2)
-             (type fixnum i))
-    (if (logbitp i n)
-        (multiple-value-setq (x2 z2 x1 z1)
-          (curve448-double-and-add x2 z2 x1 z1 x))
-        (multiple-value-setq (x1 z1 x2 z2)
-          (curve448-double-and-add x1 z1 x2 z2 x)))))
+  (with-slots (x z) p
+    (declare (type integer x z))
+    (assert (= 1 z))
+    (do ((x1 1)
+         (z1 0)
+         (x2 x)
+         (z2 1)
+         (i 447 (1- i)))
+        ((minusp i) (make-instance 'curve448-point :x x1 :z z1))
+      (declare (type integer x1 z1 x2 z2)
+               (type fixnum i))
+      (if (logbitp i n)
+          (multiple-value-setq (x2 z2 x1 z1)
+            (curve448-double-and-add x2 z2 x1 z1 x))
+          (multiple-value-setq (x1 z1 x2 z2)
+            (curve448-double-and-add x1 z1 x2 z2 x))))))
 
-(defun curve448-encode-int (x)
-  "Encode an integer as a byte array (little-endian)."
+(defmethod ec-encode-scalar ((kind (eql :curve448)) n)
+  (integer-to-octets n :n-bits +curve448-bits+ :big-endian nil))
+
+(defmethod ec-decode-scalar ((kind (eql :curve448)) octets)
   (declare (optimize (speed 3) (safety 0) (space 0) (debug 0)))
-  (integer-to-octets x :n-bits +curve448-bits+ :big-endian nil))
-
-(defun curve448-decode-int (octets)
-  "Decode a byte array to an integer (little-endian)."
-  (declare (type (simple-array (unsigned-byte 8) (*)) octets)
-           (optimize (speed 3) (safety 0) (space 0) (debug 0)))
-  (let ((x (ldb (byte +curve448-bits+ 0) (octets-to-integer octets :big-endian nil))))
+  (let ((x (ldb (byte +curve448-bits+ 0)
+                (octets-to-integer octets :big-endian nil))))
     (setf (ldb (byte 2 0) x) 0)
     (setf (ldb (byte 1 (1- +curve448-bits+)) x) 1)
     x))
 
-(defun curve448-encode-point (p)
-  "Encode a point on curve448 curve as a byte array."
-  (declare (type curve448-point p)
-           (optimize (speed 3) (safety 0) (space 0) (debug 0)))
-  (let* ((x (aref p 0))
-         (z (aref p 1))
-         (x1 (mod (* x (curve448-inv z)) +curve448-p+)))
-    (declare (type integer x z x1))
-    (curve448-encode-int x1)))
+(defmethod ec-encode-point ((p curve448-point))
+  (declare (optimize (speed 3) (safety 0) (space 0) (debug 0)))
+  (with-slots (x z) p
+    (declare (type integer x z))
+    (let ((x1 (mod (* x (ec-scalar-inv :curve448 z)) +curve448-p+)))
+      (ec-encode-scalar :curve448 x1))))
 
-(defun curve448-decode-point (octets)
-  "Decode a byte array to a point on curve448 curve."
-  (declare (type (simple-array (unsigned-byte 8) (*)) octets)
-           (optimize (speed 3) (safety 0) (space 0) (debug 0)))
-  (let ((x (ldb (byte +curve448-bits+ 0) (octets-to-integer octets :big-endian nil))))
-    (declare (integer x))
-    (vector x 1)))
+(defmethod ec-decode-point ((kind (eql :curve448)) octets)
+  (declare (optimize (speed 3) (safety 0) (space 0) (debug 0)))
+  (let ((x (ldb (byte +curve448-bits+ 0)
+                (octets-to-integer octets :big-endian nil))))
+    (make-instance 'curve448-point :x x :z 1)))
 
 (defun curve448-public-key (sk)
   "Compute the public key associated to the private key SK."
   (declare (type (simple-array (unsigned-byte 8) (*)) sk)
            (optimize (speed 3) (safety 0) (space 0) (debug 0)))
-  (let* ((s (curve448-decode-int sk))
-         (p (curve448-scalar-mult +curve448-g+ s)))
-    (curve448-encode-point p)))
+  (let* ((s (ec-decode-scalar :curve448 sk))
+         (p (ec-scalar-mult +curve448-g+ s)))
+    (ec-encode-point p)))
 
 (defmethod make-public-key ((kind (eql :curve448)) &key y &allow-other-keys)
   (unless y
@@ -150,6 +144,6 @@
               (make-public-key :curve448 :y pk)))))
 
 (defmethod diffie-hellman ((private-key curve448-private-key) (public-key curve448-public-key))
-  (let ((s (curve448-decode-int (curve448-key-x private-key)))
-        (p (curve448-decode-point (curve448-key-y public-key))))
-    (curve448-encode-point (curve448-scalar-mult p s))))
+  (let ((s (ec-decode-scalar :curve448 (curve448-key-x private-key)))
+        (p (ec-decode-point :curve448 (curve448-key-y public-key))))
+    (ec-encode-point (ec-scalar-mult p s))))
