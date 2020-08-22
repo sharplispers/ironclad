@@ -148,6 +148,7 @@
                                            (:file "dsa")
                                            (:file "rsa")
                                            (:file "elgamal")
+                                           (:file "elliptic-curve")
                                            (:file "curve25519")
                                            (:file "curve448")
                                            (:file "ed25519")
