@@ -152,7 +152,8 @@
                                            (:file "curve25519")
                                            (:file "curve448")
                                            (:file "ed25519")
-                                           (:file "ed448")))))))
+                                           (:file "ed448")
+                                           (:file "secp256r1")))))))
 
 (macrolet ((do-silently (&body body)
              `(handler-bind ((style-warning #'muffle-warning)
@@ -345,4 +346,6 @@
                                            (:test-vector-file "elgamal-enc")
                                            (:test-vector-file "elgamal-sig")
                                            (:test-vector-file "rsa-enc")
-                                           (:test-vector-file "rsa-sig")))))))
+                                           (:test-vector-file "rsa-sig")
+                                           (:test-vector-file "secp256r1-dh")
+                                           (:test-vector-file "secp256r1-sig")))))))
