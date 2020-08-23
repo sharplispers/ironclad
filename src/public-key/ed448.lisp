@@ -19,7 +19,10 @@
     ;; coordinates (X, Y, Z), with x = X / Z and y = Y / Z.
     ((x :initarg :x :type integer)
      (y :initarg :y :type integer)
-     (z :initarg :z :type integer))))
+     (z :initarg :z :type integer)))
+  (defmethod make-load-form ((p ed448-point) &optional env)
+    (declare (ignore env))
+    (make-load-form-saving-slots p)))
 
 
 ;;; constant and function definitions

@@ -20,7 +20,10 @@
     ((x :initarg :x :type integer)
      (y :initarg :y :type integer)
      (z :initarg :z :type integer)
-     (w :initarg :w :type integer))))
+     (w :initarg :w :type integer)))
+  (defmethod make-load-form ((p ed25519-point) &optional env)
+    (declare (ignore env))
+    (make-load-form-saving-slots p)))
 
 
 ;;; constant, variable and function definitions
