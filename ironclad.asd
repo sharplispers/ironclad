@@ -154,7 +154,8 @@
                                            (:file "ed25519")
                                            (:file "ed448")
                                            (:file "secp256r1")
-                                           (:file "secp384r1")))))))
+                                           (:file "secp384r1")
+                                           (:file "secp521r1")))))))
 
 (macrolet ((do-silently (&body body)
              `(handler-bind ((style-warning #'muffle-warning)
@@ -351,4 +352,6 @@
                                            (:test-vector-file "secp256r1-dh")
                                            (:test-vector-file "secp256r1-sig")
                                            (:test-vector-file "secp384r1-dh")
-                                           (:test-vector-file "secp384r1-sig")))))))
+                                           (:test-vector-file "secp384r1-sig")
+                                           (:test-vector-file "secp521r1-dh")
+                                           (:test-vector-file "secp521r1-sig")))))))
