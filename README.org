@@ -1024,11 +1024,17 @@ Signature algorithms:
  - Ed448
  - Elgamal
  - RSA
+ - Secp256r1 (a.k.a. NIST P-256)
+ - Secp384r1 (a.k.a. NIST P-384)
+ - Secp521r1 (a.k.a. NIST P-521)
 
 Diffie-Hellman key exchange:
  - Curve25519
  - Curve448
  - Elgamal
+ - Secp256r1 (a.k.a. NIST P-256)
+ - Secp384r1 (a.k.a. NIST P-384)
+ - Secp521r1 (a.k.a. NIST P-521)
 
 ** Key pair generation
 
@@ -1070,6 +1076,9 @@ methods that specialize on /kind/, below.
 (make-public-key :ed448 &key y) => public-key
 (make-public-key :elgamal &key p g y) => public-key
 (make-public-key :rsa &key e n) => public-key
+(make-public-key :secp256r1 &key y) => public-key
+(make-public-key :secp384r1 &key y) => public-key
+(make-public-key :secp521r1 &key y) => public-key
 #+END_EXAMPLE
 
 
@@ -1090,11 +1099,15 @@ specialize on /kind/, below.
 (make-private-key :ed448 &key x y) => private-key
 (make-private-key :elgamal &key p g y x) => private-key
 (make-private-key :rsa &key d n p q) => private-key
+(make-private-key :secp256r1 &key x y) => private-key
+(make-private-key :secp384r1 &key x y) => private-key
+(make-private-key :secp521r1 &key x y) => private-key
 #+END_EXAMPLE
 
 
-For Curve25519, Curve448, Ed25519 and Ed448 keys, the type of the
-parameters is ~(simple-array (unsigned-byte 8) (*))~:
+For Curve25519, Curve448, Ed25519, Ed448 keys, Secp256r1, Secp384r1 and
+Secp521r1, the type of the parameters is
+~(simple-array (unsigned-byte 8) (*))~:
  - /x/, the secret key
  - /y/, the public key
 
@@ -1201,10 +1214,14 @@ specialize on /kind/, below.
 (make-signature :ed448 &key r s) => signature
 (make-signature :elgamal &key r s n-bits) => signature
 (make-signature :rsa &key s n-bits) => signature
+(make-signature :secp256r1 &key r s) => signature
+(make-signature :secp384r1 &key r s) => signature
+(make-signature :secp521r1 &key r s) => signature
 #+END_EXAMPLE
 
-For Ed25519 and Ed448 signatures, the type of the parameters /r/ and
-/s/ is ~(simple-array (unsigned-byte 8) (*))~.
+For Ed25519, Ed448, Secp256r1, Secp384r1 and Secp521r1 signatures,
+the type of the parameters /r/ and /s/ is
+~(simple-array (unsigned-byte 8) (*))~.
 
 For DSA and Elgamal signatures, the type of the parameters /r/, /s/
 and /n-bits/ is ~integer~.
