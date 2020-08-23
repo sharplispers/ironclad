@@ -82,6 +82,9 @@
    #:ed448-public-key #:ed448-private-key
    #:elgamal-public-key #:elgamal-private-key
    #:rsa-public-key #:rsa-private-key
+   #:secp256r1-public-key #:secp256r1-private-key
+   #:secp384r1-public-key #:secp384r1-private-key
+   #:secp521r1-public-key #:secp521r1-private-key
 
    ;; public-key slot readers
    #:dsa-key-p #:dsa-key-q #:dsa-key-g #:dsa-key-y #:dsa-key-x
@@ -91,6 +94,9 @@
    #:ed448-key-x #:ed448-key-y
    #:curve25519-key-x #:curve25519-key-y
    #:curve448-key-x #:curve448-key-y
+   #:secp256r1-key-x #:secp256r1-key-y
+   #:secp384r1-key-x #:secp384r1-key-y
+   #:secp521r1-key-x #:secp521r1-key-y
 
    ;; pseudo-random number generators
    #:list-all-prngs #:make-prng #:random-data #:read-os-random-seed
