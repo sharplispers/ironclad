@@ -1215,7 +1215,7 @@ to have deterministic nonces for Secp256k1 ECDSA signatures, you could do
 something like:
 
 #+BEGIN_EXAMPLE
-(defmethod generate-signature-nonce ((key crypto:secp256k1-private-key) message &optional parameters)
+(defmethod generate-signature-nonce ((key secp256k1-private-key) message &optional parameters)
   (declare (ignore parameters))
   (compute-deterministic-nonce key message))
 #+END_EXAMPLE
