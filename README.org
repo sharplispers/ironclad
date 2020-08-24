@@ -1192,6 +1192,34 @@ or ~t~ (which will use the sha1 digest).
 The functions /pss-encode/ and /pss-decode/ can also be used by hand if
 necessary.
 
+*** Signature nonce
+
+DSA, Elgamal and ECDSA (Secp256k1, Secp256r1, Secp384r1 and Secp521r1)
+signatures require the generation of a nonce. You must never sign two different
+messages with the same key and the same nonce, or anyone having these two
+signatures will be able compute your private key. Ironclad uses the
+[[generate-signature-nonce][generate-signature-nonce]] method which by default generates random nonces.
+
+#+NAME: generate-signature-nonce
+#+BEGIN_SRC lisp
+(generate-signature-nonce (key message &optional parameters)) => nonce
+#+END_SRC
+
+For DSA, /parameters/ is /q/. For Elgamal, /parameters/ is /p/. For ECDSA,
+/parameters/ is ~nil~.
+
+
+If instead of random nonces, you want to have deterministic nonces (e.g. like
+in RFC 6979), you will have to redefine [[generate-signature-nonce][generate-signature-nonce]]. For example,
+to have deterministic nonces for Secp256k1 ECDSA signatures, you could do
+something like:
+
+#+BEGIN_EXAMPLE
+(defmethod generate-signature-nonce ((key crypto:secp256k1-private-key) message &optional parameters)
+  (declare (ignore parameters))
+  (compute-deterministic-nonce key message))
+#+END_EXAMPLE
+
 *** Format of signatures
 
 [[sign-message][sign-message]] returns signatures as octet vectors. When the signature

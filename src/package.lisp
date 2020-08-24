@@ -67,6 +67,7 @@
    #:generate-key-pair
    #:make-signature #:destructure-signature
    #:make-message #:destructure-message
+   #:generate-signature-nonce
    #:sign-message #:verify-signature
    #:encrypt-message #:decrypt-message
    #:diffie-hellman

@@ -107,17 +107,23 @@
           (values (make-private-key :elgamal :p p :g g :y y :x x)
                   (make-public-key :elgamal :p p :g g :y y))))))
 
-(declaim (notinline elgamal-generate-k))
-;; In the tests, this function is redefined to use a constant value
-;; instead of a random one. Therefore it must not be inlined or the tests
-;; will fail.
-(defun elgamal-generate-k (p)
-  "Generate a random number K so that 0 < K < P - 1, and K is relatively prime to P - 1."
-  (assert (> p 3))
-  (loop
-     for k = (+ 1 (strong-random (- p 2)))
-     until (= 1 (gcd k (- p 1)))
-     finally (return k)))
+(defmethod generate-signature-nonce ((key elgamal-private-key) message &optional p)
+  (declare (ignore key message))
+  (or *signature-nonce-for-test*
+      (loop
+        for k = (+ 1 (strong-random (- p 2)))
+        until (= 1 (gcd k (- p 1)))
+        finally (return k))))
+(defmethod generate-signature-nonce ((key elgamal-public-key) message &optional p)
+  ;; The name 'generate-signature-nonce' is not really adapted here as it is
+  ;; used for encryption. But is it worth adding a new generic function just
+  ;; for this case?
+  (declare (ignore key message))
+  (or *signature-nonce-for-test*
+      (loop
+        for k = (+ 1 (strong-random (- p 2)))
+        until (= 1 (gcd k (- p 1)))
+        finally (return k))))
 
 (defmethod make-message ((kind (eql :elgamal)) &key c1 c2 n-bits &allow-other-keys)
   (unless c1
@@ -157,7 +163,7 @@
          (m (if oaep
                 (octets-to-integer (oaep-encode oaep (subseq msg start end) (/ pbits 8)))
                 (octets-to-integer msg :start start :end end)))
-         (k (elgamal-generate-k p))
+         (k (generate-signature-nonce key msg p))
          (c1 (expt-mod g k p))
          (c2 (mod (* m (expt-mod y k p)) p)))
     (unless (< m p)
@@ -217,7 +223,7 @@
       (error 'invalid-message-length :kind 'elgamal))
     (let* ((g (elgamal-key-g key))
            (x (elgamal-key-x key))
-           (k (elgamal-generate-k p))
+           (k (generate-signature-nonce key msg p))
            (r (expt-mod g k p))
            (s (mod (* (- m (* r x)) (modular-inverse-with-blinding k (- p 1))) (- p 1))))
       (if (not (zerop s))

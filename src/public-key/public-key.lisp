@@ -3,7 +3,6 @@
 
 (in-package :crypto)
 
-
 ;;; class definitions
 
 (defclass discrete-logarithm-group ()
@@ -11,7 +10,13 @@
    (q :initarg :q :reader group-qval)
    (g :initarg :g :reader group-gval)))
 
-
+
+;;; Special variable to force the signature nonce during tests instead of
+;;; generating a random one.
+
+(defparameter *signature-nonce-for-test* nil)
+
+
 ;;; converting from integers to octet vectors
 
 (defun octets-to-integer (octet-vec &key (start 0) end (big-endian t) n-bits)

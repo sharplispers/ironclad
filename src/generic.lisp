@@ -224,6 +224,10 @@ from its elements."))
 (defgeneric destructure-signature (kind signature)
   (:documentation "Return a plist containing the elements of a SIGNATURE."))
 
+(defgeneric generate-signature-nonce (key message &optional parameters)
+  (:documentation "Generate a one-time use number for a signature (the k
+parameter in DSA or ECDSA signatures)."))
+
 (defgeneric sign-message (key message &key start end &allow-other-keys)
   (:documentation "Produce a key-specific signature of MESSAGE; MESSAGE is a
 (VECTOR (UNSIGNED-BYTE 8)).  START and END bound the extent of the

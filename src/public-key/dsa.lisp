@@ -117,14 +117,10 @@
     (values (make-private-key :dsa :p p :q q :g g :y y :x x)
             (make-public-key :dsa :p p :q q :g g :y y))))
 
-(declaim (notinline dsa-generate-k))
-;; In the tests, this function is redefined to use a constant value
-;; instead of a random one. Therefore it must not be inlined or the tests
-;; will fail.
-(defun dsa-generate-k (q)
-  "Generate a random number K so that 0 < K < Q."
-  (assert (> q 3))
-  (1+ (strong-random (1- q))))
+(defmethod generate-signature-nonce ((key dsa-private-key) message &optional q)
+  (declare (ignore key message))
+  (or *signature-nonce-for-test*
+      (1+ (strong-random (1- q)))))
 
 (defmethod make-signature ((kind (eql :dsa)) &key r s n-bits &allow-other-keys)
   (unless r
@@ -168,7 +164,7 @@
            (p (dsa-key-p key))
            (g (dsa-key-g key))
            (x (dsa-key-x key))
-           (k (dsa-generate-k q))
+           (k (generate-signature-nonce key message q))
            (r (mod (expt-mod g k p) q))
            (k-inverse (modular-inverse-with-blinding k q))
            (s (mod (* k-inverse (+ (* x r) m)) q)))

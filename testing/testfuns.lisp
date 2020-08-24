@@ -427,13 +427,8 @@
              name n d input output))))
 
 (defun elgamal-encryption-test (name p g x y input k output)
-  ;; Redefine elgamal-generate-k to use a defined K for the test instead of a random one
-  (setf (symbol-function 'ironclad::elgamal-generate-k)
-        (lambda (p)
-          (declare (ignore p))
-          k))
-
-  (let* ((pk (ironclad:make-public-key :elgamal :p p :g g :y y))
+  (let* ((ironclad::*signature-nonce-for-test* k)
+         (pk (ironclad:make-public-key :elgamal :p p :g g :y y))
          (sk (ironclad:make-private-key :elgamal :p p :g g :x x :y y))
          (c (ironclad:encrypt-message pk input))
          (m (ironclad:decrypt-message sk output)))
@@ -474,13 +469,8 @@
              name n e input signature))))
 
 (defun elgamal-signature-test (name p g x y input k signature)
-  ;; Redefine elgamal-generate-k to use a defined K for the test instead of a random one
-  (setf (symbol-function 'ironclad::elgamal-generate-k)
-        (lambda (p)
-          (declare (ignore p))
-          k))
-
-  (let* ((pk (ironclad:make-public-key :elgamal :p p :g g :y y))
+  (let* ((ironclad::*signature-nonce-for-test* k)
+         (pk (ironclad:make-public-key :elgamal :p p :g g :y y))
          (sk (ironclad:make-private-key :elgamal :p p :g g :x x :y y))
          (s (ironclad:sign-message sk input)))
     (when (mismatch s signature)
@@ -491,13 +481,8 @@
              name p g y input signature))))
 
 (defun dsa-signature-test (name p q g x y input k signature)
-  ;; Redefine dsa-generate-k to use a defined K for the test instead of a random one
-  (setf (symbol-function 'ironclad::dsa-generate-k)
-        (lambda (q)
-          (declare (ignore q))
-          k))
-
-  (let* ((sk (ironclad:make-private-key :dsa :p p :q q :g g :x x :y y))
+  (let* ((ironclad::*signature-nonce-for-test* k)
+         (sk (ironclad:make-private-key :dsa :p p :q q :g g :x x :y y))
          (pk (ironclad:make-public-key :dsa :p p :q q :g g :y y))
          (s (ironclad:sign-message sk input)))
     (when (mismatch s signature)
@@ -530,12 +515,8 @@
              name pkey input signature))))
 
 (defun secp256k1-signature-test (name skey pkey input k signature)
-  ;; Redefine secp256k1-generate-k to use a defined K for the test instead of a random one
-  (setf (symbol-function 'ironclad::secp256k1-generate-k)
-        (lambda ()
-          k))
-
-  (let* ((sk (ironclad:make-private-key :secp256k1 :x skey :y pkey))
+  (let* ((ironclad::*signature-nonce-for-test* k)
+         (sk (ironclad:make-private-key :secp256k1 :x skey :y pkey))
          (pk (ironclad:make-public-key :secp256k1 :y pkey))
          (s (ironclad:sign-message sk input)))
     (when (mismatch s signature)
@@ -546,12 +527,8 @@
              name pkey input signature))))
 
 (defun secp256r1-signature-test (name skey pkey input k signature)
-  ;; Redefine secp256r1-generate-k to use a defined K for the test instead of a random one
-  (setf (symbol-function 'ironclad::secp256r1-generate-k)
-        (lambda ()
-          k))
-
-  (let* ((sk (ironclad:make-private-key :secp256r1 :x skey :y pkey))
+  (let* ((ironclad::*signature-nonce-for-test* k)
+         (sk (ironclad:make-private-key :secp256r1 :x skey :y pkey))
          (pk (ironclad:make-public-key :secp256r1 :y pkey))
          (s (ironclad:sign-message sk input)))
     (when (mismatch s signature)
@@ -562,12 +539,8 @@
              name pkey input signature))))
 
 (defun secp384r1-signature-test (name skey pkey input k signature)
-  ;; Redefine secp384r1-generate-k to use a defined K for the test instead of a random one
-  (setf (symbol-function 'ironclad::secp384r1-generate-k)
-        (lambda ()
-          k))
-
-  (let* ((sk (ironclad:make-private-key :secp384r1 :x skey :y pkey))
+  (let* ((ironclad::*signature-nonce-for-test* k)
+         (sk (ironclad:make-private-key :secp384r1 :x skey :y pkey))
          (pk (ironclad:make-public-key :secp384r1 :y pkey))
          (s (ironclad:sign-message sk input)))
     (when (mismatch s signature)
@@ -578,12 +551,8 @@
              name pkey input signature))))
 
 (defun secp521r1-signature-test (name skey pkey input k signature)
-  ;; Redefine secp521r1-generate-k to use a defined K for the test instead of a random one
-  (setf (symbol-function 'ironclad::secp521r1-generate-k)
-        (lambda ()
-          k))
-
-  (let* ((sk (ironclad:make-private-key :secp521r1 :x skey :y pkey))
+  (let* ((ironclad::*signature-nonce-for-test* k)
+         (sk (ironclad:make-private-key :secp521r1 :x skey :y pkey))
          (pk (ironclad:make-public-key :secp521r1 :y pkey))
          (s (ironclad:sign-message sk input)))
     (when (mismatch s signature)

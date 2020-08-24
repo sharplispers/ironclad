@@ -220,19 +220,17 @@
                (s (subseq signature middle)))
           (list :r r :s s)))))
 
-(declaim (notinline secp256r1-generate-k))
-;; In the tests, this function is redefined to use a constant value
-;; instead of a random one. Therefore it must not be inlined or the tests
-;; will fail.
-(defun secp256r1-generate-k ()
-  (1+ (strong-random (1- +secp256r1-l+))))
+(defmethod generate-signature-nonce ((key secp256r1-private-key) message &optional parameters)
+  (declare (ignore key message parameters))
+  (or *signature-nonce-for-test*
+      (1+ (strong-random (1- +secp256r1-l+)))))
 
 ;;; Note that hashing is not performed here.
 (defmethod sign-message ((key secp256r1-private-key) message &key (start 0) end &allow-other-keys)
   (declare (optimize (speed 3) (safety 0) (space 0) (debug 0)))
   (let* ((end (min (or end (length message)) (/ +secp256r1-bits+ 8)))
          (sk (ec-decode-scalar :secp256r1 (secp256r1-key-x key)))
-         (k (secp256r1-generate-k))
+         (k (generate-signature-nonce key message))
          (invk (modular-inverse-with-blinding k +secp256r1-l+))
          (r (ec-scalar-mult +secp256r1-g+ k))
          (r (ec-decode-scalar :secp256r1 (subseq (ec-encode-point r) 1)))
