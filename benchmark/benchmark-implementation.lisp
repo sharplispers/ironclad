@@ -112,9 +112,11 @@
 
 (defun benchmark-diffie-hellman ()
   (let ((speeds '()))
-    (dolist (dh-name '(:curve25519 :curve448 :elgamal :secp256r1 :secp384r1 :secp521r1))
+    (dolist (dh-name '(:curve25519 :curve448 :elgamal
+                       :secp256k1 :secp256r1 :secp384r1 :secp521r1))
       (multiple-value-bind (private-key public-key)
-          (if (member dh-name '(:curve25519 :curve448 :secp256r1 :secp384r1 :secp521r1))
+          (if (member dh-name '(:curve25519 :curve448
+                                :secp256k1 :secp256r1 :secp384r1 :secp521r1))
               (ironclad:generate-key-pair dh-name)
               (ironclad:generate-key-pair dh-name :num-bits 2048))
         (let ((speed (get-speed-ops (loop repeat *iterations*
@@ -136,8 +138,9 @@
   (let ((speeds '())
         (message (ironclad:random-data 20)))
     (dolist (signature-name '(:dsa :ed25519 :ed448 :elgamal :rsa
-                              :secp256r1 :secp384r1 :secp521r1))
-      (let* ((private-key (if (member signature-name '(:ed25519 :ed448 :secp256r1 :secp384r1 :secp521r1))
+                              :secp256k1 :secp256r1 :secp384r1 :secp521r1))
+      (let* ((private-key (if (member signature-name '(:ed25519 :ed448 :secp256k1
+                                                       :secp256r1 :secp384r1 :secp521r1))
                               (ironclad:generate-key-pair signature-name)
                               (ironclad:generate-key-pair signature-name :num-bits 2048)))
              (speed (get-speed-ops (loop repeat *iterations*
@@ -149,9 +152,10 @@
   (let ((speeds '())
         (message (ironclad:random-data 20)))
     (dolist (signature-name '(:dsa :ed25519 :ed448 :elgamal :rsa
-                              :secp256r1 :secp384r1 :secp521r1))
+                              :secp256k1 :secp256r1 :secp384r1 :secp521r1))
       (multiple-value-bind (private-key public-key)
-          (if (member signature-name '(:ed25519 :ed448 :secp256r1 :secp384r1 :secp521r1))
+          (if (member signature-name '(:ed25519 :ed448 :secp256k1
+                                       :secp256r1 :secp384r1 :secp521r1))
               (ironclad:generate-key-pair signature-name)
               (ironclad:generate-key-pair signature-name :num-bits 2048))
         (let* ((signature (ironclad:sign-message private-key message))

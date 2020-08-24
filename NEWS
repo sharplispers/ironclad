@@ -7,8 +7,8 @@
 The prime factors (p and q) of the modulus of a RSA private key can be
 retreived using the rsa-key-prime-p and rsa-key-prime-q functions.
 
-Added the Secp256r1, Secp384r1 and Secp521r1 elliptic curves (a.k.a. NIST
-P-256, P-384 and P-521).
+Added the Secp256k1, Secp256r1 (a.k.a. NIST P-256), Secp384r1 (a.k.a. NIST
+P-384) and Secp521r1 (a.k.a. NIST P-521) elliptic curves.
 
 * Version 0.50, released 2020-07-01
 

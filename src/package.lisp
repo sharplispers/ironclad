@@ -82,6 +82,7 @@
    #:ed448-public-key #:ed448-private-key
    #:elgamal-public-key #:elgamal-private-key
    #:rsa-public-key #:rsa-private-key
+   #:secp256k1-public-key #:secp256k1-private-key
    #:secp256r1-public-key #:secp256r1-private-key
    #:secp384r1-public-key #:secp384r1-private-key
    #:secp521r1-public-key #:secp521r1-private-key
@@ -94,6 +95,7 @@
    #:ed448-key-x #:ed448-key-y
    #:curve25519-key-x #:curve25519-key-y
    #:curve448-key-x #:curve448-key-y
+   #:secp256k1-key-x #:secp256k1-key-y
    #:secp256r1-key-x #:secp256r1-key-y
    #:secp384r1-key-x #:secp384r1-key-y
    #:secp521r1-key-x #:secp521r1-key-y

@@ -159,7 +159,7 @@
       (terpri file)
       (format file "~a~%" line)
       (dolist (dh-name '(:curve25519 :curve448 :elgamal
-                         :secp256r1 :secp384r1 :secp521r1))
+                         :secp256k1 :secp256r1 :secp384r1 :secp521r1))
         (format file "| ~14a |" dh-name)
         (dolist (implementation *lisp-implementations*)
           (let* ((lisp (car implementation))
@@ -207,7 +207,7 @@
       (terpri file)
       (format file "~a~%" line)
       (dolist (signature-name '(:dsa :ed25519 :ed448 :elgamal :rsa
-                                :secp256r1 :secp384r1 :secp521r1))
+                                :secp256k1 :secp256r1 :secp384r1 :secp521r1))
         (format file "| ~14a |" signature-name)
         (dolist (implementation *lisp-implementations*)
           (let* ((lisp (car implementation))
@@ -232,7 +232,7 @@
       (terpri file)
       (format file "~a~%" line)
       (dolist (signature-name '(:dsa :ed25519 :ed448 :elgamal :rsa
-                                :secp256r1 :secp384r1 :secp521r1))
+                                :secp256k1 :secp256r1 :secp384r1 :secp521r1))
         (format file "| ~14a |" signature-name)
         (dolist (implementation *lisp-implementations*)
           (let* ((lisp (car implementation))
