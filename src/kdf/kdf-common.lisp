@@ -37,6 +37,9 @@
 (defclass argon2d (argon2)
   ())
 
+(defclass bcrypt ()
+  ())
+
 (defun make-kdf (kind &key digest
                       (n 4096) (r 8) (p 2)
                       (block-count 10000) additional-key additional-data)
@@ -81,5 +84,7 @@ argon2"
                     :block-count block-count
                     :additional-key additional-key
                     :additional-data additional-data))
+    (bcrypt
+     (make-instance 'bcrypt))
     (t
      (error 'unsupported-kdf :kdf kind))))

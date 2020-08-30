@@ -54,6 +54,7 @@
 
    ;; KDFs
    #:pbkdf1 #:pbkdf2 #:hmac-kdf #:scrypt-kdf #:argon2i #:argon2d
+   #:bcrypt
    #:make-kdf #:derive-key
 
    ;; KDF convenience functions

@@ -137,6 +137,7 @@
                               :serial t
                               :components ((:file "kdf-common")
                                            (:file "argon2")
+                                           (:file "bcrypt")
                                            (:file "hmac")
                                            (:file "pkcs5")
                                            (:file "password-hash")
@@ -320,9 +321,10 @@
                                            (:test-vector-file "tree-hash")
                                            (:test-vector-file "whirlpool")
                                            ;; kdf
+                                           (:file "pkcs5")
                                            (:file "argon2d")
                                            (:file "argon2i")
-                                           (:file "pkcs5")
+                                           (:file "bcrypt")
                                            (:file "scrypt")
                                            (:file "hmac-kdf")
                                            ;; macs

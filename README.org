@@ -917,6 +917,7 @@ Returns ~t~ if /name/ would be in the list returned by
 
 Ironclad comes with a few key derivation functions:
  - Argon2 (only Argon2d and Argon2i without parallelism are implemented)
+ - Bcrypt
  - PBKDF1
  - PBKDF2
  - Scrypt
@@ -933,6 +934,8 @@ a password and salt (both must be of type
 ~(simple-array (unsigned-byte 8) (*))~), and number of iterations,
 returns the password digest as a byte array of length /key-length/.
 
+For bcrypt, the /salt/ must be 16 bytes long, the /iteration-count/ must be
+a power of 2 between 2^4 and 2^31, and the /key-length/ must be 24.
 Scrypt and HMAC ignore the /iteration-count/ parameter.
 
 
@@ -946,6 +949,7 @@ Returns a key derivation function instance.
 /kind/ denotes the key derivation function to use. They are:
  - argon2d
  - argon2i
+ - bcrypt
  - pbkdf1
  - pbkdf2
  - scrypt-kdf
