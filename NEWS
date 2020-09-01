@@ -13,7 +13,7 @@ P-384) and Secp521r1 (a.k.a. NIST P-521) elliptic curves.
 Added the generate-signature-nonce method that can be redefined to get
 deterministic signature nonces instead of random ones.
 
-Added the bcrypt key derivation function.
+Added the bcrypt and bcrypt-pbkdf key derivation functions.
 
 * Version 0.50, released 2020-07-01
 

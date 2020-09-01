@@ -918,6 +918,7 @@ Returns ~t~ if /name/ would be in the list returned by
 Ironclad comes with a few key derivation functions:
  - Argon2 (only Argon2d and Argon2i without parallelism are implemented)
  - Bcrypt
+ - Bcrypt-pbkdf
  - PBKDF1
  - PBKDF2
  - Scrypt
@@ -938,6 +939,8 @@ For bcrypt, the /salt/ must be 16 bytes long, the /iteration-count/ must be
 a power of 2 between 2^4 and 2^31, and the /key-length/ must be 24.
 Scrypt and HMAC ignore the /iteration-count/ parameter.
 
+For bcrypt-pbkdf, the /key-length/ must be between 1 and 1024.
+
 
 #+NAME: make-kdf
 #+BEGIN_SRC lisp
@@ -950,6 +953,7 @@ Returns a key derivation function instance.
  - argon2d
  - argon2i
  - bcrypt
+ - bcrypt-pbkdf
  - pbkdf1
  - pbkdf2
  - scrypt-kdf
