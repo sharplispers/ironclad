@@ -4,10 +4,11 @@
 (in-package :crypto)
 
 
+(defclass bcrypt ()
+  ())
+
 (defconst +bcrypt-initial-hash+
   (ascii-string-to-byte-array "OrpheanBeholderScryDoubt"))
-(defconst +bcrypt-pbkdf-initial-hash+
-  (ascii-string-to-byte-array "OxychromaticBlowfishSwatDynamite"))
 
 (defun bcrypt-expand-key (passphrase salt p-array s-boxes)
   (declare (type (simple-array (unsigned-byte 8) (*)) passphrase salt)
@@ -76,6 +77,13 @@
         (blowfish-encrypt-block* p-array s-boxes hash 0 hash 0)
         (blowfish-encrypt-block* p-array s-boxes hash 8 hash 8)
         (blowfish-encrypt-block* p-array s-boxes hash 16 hash 16)))))
+
+
+(defclass bcrypt-pbkdf ()
+  ())
+
+(defconst +bcrypt-pbkdf-initial-hash+
+  (ascii-string-to-byte-array "OxychromaticBlowfishSwatDynamite"))
 
 (defun bcrypt-hash (passphrase salt hash)
   (declare (type (simple-array (unsigned-byte 8) (64)) passphrase salt)

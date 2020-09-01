@@ -7,6 +7,26 @@
 (in-package :crypto)
 
 
+(defclass argon2 ()
+  ((block :accessor argon2-block :type (simple-array (unsigned-byte 64) (128)))
+   (pass-number :accessor argon2-pass-number)
+   (slice-number :accessor argon2-slice-number)
+   (nb-blocks :accessor argon2-nb-blocks)
+   (block-count :accessor argon2-block-count)
+   (nb-iterations :accessor argon2-nb-iterations)
+   (counter :accessor argon2-counter)
+   (offset :accessor argon2-offset)
+   (additional-key :accessor argon2-additional-key :type (simple-array (unsigned-byte 8) (*)))
+   (additional-data :accessor argon2-additional-data :type (simple-array (unsigned-byte 8) (*)))
+   (work-area :accessor argon2-work-area :type (simple-array (unsigned-byte 64) (*)))
+   (digester :accessor argon2-digester)))
+
+(defclass argon2i (argon2)
+  ())
+
+(defclass argon2d (argon2)
+  ())
+
 (defconstant +argon2-block-size+ 128)
 
 (deftype argon2-block ()

@@ -7,6 +7,11 @@
 ;;; presented at BSDCan'09, May 2009.
 ;;; http://www.tarsnap.com/scrypt.html
 
+(defclass scrypt-kdf ()
+ ((n :initarg :n :reader scrypt-kdf-N)
+  (r :initarg :r :reader scrypt-kdf-r)
+  (p :initarg :p :reader scrypt-kdf-p)))
+
 (defun scrypt-vector-salsa (b)
   (declare (type (simple-octet-vector 64) b))
   (let ((x (make-array 16 :element-type '(unsigned-byte 32))))

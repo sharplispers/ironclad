@@ -135,7 +135,7 @@
                                            (:file "gcm")))
                              (:module "kdf"
                               :serial t
-                              :components ((:file "kdf-common")
+                              :components ((:file "kdf")
                                            (:file "argon2")
                                            (:file "bcrypt")
                                            (:file "hmac")

@@ -1,47 +1,6 @@
 ;;;; -*- mode: lisp; indent-tabs-mode: nil -*-
 (in-package :crypto)
 
-(defclass pbkdf1 ()
-  ((digest :reader kdf-digest)))
-
-(defclass pbkdf2 ()
-  ((digest-name :initarg :digest :reader kdf-digest)))
-
-(defclass hmac-kdf ()
-  ((digest-name :initarg :digest :reader kdf-digest)
-   (info :initarg :info :accessor hmac-kdf-info :type (simple-array (unsigned-byte 8) (*))
-         :documentation "Optional context and application specific information")))
-
-(defclass scrypt-kdf ()
- ((n :initarg :n :reader scrypt-kdf-N)
-  (r :initarg :r :reader scrypt-kdf-r)
-  (p :initarg :p :reader scrypt-kdf-p)))
-
-(defclass argon2 ()
-  ((block :accessor argon2-block :type (simple-array (unsigned-byte 64) (128)))
-   (pass-number :accessor argon2-pass-number)
-   (slice-number :accessor argon2-slice-number)
-   (nb-blocks :accessor argon2-nb-blocks)
-   (block-count :accessor argon2-block-count)
-   (nb-iterations :accessor argon2-nb-iterations)
-   (counter :accessor argon2-counter)
-   (offset :accessor argon2-offset)
-   (additional-key :accessor argon2-additional-key :type (simple-array (unsigned-byte 8) (*)))
-   (additional-data :accessor argon2-additional-data :type (simple-array (unsigned-byte 8) (*)))
-   (work-area :accessor argon2-work-area :type (simple-array (unsigned-byte 64) (*)))
-   (digester :accessor argon2-digester)))
-
-(defclass argon2i (argon2)
-  ())
-
-(defclass argon2d (argon2)
-  ())
-
-(defclass bcrypt ()
-  ())
-
-(defclass bcrypt-pbkdf ()
-  ())
 
 (defun make-kdf (kind &key digest
                       (n 4096) (r 8) (p 2)

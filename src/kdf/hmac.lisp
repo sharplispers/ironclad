@@ -2,6 +2,11 @@
 ;;; implementation of RFC 5869
 (in-package :crypto)
 
+(defclass hmac-kdf ()
+  ((digest-name :initarg :digest :reader kdf-digest)
+   (info :initarg :info :accessor hmac-kdf-info :type (simple-array (unsigned-byte 8) (*))
+         :documentation "Optional context and application specific information")))
+
 (defmethod shared-initialize ((kdf hmac-kdf) slot-names &rest initargs
                               &key digest info &allow-other-keys)
   (declare (ignore slot-names initargs))
