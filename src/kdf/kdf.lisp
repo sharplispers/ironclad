@@ -2,6 +2,10 @@
 (in-package :crypto)
 
 
+(defun list-all-kdfs ()
+  (copy-list '(:argon2i :argon2d :bcrypt :bcrypt-pbkdf
+               :hmac-kdf :pbkdf1 :pbkdf2 :scrypt-kdf)))
+
 (defun make-kdf (kind &key digest
                       (n 4096) (r 8) (p 2)
                       (block-count 10000) additional-key additional-data)

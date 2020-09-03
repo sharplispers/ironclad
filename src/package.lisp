@@ -53,6 +53,7 @@
    #:gcm #:etm #:eax
 
    ;; KDFs
+   #:list-all-kdfs
    #:pbkdf1 #:pbkdf2 #:hmac-kdf #:scrypt-kdf #:argon2i #:argon2d
    #:bcrypt #:bcrypt-pbkdf
    #:make-kdf #:derive-key

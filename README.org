@@ -980,6 +980,14 @@ The HMAC-KDF algorithm uses the /digest/ parameter to precise what
 hash function is used. It also optionally uses the /additional-data/
 to precise the ~info~ vector from the [[https://tools.ietf.org/html/rfc5869][RFC]].
 
+
+#+NAME: list-all-kdfs
+#+BEGIN_SRC lisp
+(list-all-kdfs) => list
+#+END_SRC
+
+Returns a list of KDF kinds that may be validly passed to [[make-kdf][make-kdf]].
+
 ** PBKDF convenience functions
 
 Ironclad comes with convenience functions for using PBKDF1 and PBKDF2
