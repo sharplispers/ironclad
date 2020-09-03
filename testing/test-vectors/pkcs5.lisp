@@ -29,7 +29,7 @@
   t)
 
 (rtest:deftest pbkdf1.valid-hashes
-    (loop with valid-hashes = '(crypto:md2 crypto:md5 crypto:sha1)
+    (loop with valid-hashes = '(:md2 :md5 :sha1)
        for hash in (crypto:list-all-digests)
        when (handler-case (crypto:make-kdf 'crypto:pbkdf1 :digest hash)
               (error () nil)

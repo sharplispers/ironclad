@@ -24,7 +24,7 @@
 make-authenticated-encryption-mode."
   (loop for symbol being each external-symbol of (find-package :ironclad)
         if (aeadp symbol)
-          collect symbol into ciphers
+          collect (intern (symbol-name symbol) :keyword) into ciphers
         finally (return (sort ciphers #'string<))))
 
 (defun authenticated-encryption-mode-supported-p (name)

@@ -239,7 +239,7 @@
 (defun list-all-ciphers ()
   (loop for symbol being each external-symbol of (find-package :ironclad)
      if (%find-cipher symbol)
-     collect symbol into ciphers
+     collect (intern (symbol-name symbol) :keyword) into ciphers
      finally (return (sort ciphers #'string<))))
 
 (defun cipher-supported-p (name)

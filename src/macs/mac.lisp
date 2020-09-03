@@ -12,7 +12,7 @@
 (defun list-all-macs ()
   (loop for symbol being each external-symbol of (find-package :ironclad)
         if (macp symbol)
-          collect symbol into macs
+          collect (intern (symbol-name symbol) :keyword) into macs
         finally (return (sort macs #'string<))))
 
 (defun mac-supported-p (name)

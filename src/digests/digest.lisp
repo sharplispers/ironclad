@@ -325,7 +325,7 @@
 (defun list-all-digests ()
   (loop for symbol being each external-symbol of (find-package :ironclad)
      if (digestp symbol)
-     collect symbol into digests
+     collect (intern (symbol-name symbol) :keyword) into digests
      finally (return (sort digests #'string<))))
 
 (defun digest-supported-p (name)

@@ -81,10 +81,9 @@
 
 (rtest:deftest ciphers.crypto-package
   (every #'(lambda (s)
-             (and (eq (symbol-package s) (find-package :ironclad))
-                  (eq (nth-value 1 (find-symbol (symbol-name s)
-                                                (find-package :ironclad)))
-                      :external)))
+             (eq (nth-value 1 (find-symbol (symbol-name s)
+                                           (find-package :ironclad)))
+                 :external))
          (crypto:list-all-ciphers))
   t)
 
