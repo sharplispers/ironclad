@@ -64,6 +64,7 @@
    #:pbkdf2-check-password
 
    ;; public-key encryption operations
+   #:list-all-key-pair-kinds
    #:make-public-key #:destructure-public-key
    #:make-private-key #:destructure-private-key
    #:generate-key-pair

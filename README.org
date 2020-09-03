@@ -1075,6 +1075,15 @@ a Diffie-Hellman exchange with Bob's Elgamal key pair:
 (generate-key-pair :elgamal :compatible-with-key bob-public-key)
 #+END_EXAMPLE
 
+
+#+NAME: list-all-key-pair-kinds
+#+BEGIN_SRC lisp
+(list-all-key-pair-kinds) => list
+#+END_SRC
+
+Returns a list of key pair kinds that may be validly passed to
+[[generate-key-pair][generate-key-pair]].
+
 *** Key construction
 
 #+NAME: make-public-key
