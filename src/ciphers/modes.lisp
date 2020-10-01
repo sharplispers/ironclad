@@ -44,7 +44,9 @@
 (defvar *supported-modes* (list :ecb :cbc :ofb :cfb :cfb8 :ctr))
 
 (defun mode-supported-p (name)
-  (member name *supported-modes*))
+  (and (symbolp name)
+       (not (null (member (intern (symbol-name name) :keyword)
+                          *supported-modes*)))))
 
 (defun list-all-modes ()
   (sort (copy-seq *supported-modes*) #'string<))

@@ -331,7 +331,7 @@
 (defun digest-supported-p (name)
   "Return T if the digest NAME is a valid digest name."
   (and (symbolp name)
-       (not (null (digestp name)))))
+       (not (null (digestp (massage-symbol name))))))
 
 (defmethod digest-length ((digest-name symbol))
   (or (digestp (massage-symbol digest-name))

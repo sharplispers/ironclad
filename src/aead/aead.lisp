@@ -30,7 +30,7 @@ make-authenticated-encryption-mode."
 (defun authenticated-encryption-mode-supported-p (name)
   "Returns T if NAME would be in the list returned by
 list-all-authenticated-encryption-modes NIL otherwise."
-  (and (symbolp name) (aeadp name)))
+  (and (symbolp name) (aeadp (massage-symbol name))))
 
 (defmacro defaead (name)
   `(setf (get ',name 'aead) t))

@@ -18,7 +18,7 @@
 (defun mac-supported-p (name)
   "Return T if the mac NAME is a valid mac name."
   (and (symbolp name)
-       (not (null (macp name)))))
+       (not (null (macp (massage-symbol name))))))
 
 (defmacro defmac (name maker updater producer)
   `(progn
