@@ -861,118 +861,124 @@
         (n-rounds (n-rounds context)))
     (declare (type aes-round-keys round-keys))
     (declare (type (integer 0 14) n-rounds))
-    #+(and sbcl x86-64 aes-ni)
-    (aes-ni-encrypt plaintext plaintext-start
-                    ciphertext ciphertext-start
-                    round-keys n-rounds)
-    #-(and sbcl x86-64 aes-ni)
-    (with-words ((s0 s1 s2 s3) plaintext plaintext-start)
-      ;; the "optimized implementation" also had a fully unrolled version of
-      ;; this loop hanging around.  it might be worthwhile to translate it and
-      ;; see if it actually gains us anything.  a wizard would do this with a
-      ;; macro which allows one to easily switch between unrolled and
-      ;; non-unrolled versions.  I am not a wizard.
-      (let ((t0 0) (t1 0) (t2 0) (t3 0)
-            (round-key-offset 0))
-        (declare (type (unsigned-byte 32) t0 t1 t2 t3))
-        (declare (type (unsigned-byte 16) round-key-offset))
-        ;; initial whitening
-        (setf s0 (logxor s0 (aref round-keys 0))
-              s1 (logxor s1 (aref round-keys 1))
-              s2 (logxor s2 (aref round-keys 2))
-              s3 (logxor s3 (aref round-keys 3)))
-        (do ((round (truncate n-rounds 2) (1- round)))
-            ((zerop round))
-          (declare (type (unsigned-byte 16) round))
-          (mix-s-into-t-encrypting 4)
-          (incf round-key-offset 8)
-          (when (= round 1)
-            (return-from nil (values)))
-          (mix-t-into-s-encrypting 0))
-        ;; apply last round and dump cipher state into the ciphertext
-        (flet ((apply-round (round-key u0 u1 u2 u3)
-                 (declare (type (unsigned-byte 32) round-key u0 u1 u2 u3))
-                 (logxor (logand (aref Te4 (fourth-byte u0)) #xff000000)
-                         (logand (aref Te4 (third-byte u1)) #x00ff0000)
-                         (logand (aref Te4 (second-byte u2)) #x0000ff00)
-                         (logand (aref Te4 (first-byte u3)) #x000000ff)
-                         round-key)))
-          (declare (inline apply-round))
-          (store-words ciphertext ciphertext-start
-                       (apply-round (rk-ref 0) t0 t1 t2 t3)
-                       (apply-round (rk-ref 1) t1 t2 t3 t0)
-                       (apply-round (rk-ref 2) t2 t3 t0 t1)
-                       (apply-round (rk-ref 3) t3 t0 t1 t2)))))))
+    (if #+(and sbcl x86-64 ironclad-assembly) (aes-ni-supported-p)
+        #-(and sbcl x86-64 ironclad-assembly) nil
+        #+(and sbcl x86-64 ironclad-assembly)
+        (aes-ni-encrypt plaintext plaintext-start
+                        ciphertext ciphertext-start
+                        round-keys n-rounds)
+        #-(and sbcl x86-64 ironclad-assembly) nil
+        (with-words ((s0 s1 s2 s3) plaintext plaintext-start)
+          ;; the "optimized implementation" also had a fully unrolled version
+          ;; of this loop hanging around. it might be worthwhile to translate
+          ;; it and see if it actually gains us anything. a wizard would do
+          ;; this with a macro which allows one to easily switch between
+          ;; unrolled and non-unrolled versions. I am not a wizard.
+          (let ((t0 0) (t1 0) (t2 0) (t3 0)
+                (round-key-offset 0))
+            (declare (type (unsigned-byte 32) t0 t1 t2 t3))
+            (declare (type (unsigned-byte 16) round-key-offset))
+            ;; initial whitening
+            (setf s0 (logxor s0 (aref round-keys 0))
+                  s1 (logxor s1 (aref round-keys 1))
+                  s2 (logxor s2 (aref round-keys 2))
+                  s3 (logxor s3 (aref round-keys 3)))
+            (do ((round (truncate n-rounds 2) (1- round)))
+                ((zerop round))
+              (declare (type (unsigned-byte 16) round))
+              (mix-s-into-t-encrypting 4)
+              (incf round-key-offset 8)
+              (when (= round 1)
+                (return-from nil (values)))
+              (mix-t-into-s-encrypting 0))
+            ;; apply last round and dump cipher state into the ciphertext
+            (flet ((apply-round (round-key u0 u1 u2 u3)
+                     (declare (type (unsigned-byte 32) round-key u0 u1 u2 u3))
+                     (logxor (logand (aref Te4 (fourth-byte u0)) #xff000000)
+                             (logand (aref Te4 (third-byte u1)) #x00ff0000)
+                             (logand (aref Te4 (second-byte u2)) #x0000ff00)
+                             (logand (aref Te4 (first-byte u3)) #x000000ff)
+                             round-key)))
+              (declare (inline apply-round))
+              (store-words ciphertext ciphertext-start
+                           (apply-round (rk-ref 0) t0 t1 t2 t3)
+                           (apply-round (rk-ref 1) t1 t2 t3 t0)
+                           (apply-round (rk-ref 2) t2 t3 t0 t1)
+                           (apply-round (rk-ref 3) t3 t0 t1 t2))))))))
 
 (define-block-decryptor aes 16
   (let ((round-keys (decryption-round-keys context))
         (n-rounds (n-rounds context)))
     (declare (type aes-round-keys round-keys))
     (declare (type (unsigned-byte 16) n-rounds))
-    #+(and sbcl x86-64 aes-ni)
-    (aes-ni-decrypt ciphertext ciphertext-start
-                    plaintext plaintext-start
-                    round-keys n-rounds)
-    #-(and sbcl x86-64 aes-ni)
-    (with-words ((s0 s1 s2 s3) ciphertext ciphertext-start)
-      (let ((t0 0) (t1 0) (t2 0) (t3 0)
-            (round-key-offset 0))
-        (declare (type (unsigned-byte 32) t0 t1 t2 t3))
-        (declare (type (unsigned-byte 16) round-key-offset))
-        ;; initial whitening
-        (setf s0 (logxor s0 (aref round-keys 0))
-              s1 (logxor s1 (aref round-keys 1))
-              s2 (logxor s2 (aref round-keys 2))
-              s3 (logxor s3 (aref round-keys 3)))
-        (do ((round (truncate n-rounds 2) (1- round)))
-            ((zerop round))
-          (declare (type (unsigned-byte 16) round))
-          (mix-s-into-t-decrypting 4)
-          (incf round-key-offset 8)
-          (when (= round 1)
-            (return-from nil (values)))
-          (mix-t-into-s-decrypting 0))
-        ;; apply last round and dump cipher state into plaintext
-        (flet ((apply-round (round-key u0 u1 u2 u3)
-                 (declare (type (unsigned-byte 32) round-key u0 u1 u2 u3))
-                 (logxor (logand (aref Td4 (fourth-byte u0)) #xff000000)
-                         (logand (aref Td4 (third-byte u1)) #x00ff0000)
-                         (logand (aref Td4 (second-byte u2)) #x0000ff00)
-                         (logand (aref Td4 (first-byte u3)) #x000000ff)
-                         round-key)))
-          (declare (inline apply-round))
-          (store-words plaintext plaintext-start
-                       (apply-round (rk-ref 0) t0 t3 t2 t1)
-                       (apply-round (rk-ref 1) t1 t0 t3 t2)
-                       (apply-round (rk-ref 2) t2 t1 t0 t3)
-                       (apply-round (rk-ref 3) t3 t2 t1 t0)))))))
+    (if #+(and sbcl x86-64 ironclad-assembly) (aes-ni-supported-p)
+        #-(and sbcl x86-64 ironclad-assembly) nil
+        #+(and sbcl x86-64 ironclad-assembly)
+        (aes-ni-decrypt ciphertext ciphertext-start
+                        plaintext plaintext-start
+                        round-keys n-rounds)
+        #-(and sbcl x86-64 ironclad-assembly) nil
+        (with-words ((s0 s1 s2 s3) ciphertext ciphertext-start)
+          (let ((t0 0) (t1 0) (t2 0) (t3 0)
+                (round-key-offset 0))
+            (declare (type (unsigned-byte 32) t0 t1 t2 t3))
+            (declare (type (unsigned-byte 16) round-key-offset))
+            ;; initial whitening
+            (setf s0 (logxor s0 (aref round-keys 0))
+                  s1 (logxor s1 (aref round-keys 1))
+                  s2 (logxor s2 (aref round-keys 2))
+                  s3 (logxor s3 (aref round-keys 3)))
+            (do ((round (truncate n-rounds 2) (1- round)))
+                ((zerop round))
+              (declare (type (unsigned-byte 16) round))
+              (mix-s-into-t-decrypting 4)
+              (incf round-key-offset 8)
+              (when (= round 1)
+                (return-from nil (values)))
+              (mix-t-into-s-decrypting 0))
+            ;; apply last round and dump cipher state into plaintext
+            (flet ((apply-round (round-key u0 u1 u2 u3)
+                     (declare (type (unsigned-byte 32) round-key u0 u1 u2 u3))
+                     (logxor (logand (aref Td4 (fourth-byte u0)) #xff000000)
+                             (logand (aref Td4 (third-byte u1)) #x00ff0000)
+                             (logand (aref Td4 (second-byte u2)) #x0000ff00)
+                             (logand (aref Td4 (first-byte u3)) #x000000ff)
+                             round-key)))
+              (declare (inline apply-round))
+              (store-words plaintext plaintext-start
+                           (apply-round (rk-ref 0) t0 t3 t2 t1)
+                           (apply-round (rk-ref 1) t1 t0 t3 t2)
+                           (apply-round (rk-ref 2) t2 t1 t0 t3)
+                           (apply-round (rk-ref 3) t3 t2 t1 t0))))))))
 
 ) ; MACROLET
 
 (defmethod schedule-key ((cipher aes) key)
-  #+(and sbcl x86-64 aes-ni)
-  (let ((encryption-keys (allocate-round-keys key))
-        (decryption-keys (allocate-round-keys key))
-        (n-rounds (ecase (length key)
-                    (16 10)
-                    (24 12)
-                    (32 14))))
-    (declare (type aes-round-keys encryption-keys decryption-keys))
-    (aes-ni-generate-round-keys key (length key) encryption-keys decryption-keys)
-    (setf (encryption-round-keys cipher) encryption-keys
-          (decryption-round-keys cipher) decryption-keys
-          (n-rounds cipher) n-rounds)
-    cipher)
-  #-(and sbcl x86-64 aes-ni)
-  (multiple-value-bind (encryption-keys n-rounds)
-      (generate-round-keys-for-encryption key (allocate-round-keys key))
-    (declare (type aes-round-keys encryption-keys))
-    (let ((decryption-keys (copy-seq encryption-keys)))
-      (generate-round-keys-for-decryption decryption-keys n-rounds)
-      (setf (encryption-round-keys cipher) encryption-keys
-            (decryption-round-keys cipher) decryption-keys
-            (n-rounds cipher) n-rounds)
-      cipher)))
+  (if #+(and sbcl x86-64 ironclad-assembly) (aes-ni-supported-p)
+      #-(and sbcl x86-64 ironclad-assembly) nil
+      (let ((encryption-keys (allocate-round-keys key))
+            (decryption-keys (allocate-round-keys key))
+            (n-rounds (ecase (length key)
+                        (16 10)
+                        (24 12)
+                        (32 14))))
+        (declare (type aes-round-keys encryption-keys decryption-keys))
+        #+(and sbcl x86-64 ironclad-assembly)
+        (aes-ni-generate-round-keys key (length key)
+                                    encryption-keys decryption-keys)
+        (setf (encryption-round-keys cipher) encryption-keys
+              (decryption-round-keys cipher) decryption-keys
+              (n-rounds cipher) n-rounds)
+        cipher)
+      (multiple-value-bind (encryption-keys n-rounds)
+          (generate-round-keys-for-encryption key (allocate-round-keys key))
+        (declare (type aes-round-keys encryption-keys))
+        (let ((decryption-keys (copy-seq encryption-keys)))
+          (generate-round-keys-for-decryption decryption-keys n-rounds)
+          (setf (encryption-round-keys cipher) encryption-keys
+                (decryption-round-keys cipher) decryption-keys
+                (n-rounds cipher) n-rounds)
+          cipher))))
 
 (defcipher aes
   (:encrypt-function aes-encrypt-block)

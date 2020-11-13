@@ -4,16 +4,32 @@
 
 ;;; Check what features are supported by the CPU
 
-#+(and sbcl x86-64 ironclad-assembly)
-(eval-when (:compile-toplevel :load-toplevel :execute)
-  (defun aes-ni-support-p ()
-    (aes-ni-support-p))
-  (compile 'aes-ni-support-p)
-  (when (aes-ni-support-p)
-    (pushnew :aes-ni *features*))
+#+(and sbcl x86-64)
+(sb-ext:defglobal aes-ni-support-known-p nil)
+#+(and sbcl x86-64)
+(sb-ext:defglobal aes-ni-supported-p nil)
+#+(and sbcl x86-64)
+(declaim (inline aes-ni-supported-p))
+#+(and sbcl x86-64)
+(defun aes-ni-supported-p ()
+  (declare (optimize (speed 3) (space 0) (debug 0) (safety 0)))
+  #+ironclad-assembly (if aes-ni-support-known-p
+                          aes-ni-supported-p
+                          (setf aes-ni-support-known-p t
+                                aes-ni-supported-p (aes-ni-support-p)))
+  #-ironclad-assembly nil)
 
-  (defun pclmulqdq-support-p ()
-    (pclmulqdq-support-p))
-  (compile 'pclmulqdq-support-p)
-  (when (pclmulqdq-support-p)
-    (pushnew :pclmulqdq *features*)))
+#+(and sbcl x86-64)
+(sb-ext:defglobal pclmulqdq-support-known-p nil)
+#+(and sbcl x86-64)
+(sb-ext:defglobal pclmulqdq-supported-p nil)
+#+(and sbcl x86-64)
+(declaim (inline pclmulqdq-supported-p))
+#+(and sbcl x86-64)
+(defun pclmulqdq-supported-p ()
+  (declare (optimize (speed 3) (space 0) (debug 0) (safety 0)))
+  #+ironclad-assembly (if pclmulqdq-support-known-p
+                          pclmulqdq-supported-p
+                          (setf pclmulqdq-support-known-p t
+                                pclmulqdq-supported-p (pclmulqdq-support-p)))
+  #-ironclad-assembly nil)

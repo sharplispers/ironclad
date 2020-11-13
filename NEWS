@@ -8,6 +8,12 @@ Fixed authenticated-encryption-mode-supported-p, digest-supported-p,
 mac-supported-p and mode-supported-p functions so that they work correctly with
 either a keyword or a regular symbol as argument.
 
+** improvements
+
+Check for AES-NI and PCLMULQDQ support on x86-64 at run time instead of compile
+time. It should allow a program compiled on a machine supporting these CPU
+instructions to run on a machine that doesn't.
+
 * Version 0.51, released 2020-09-04
 
 ** new features
