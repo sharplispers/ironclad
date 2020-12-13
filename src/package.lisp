@@ -220,8 +220,11 @@
              :32-bit
              :64-bit)
          :ironclad-fast-mod32-arithmetic
-         (when (member :x86-64 *features*)
-           '(:ironclad-fast-mod64-arithmetic)))
+         (append
+          (when (member :x86-64 *features*)
+            '(:ironclad-fast-mod64-arithmetic))
+          (when (fboundp 'sb-vm::ea)
+            '(:ironclad-sb-vm-ea))))
   #+cmu
   (list (c:backend-byte-order c:*target-backend*)
         (if (= vm:word-bits 32)
