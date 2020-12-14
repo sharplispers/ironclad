@@ -33,40 +33,40 @@
 
 #+(and sbcl x86-64 ironclad-assembly)
 (eval-when (:compile-toplevel :load-toplevel :execute)
-  (if (fboundp 'sb-vm::ea)
-      (progn ; Newer SBCL (>= 1.4.11)
-        (setf (fdefinition 'ea) (fdefinition 'sb-vm::ea))
-        (setf (fdefinition 'dword-ea) (fdefinition 'ea))
-        (defmacro dword-inst (name &rest operands)
-          (case name
-            (bswap
-             ;; The '(bswap :dword r)' notation is only supported
-             ;; on SBCL > 1.5.9.
-             (if (ignore-errors (sb-ext:assert-version->= 1 5 9 17) t)
-                 `(inst bswap :dword ,@operands)
-                 `(inst bswap (sb-vm::reg-in-size ,@operands :dword))))
-             (t
-              `(inst ,name :dword ,@operands)))))
-
-      (progn ; Older SBCL (< 1.4.11)
-        (defun ea (displacement &optional base index (scale 1))
-          (sb-vm::make-ea :qword
-                          :base base
-                          :index index
-                          :scale scale
-                          :disp (or displacement 0)))
-        (defun dword-ea (displacement &optional base index (scale 1))
-          (sb-vm::make-ea :dword
-                          :base base
-                          :index index
-                          :scale scale
-                          :disp (or displacement 0)))
-        (defmacro dword-inst (name &rest operands)
-          `(inst ,name ,@(mapcar (lambda (operand)
-                                   `(if (tn-p ,operand)
-                                        (sb-vm::reg-in-size ,operand :dword)
-                                        ,operand))
-                                 operands))))))
+  #+ironclad-sb-vm-ea
+  (progn ; Newer SBCL (>= 1.4.11)
+    (setf (fdefinition 'ea) (fdefinition 'sb-vm::ea))
+    (setf (fdefinition 'dword-ea) (fdefinition 'ea))
+    (defmacro dword-inst (name &rest operands)
+      (case name
+        (bswap
+         ;; The '(bswap :dword r)' notation is only supported
+         ;; on SBCL > 1.5.9.
+         (if (ignore-errors (sb-ext:assert-version->= 1 5 9 17) t)
+             `(inst bswap :dword ,@operands)
+             `(inst bswap (sb-vm::reg-in-size ,@operands :dword))))
+        (t
+         `(inst ,name :dword ,@operands)))))
+  #-ironclad-sb-vm-ea
+  (progn ; Older SBCL (< 1.4.11)
+    (defun ea (displacement &optional base index (scale 1))
+      (sb-vm::make-ea :qword
+                      :base base
+                      :index index
+                      :scale scale
+                      :disp (or displacement 0)))
+    (defun dword-ea (displacement &optional base index (scale 1))
+      (sb-vm::make-ea :dword
+                      :base base
+                      :index index
+                      :scale scale
+                      :disp (or displacement 0)))
+    (defmacro dword-inst (name &rest operands)
+      `(inst ,name ,@(mapcar (lambda (operand)
+                               `(if (tn-p ,operand)
+                                    (sb-vm::reg-in-size ,operand :dword)
+                                    ,operand))
+                             operands)))))
 
 #+(and sbcl (or x86 x86-64) ironclad-assembly)
 (progn
@@ -1076,9 +1076,10 @@
       (emit-label start)
       #.(let ((disp '(- (* n-word-bytes vector-data-offset)
                         other-pointer-lowtag 1)))
-          (if (and (member :x86-64 *features*) (fboundp 'sb-vm::ea))
-              `(inst adc :byte (ea ,disp counter idx) 0)
-              `(inst adc (sb-vm::make-ea :byte :base counter :index idx :disp ,disp) 0)))
+          #+ironclad-sb-vm-ea
+          `(inst adc :byte (ea ,disp counter idx) 0)
+          #-ironclad-sb-vm-ea
+          `(inst adc (sb-vm::make-ea :byte :base counter :index idx :disp ,disp) 0))
       (inst jmp :nc end)
       (inst dec idx)
       (inst jmp :nz start)
