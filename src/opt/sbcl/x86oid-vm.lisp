@@ -1076,11 +1076,10 @@
       (emit-label start)
       #.(let ((disp '(- (* n-word-bytes vector-data-offset)
                         other-pointer-lowtag 1)))
-          (if (and (member :x86-64 *features*) (fboundp 'sb-vm::ea))
-              #+ironclad-sb-vm-ea
-              `(inst adc :byte (ea ,disp counter idx) 0)
-              #-ironclad-sb-vm-ea
-              `(inst adc (sb-vm::make-ea :byte :base counter :index idx :disp ,disp) 0)))
+          #+ironclad-sb-vm-ea
+          `(inst adc :byte (ea ,disp counter idx) 0)
+          #-ironclad-sb-vm-ea
+          `(inst adc (sb-vm::make-ea :byte :base counter :index idx :disp ,disp) 0))
       (inst jmp :nc end)
       (inst dec idx)
       (inst jmp :nz start)
