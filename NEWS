@@ -1,5 +1,11 @@
 -*- mode: outline -*-
 
+* Version 0.53, released 2020-12-18
+
+** bug fixes
+
+Fixed compilation with SBCL > 2.0.11 on x86-64.
+
 * Version 0.52, released 2020-11-14
 
 ** bug fixes
