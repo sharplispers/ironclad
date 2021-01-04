@@ -1,0 +1,43 @@
+name: CI
+
+on:
+  push:
+  pull_request:
+    branches: [master]
+
+jobs:
+  test:
+    name: ${{matrix.lisp}} on ${{matrix.os}}
+    strategy:
+      matrix:
+        lisp: [abcl-bin, allegro, ccl-bin, ccl-bin READTABLE_CASE_INVERT=1, ecl, sbcl-bin]
+        os: [ubuntu-latest]
+      fail-fast: false
+    runs-on: ${{matrix.os}}
+    steps:
+      - uses: actions/checkout@v2
+      - name: Install Roswell
+        shell: bash
+        env:
+          LISP: ${{matrix.lisp}}
+        run: curl -L https://raw.githubusercontent.com/roswell/roswell/master/scripts/install-for-ci.sh | sh -x
+
+      - name: Get Lisp info
+        continue-on-error: true
+        shell: bash
+        run: |
+          ros -e '(format t "Lisp: ~a ~a on ~a~%" (lisp-implementation-type) (lisp-implementation-version) (machine-type))'
+          ros -e '(format t "Fixnum bits: ~a~%" (integer-length most-positive-fixnum))'
+          ros -e '(ql:quickload "trivial-features" :silent t)' -e '(format t "Features: ~s~%" *features*)'
+
+      - name: Allegro workaround
+        # Compiling and testing can fail on Allegro CL Express Free edition
+        # because of the 50 MB heap size limitation, so let's try to split
+        # the work in two as a possible workaround...
+        if: ${{matrix.lisp == 'allegro'}}
+        shell: bash
+        run: ros -e '(setf *debugger-hook* (lambda (&rest ignorable) (declare (ignore ignorable)) (uiop:quit 0)))' -e '(ql:quickload "ironclad/tests")'
+
+      - name: Run tests
+        shell: bash
+        run: ros -e '(setf *debugger-hook* (lambda (&rest ignorable) (declare (ignore ignorable)) (uiop:quit -1)))' -e '(when (uiop:getenvp "READTABLE_CASE_INVERT") (format t "changing readtable-case to :invert~%") (setq *readtable* (let ((rt (copy-readtable))) (setf (readtable-case rt) :invert) rt)))' -e '(ql:quickload "ironclad/tests")' -e '(unless (rt:do-tests) (uiop:quit -1))'

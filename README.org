@@ -22,6 +22,8 @@
 
 #+ATTR_HTML: :style width: 0; height: 0; padding: 0; margin: 0; border: 0; overflow: hidden;
 [[https://travis-ci.org/sharplispers/ironclad][file:https://travis-ci.org/sharplispers/ironclad.svg]]
+#+ATTR_HTML: :style width: 0; height: 0; padding: 0; margin: 0; border: 0; overflow: hidden;
+[[https://github.com/sharplispers/ironclad/workflows/CI/badge.svg?branch=master][file:https://github.com/sharplispers/ironclad/workflows/CI/badge.svg?branch=master]]
 
 Ironclad is a cryptography library written entirely in Common Lisp. It
 includes support for several popular [[#ciphers][ciphers]], [[#digests][digests]], [[#message-authentication-codes][MACs]] and
