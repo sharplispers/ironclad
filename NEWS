@@ -1,10 +1,10 @@
 -*- mode: outline -*-
 
-* Changes since version 0.53
+* Version 0.54, released 2021-01-06
 
 ** bug fixes
 
-Fixed SB-VM package lock error with SBCL on arm64.
+Fixed SB-VM package lock error with SBCL on arm64 and ppc64.
 
 * Version 0.53, released 2020-12-18
 
