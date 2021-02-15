@@ -214,7 +214,6 @@
   (let ((accumulator (copy-seq (gmac-accumulator mac)))
         (key (gmac-key mac))
         (total-length (gmac-total-length mac))
-        (cipher (gmac-cipher mac))
         (iv (copy-seq (gmac-iv mac)))
         (buffer (copy-seq (gmac-buffer mac)))
         (buffer-length (gmac-buffer-length mac)))
