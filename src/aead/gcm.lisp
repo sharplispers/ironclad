@@ -1,6 +1,8 @@
 ;;;; -*- mode: lisp; indent-tabs-mode: nil -*-
 ;;;; gcm.lisp -- Galois counter mode
 
+;; See nistspecialpublication800-38d.pdf about GCM and GMAC.
+
 (in-package :crypto)
 
 
@@ -16,6 +18,14 @@
                           :initform 0
                           :type (integer 0 *))))
 
+(defun inc32 (x)
+  (assert (= 16 (length x)))
+  (concatenate
+   '(simple-array (unsigned-byte 8) (16))
+   (subseq x 0 12)
+   (integer-to-octets (1+ (octets-to-integer x :n-bits 32 :start 12))
+                      :n-bits 32)))
+
 (defmethod shared-initialize :after ((mode gcm) slot-names &rest initargs &key key cipher-name initialization-vector &allow-other-keys)
   (declare (ignore slot-names initargs)
            (type simple-octet-vector key initialization-vector))
@@ -24,7 +34,7 @@
                   (reinitialize-instance (gcm-mac mode)
                                          :key key
                                          :initialization-vector initialization-vector)))
-         (iv (concatenate 'simple-octet-vector initialization-vector #(0 0 0 2)))
+         (iv (inc32 (gmac-j0 mac)))
          (cipher (if (or (null (gcm-cipher mode)) cipher-name)
                      (make-cipher cipher-name
                                   :key key

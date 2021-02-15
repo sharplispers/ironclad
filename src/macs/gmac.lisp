@@ -1,6 +1,7 @@
 ;;;; -*- mode: lisp; indent-tabs-mode: nil -*-
 ;;;; gmac.lisp -- GMAC message authentication code
 
+;; See nistspecialpublication800-38d.pdf about GCM and GMAC.
 
 (in-package :crypto)
 
@@ -18,6 +19,8 @@
                  :type (unsigned-byte 64))
    (cipher :accessor gmac-cipher
            :initform nil)
+   (j0 :accessor gmac-j0
+       :type (simple-array (unsigned-byte 8) (16)))
    (iv :accessor gmac-iv
        :initform (make-array 16 :element-type '(unsigned-byte 8))
        :type (simple-array (unsigned-byte 8) (16)))
@@ -37,10 +40,6 @@
     (error 'invalid-mac-parameter
            :mac-name 'gmac
            :message "GMAC only supports 128-bit block ciphers"))
-  (unless (= (length initialization-vector) 12)
-    (error 'invalid-mac-parameter
-           :mac-name 'gmac
-           :message "The initialization vector length must be 12 bytes"))
   (make-instance 'gmac
                  :key key
                  :cipher-name cipher-name
@@ -56,6 +55,57 @@
           (ub64ref/le data 0) x))
   (values))
 
+(defun vec (n)
+  (make-array n :element-type '(unsigned-byte 8) :initial-element 0))
+
+(defun pad (n)
+  (vec (- (* 16 (ceiling n 16)) n)))
+
+(defun ac (a c)
+  (let ((an (length a))
+        (cn (length c)))
+    (concatenate '(simple-array (unsigned-byte 8) (*))
+                 a
+                 (pad an)
+                 c
+                 (pad cn)
+                 (integer-to-octets (* 8 an) :n-bits 64)
+                 (integer-to-octets (* 8 cn) :n-bits 64))))
+
+(defun ghash (h x)
+  (multiple-value-bind (q r) (floor (length x) 16)
+    (assert (zerop r))
+    (let ((z (vec 16))
+          (i 0))
+      (if #+(and sbcl x86-64 ironclad-assembly) (pclmulqdq-supported-p)
+          #-(and sbcl x86-64 ironclad-assembly) nil
+          (let ((y (vec 16)))
+            (dotimes (j q)
+              (replace y x :start2 i)
+              (ironclad::gmac-swap-16 y)
+              (ironclad::xor-block 16 z 0 y 0 z 0)
+              (ironclad::gmac-mul z h)
+              (incf i 16))
+            (ironclad::gmac-swap-16 z))
+          (dotimes (j q)
+            (ironclad::xor-block 16 z 0 x i z 0)
+            (ironclad::gmac-mul z h)
+            (incf i 16)))
+      z)))
+
+(defun j0 (h iv)
+  (let* ((n (length iv))
+         (n*8 (* 8 n)))
+    (cond
+      ((= 12 n)
+       (concatenate '(simple-array (unsigned-byte 8) (16)) iv #(0 0 0 1)))
+      ((< 0 n*8 #.(expt 2 64))
+       (ghash h (ac nil iv)))
+      (t
+       (error 'invalid-mac-parameter
+              :mac-name 'gmac
+              :message "iv size not in range 0<|iv|<2^64 bits")))))
+
 (defmethod shared-initialize :after ((mac gmac) slot-names &rest initargs &key key cipher-name initialization-vector &allow-other-keys)
   (declare (ignore slot-names initargs)
            (type (simple-array (unsigned-byte 8) (*)) key))
@@ -63,10 +113,6 @@
     (error 'invalid-mac-parameter
            :mac-name 'gmac
            :message "GMAC only supports 128-bit block ciphers"))
-  (unless (= (length initialization-vector) 12)
-    (error 'invalid-mac-parameter
-           :mac-name 'gmac
-           :message "The initialization vector length must be 12 bytes"))
   (if #+(and sbcl x86-64 ironclad-assembly) (pclmulqdq-supported-p)
       #-(and sbcl x86-64 ironclad-assembly) nil
       (let ((cipher (if (or cipher-name (null (gmac-cipher mac)))
@@ -80,13 +126,13 @@
               (gmac-buffer-length mac) 0
               (gmac-cipher mac) cipher)
         (fill (gmac-accumulator mac) 0)
-        (replace iv initialization-vector)
-        (fill iv 0 :start 12 :end 15)
-        (setf (aref iv 15) 1)
-        (encrypt-in-place cipher iv)
         (fill hkey 0)
         (encrypt-in-place cipher hkey)
         (gmac-swap-16 hkey)
+        (let ((j0 (j0 hkey initialization-vector)))
+          (setf (gmac-j0 mac) j0)
+          (replace iv j0))
+        (encrypt-in-place cipher iv)
         mac)
       (let ((table (make-array '(128 2 2) :element-type '(unsigned-byte 64)
                                           :initial-element 0))
@@ -104,10 +150,6 @@
               (gmac-buffer-length mac) 0
               (gmac-cipher mac) cipher)
         (fill (gmac-accumulator mac) 0)
-        (replace iv initialization-vector)
-        (fill iv 0 :start 12 :end 15)
-        (setf (aref iv 15) 1)
-        (encrypt-in-place cipher iv)
         (encrypt-in-place cipher hkey)
 
         (setf (aref table 0 1 0) (ub64ref/be hkey 0)
@@ -118,6 +160,10 @@
             (setf (aref table (1+ i) 1 1) (logior (mod64ash (aref table i 1 1) -1)
                                                   (mod64ash (aref table i 1 0) 63))
                   (aref table (1+ i) 1 0) (logxor (mod64ash (aref table i 1 0) -1) c))))
+        (let ((j0 (j0 table initialization-vector)))
+          (setf (gmac-j0 mac) j0)
+          (replace iv j0))
+        (encrypt-in-place cipher iv)
         mac)))
 
 (defun gmac-mul (accumulator key)
