@@ -55,31 +55,14 @@
           (ub64ref/le data 0) x))
   (values))
 
-(defun vec (n)
-  (make-array n :element-type '(unsigned-byte 8) :initial-element 0))
-
-(defun pad (n)
-  (vec (- (* 16 (ceiling n 16)) n)))
-
-(defun ac (a c)
-  (let ((an (length a))
-        (cn (length c)))
-    (concatenate '(simple-array (unsigned-byte 8) (*))
-                 a
-                 (pad an)
-                 c
-                 (pad cn)
-                 (integer-to-octets (* 8 an) :n-bits 64)
-                 (integer-to-octets (* 8 cn) :n-bits 64))))
-
 (defun ghash (h x)
   (multiple-value-bind (q r) (floor (length x) 16)
     (assert (zerop r))
-    (let ((z (vec 16))
+    (let ((z (make-array 16 :element-type '(unsigned-byte 8) :initial-element 0))
           (i 0))
       (if #+(and sbcl x86-64 ironclad-assembly) (pclmulqdq-supported-p)
           #-(and sbcl x86-64 ironclad-assembly) nil
-          (let ((y (vec 16)))
+          (let ((y (make-array 16 :element-type '(unsigned-byte 8) :initial-element 0)))
             (dotimes (j q)
               (replace y x :start2 i)
               (ironclad::gmac-swap-16 y)
@@ -94,17 +77,31 @@
       z)))
 
 (defun j0 (h iv)
-  (let* ((n (length iv))
-         (n*8 (* 8 n)))
-    (cond
-      ((= 12 n)
-       (concatenate '(simple-array (unsigned-byte 8) (16)) iv #(0 0 0 1)))
-      ((< 0 n*8 #.(expt 2 64))
-       (ghash h (ac nil iv)))
-      (t
-       (error 'invalid-mac-parameter
-              :mac-name 'gmac
-              :message "iv size not in range 0<|iv|<2^64 bits")))))
+  (labels ((pad (n)
+             (make-array (- (* 16 (ceiling n 16)) n)
+                         :element-type '(unsigned-byte 8)
+                         :initial-element 0))
+           (ac (a c)
+             (let ((an (length a))
+                   (cn (length c)))
+               (concatenate '(simple-array (unsigned-byte 8) (*))
+                            a
+                            (pad an)
+                            c
+                            (pad cn)
+                            (integer-to-octets (* 8 an) :n-bits 64)
+                            (integer-to-octets (* 8 cn) :n-bits 64)))))
+    (let* ((n (length iv))
+           (n*8 (* 8 n)))
+      (cond
+        ((= 12 n)
+         (concatenate '(simple-array (unsigned-byte 8) (16)) iv #(0 0 0 1)))
+        ((< 0 n*8 #.(expt 2 64))
+         (ghash h (ac nil iv)))
+        (t
+         (error 'invalid-mac-parameter
+                :mac-name 'gmac
+                :message "iv size not in range 0<|iv|<2^64 bits"))))))
 
 (defmethod shared-initialize :after ((mac gmac) slot-names &rest initargs &key key cipher-name initialization-vector &allow-other-keys)
   (declare (ignore slot-names initargs)

@@ -18,14 +18,6 @@
                           :initform 0
                           :type (integer 0 *))))
 
-(defun inc32 (x)
-  (assert (= 16 (length x)))
-  (concatenate
-   '(simple-array (unsigned-byte 8) (16))
-   (subseq x 0 12)
-   (integer-to-octets (1+ (octets-to-integer x :n-bits 32 :start 12))
-                      :n-bits 32)))
-
 (defmethod shared-initialize :after ((mode gcm) slot-names &rest initargs &key key cipher-name initialization-vector &allow-other-keys)
   (declare (ignore slot-names initargs)
            (type simple-octet-vector key initialization-vector))
@@ -34,7 +26,10 @@
                   (reinitialize-instance (gcm-mac mode)
                                          :key key
                                          :initialization-vector initialization-vector)))
-         (iv (inc32 (gmac-j0 mac)))
+         (iv (let* ((iv (gmac-j0 mac))
+                    (counter (subseq iv 12)))
+               (increment-counter-block-1 4 counter)
+               (replace iv counter :start1 12)))
          (cipher (if (or (null (gcm-cipher mode)) cipher-name)
                      (make-cipher cipher-name
                                   :key key
