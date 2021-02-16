@@ -718,8 +718,7 @@ notable exception of stream ciphers. /key/ must be an acceptable key for
 /cipher-name/.
 
 When making a GMAC, /cipher-name/ must have a [[block-length][block-length]] of 16. /key/ must be
-an acceptable key for /cipher-name/. The length of /initialization-vector/ must
-be 12 bytes.
+an acceptable key for /cipher-name/.
 
 When making a Poly1305 MAC, the length of the /key/ passed to [[make-mac][make-mac]] must be
 32 bytes.
@@ -857,7 +856,7 @@ When using ETM, /cipher/ must be a cipher object created by [[make-cipher][make-
 /mac/ must be a mac object created by [[make-mac][make-mac]].
 
 When using GCM, /cipher-name/ must have a [[block-length][block-length]] of 16 bytes. /key/ must be a suitable key
-for the chosen cipher. The length of /initialization-vector/ must be 12 bytes.
+for the chosen cipher.
 
 
 #+NAME: process-associated-data
