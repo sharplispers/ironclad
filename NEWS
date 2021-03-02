@@ -2,6 +2,10 @@
 
 * Changes since version 0.54
 
+** bug fixes
+
+Fixed compilation with CCL < 1.12 on x86-64.
+
 ** new features
 
 GCM and GMAC can use initialization vectors with a size different from 12 bytes.

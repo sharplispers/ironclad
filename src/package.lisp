@@ -250,6 +250,8 @@
 (dolist (f (ironclad-implementation-features))
   (pushnew f *features*))
 
-;; Enable assembly optimizations
-#-ecl-bytecmp
+;; Enable assembly optimizations, unless we are either in ECL using only the
+;; bytecode compiler or in an older version of CCL.
+#-(or ecl-bytecmp
+      (and ccl (not ccl-1.12)))
 (pushnew :ironclad-assembly *features*)
