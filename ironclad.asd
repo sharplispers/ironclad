@@ -7,15 +7,141 @@
 
 (defclass ironclad-source-file (cl-source-file) ())
 
+(defclass ironclad-system (system)
+  ()
+  (:default-initargs
+   :version "0.55"
+   :author "Nathan Froyd <froydnj@gmail.com>"
+   :maintainer "Guillaume LE VAILLANT <glv@posteo.net>"
+   :description "A cryptographic toolkit written in pure Common Lisp"
+   :license "BSD 3-Clause"
+   :default-component-class 'ironclad-source-file))
+
+;; fixme
+(defmacro define-ironclad-subsystems (aggregate-system kind path &body components)
+  (let ((subsystems (loop for spec in (mapcar #'uiop:ensure-list components)
+                          collect (format nil "ironclad/~a/~a" kind (first spec)))))
+    `(progn
+       ,@(loop for (component . options) in (mapcar #'uiop:ensure-list components)
+               for subsystem in subsystems
+               collect `(defsystem ,subsystem
+                          :class ironclad-system
+                          :description ,(format nil "Ironclad ~a: ~a" kind component)
+                          :depends-on ,(cons "ironclad/core" (getf options :depends-on))
+                          :pathname ,path
+                          :components ((:file ,component))))
+       (defsystem ,aggregate-system
+         :class ironclad-system
+         :depends-on ("ironclad/core" ,@subsystems)))))
+
+(define-ironclad-subsystems "ironclad/ciphers" "cipher" #p"src/ciphers/"
+  "aes"
+  "arcfour"
+  "aria"
+  "blowfish"
+  "camellia"
+  "cast5"
+  "chacha"
+  ("xchacha" :depends-on ("ironclad/cipher/chacha"))
+  "des"
+  "idea"
+  "kalyna"
+  "kuznyechik"
+  "misty1"
+  "rc2"
+  "rc5"
+  "rc6"
+  "salsa20"
+  ("xsalsa20" :depends-on ("ironclad/cipher/salsa20"))
+  "seed"
+  "serpent"
+  "sm4"
+  "sosemanuk"
+  "square"
+  "tea"
+  "threefish"
+  "twofish"
+  "xor"
+  "xtea")
+
+(define-ironclad-subsystems "ironclad/digests" "digest" #p"src/digests/"
+  "adler32"
+  "blake2"
+  "blake2s"
+  "crc24"
+  "crc32"
+  "groestl"
+  "jh"
+  "kupyna"
+  "md2"
+  "md4"
+  "md5"
+  "md5-lispworks-int32"
+  "ripemd-128"
+  "ripemd-160"
+  "sha1"
+  "sha256"
+  "sha3"
+  "sha512"
+  ("skein" :depends-on ("ironclad/cipher/threefish"))
+  "sm3"
+  "streebog"
+  "tiger"
+  ("tree-hash" :depends-on ("ironclad/digest/tiger"))
+  "whirlpool")
+
+(define-ironclad-subsystems "ironclad/macs" "mac" #p"src/macs/"
+  "blake2-mac"
+  "blake2s-mac"
+  "cmac"
+  "hmac"
+  "gmac"
+  "poly1305"
+  "siphash"
+  "skein-mac")
+
+(define-ironclad-subsystems "ironclad/public-key" "public-key" #p"src/public-key/"
+  "pkcs1"
+  "dsa"
+  "rsa"
+  "elgamal"
+  "elliptic-curve"
+  "curve25519"
+  "curve448"
+  "ed25519"
+  "ed448"
+  "secp256k1"
+  "secp256r1"
+  "secp384r1"
+  "secp521r1")
+
+(define-ironclad-subsystems "ironclad/aead" "aead" #p"src/aead/"
+  "eax"
+  "etm"
+  "gcm")
+
+(define-ironclad-subsystems "ironclad/kdf" "kdf" #p"src/kdf/"
+  "argon2"
+  "bcrypt"
+  "hmac"
+  "pkcs5"
+  "password-hash"
+  "scrypt")
+
 (defsystem "ironclad"
-  :version "0.55"
-  :author "Nathan Froyd <froydnj@gmail.com>"
-  :maintainer "Guillaume LE VAILLANT <glv@posteo.net>"
-  :description "A cryptographic toolkit written in pure Common Lisp"
-  :license "BSD 3-Clause"
-  :default-component-class ironclad-source-file
-  :depends-on (#+sbcl "sb-rotate-byte" #+sbcl "sb-posix" "bordeaux-threads")
+  :class ironclad-system
   :in-order-to ((test-op (test-op "ironclad/tests")))
+  :depends-on ("ironclad/core"
+               "ironclad/ciphers"
+               "ironclad/digests"
+               "ironclad/macs"
+               "ironclad/public-key"
+               "ironclad/aead"
+               "ironclad/kdf"))
+
+(defsystem "ironclad/core"
+  :class ironclad-system
+  :depends-on (#+sbcl "sb-rotate-byte" #+sbcl "sb-posix" "bordeaux-threads")
   :serial t
   :components ((:static-file "LICENSE")
                (:static-file "NEWS")
@@ -51,73 +177,13 @@
                                            (:file "padding")
                                            (:file "make-cipher")
                                            (:file "modes")
-                                           (:file "aes")
-                                           (:file "arcfour")
-                                           (:file "aria")
-                                           (:file "blowfish")
-                                           (:file "camellia")
-                                           (:file "cast5")
-                                           (:file "chacha")
-                                           (:file "xchacha")
-                                           (:file "des")
-                                           (:file "idea")
-                                           (:file "kalyna")
-                                           (:file "kuznyechik")
-                                           (:file "misty1")
-                                           (:file "rc2")
-                                           (:file "rc5")
-                                           (:file "rc6")
-                                           (:file "salsa20")
-                                           (:file "xsalsa20")
-                                           (:file "seed")
-                                           (:file "serpent")
-                                           (:file "sm4")
-                                           (:file "sosemanuk")
-                                           (:file "square")
-                                           (:file "tea")
-                                           (:file "threefish")
-                                           (:file "twofish")
-                                           (:file "xor")
-                                           (:file "xtea")
                                            (:file "keystream")))
                              (:module "digests"
                               :serial t
-                              :components ((:file "digest")
-                                           (:file "adler32")
-                                           (:file "blake2")
-                                           (:file "blake2s")
-                                           (:file "crc24")
-                                           (:file "crc32")
-                                           (:file "groestl")
-                                           (:file "jh")
-                                           (:file "kupyna")
-                                           (:file "md2")
-                                           (:file "md4")
-                                           (:file "md5")
-                                           (:file "md5-lispworks-int32")
-                                           (:file "ripemd-128")
-                                           (:file "ripemd-160")
-                                           (:file "sha1")
-                                           (:file "sha256")
-                                           (:file "sha3")
-                                           (:file "sha512")
-                                           (:file "skein")
-                                           (:file "sm3")
-                                           (:file "streebog")
-                                           (:file "tiger")
-                                           (:file "tree-hash")
-                                           (:file "whirlpool")))
+                              :components ((:file "digest")))
                              (:module "macs"
                               :serial t
-                              :components ((:file "mac")
-                                           (:file "blake2-mac")
-                                           (:file "blake2s-mac")
-                                           (:file "cmac")
-                                           (:file "hmac")
-                                           (:file "gmac")
-                                           (:file "poly1305")
-                                           (:file "siphash")
-                                           (:file "skein-mac")))
+                              :components ((:file "mac")))
                              (:module "prng"
                               :serial t
                               :components ((:file "prng")
@@ -129,35 +195,13 @@
                              (:file "octet-stream")
                              (:module "aead"
                               :serial t
-                              :components ((:file "aead")
-                                           (:file "eax")
-                                           (:file "etm")
-                                           (:file "gcm")))
+                              :components ((:file "aead")))
                              (:module "kdf"
                               :serial t
-                              :components ((:file "kdf")
-                                           (:file "argon2")
-                                           (:file "bcrypt")
-                                           (:file "hmac")
-                                           (:file "pkcs5")
-                                           (:file "password-hash")
-                                           (:file "scrypt")))
+                              :components ((:file "kdf")))
                              (:module "public-key"
                               :serial t
-                              :components ((:file "public-key")
-                                           (:file "pkcs1")
-                                           (:file "dsa")
-                                           (:file "rsa")
-                                           (:file "elgamal")
-                                           (:file "elliptic-curve")
-                                           (:file "curve25519")
-                                           (:file "curve448")
-                                           (:file "ed25519")
-                                           (:file "ed448")
-                                           (:file "secp256k1")
-                                           (:file "secp256r1")
-                                           (:file "secp384r1")
-                                           (:file "secp521r1")))))))
+                              :components ((:file "public-key")))))))
 
 (macrolet ((do-silently (&body body)
              `(handler-bind ((style-warning #'muffle-warning)
