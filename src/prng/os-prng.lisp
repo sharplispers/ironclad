@@ -15,7 +15,7 @@
   #+unix
   (let* ((seq (make-array num-bytes :element-type '(unsigned-byte 8)))
          (n (bt:with-lock-held (*os-prng-stream-lock*)
-              (unless *os-prng-stream*
+              (unless (and *os-prng-stream* (open-stream-p *os-prng-stream*))
                 (setf *os-prng-stream* (open #P"/dev/urandom"
                                              #+ccl :sharing #+ccl :external
                                              :element-type '(unsigned-byte 8))))
