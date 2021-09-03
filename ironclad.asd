@@ -17,7 +17,6 @@
    :license "BSD 3-Clause"
    :default-component-class 'ironclad-source-file))
 
-;; fixme
 (defmacro define-ironclad-subsystems (aggregate-system kind path &body components)
   (let ((subsystems (loop for spec in (mapcar #'uiop:ensure-list components)
                           collect (format nil "ironclad/~a/~a" kind (first spec)))))
@@ -33,111 +32,6 @@
        (defsystem ,aggregate-system
          :class ironclad-system
          :depends-on ("ironclad/core" ,@subsystems)))))
-
-(define-ironclad-subsystems "ironclad/ciphers" "cipher" #p"src/ciphers/"
-  "aes"
-  "arcfour"
-  "aria"
-  "blowfish"
-  "camellia"
-  "cast5"
-  "chacha"
-  ("xchacha" :depends-on ("ironclad/cipher/chacha"))
-  "des"
-  "idea"
-  "kalyna"
-  "kuznyechik"
-  "misty1"
-  "rc2"
-  "rc5"
-  "rc6"
-  "salsa20"
-  ("xsalsa20" :depends-on ("ironclad/cipher/salsa20"))
-  "seed"
-  "serpent"
-  "sm4"
-  "sosemanuk"
-  "square"
-  "tea"
-  "threefish"
-  "twofish"
-  "xor"
-  "xtea")
-
-(define-ironclad-subsystems "ironclad/digests" "digest" #p"src/digests/"
-  "adler32"
-  "blake2"
-  "blake2s"
-  "crc24"
-  "crc32"
-  "groestl"
-  "jh"
-  "kupyna"
-  "md2"
-  "md4"
-  "md5"
-  "md5-lispworks-int32"
-  "ripemd-128"
-  "ripemd-160"
-  "sha1"
-  "sha256"
-  "sha3"
-  "sha512"
-  ("skein" :depends-on ("ironclad/cipher/threefish"))
-  "sm3"
-  "streebog"
-  "tiger"
-  ("tree-hash" :depends-on ("ironclad/digest/tiger"))
-  "whirlpool")
-
-(define-ironclad-subsystems "ironclad/macs" "mac" #p"src/macs/"
-  "blake2-mac"
-  "blake2s-mac"
-  "cmac"
-  "hmac"
-  "gmac"
-  "poly1305"
-  "siphash"
-  "skein-mac")
-
-(define-ironclad-subsystems "ironclad/public-key" "public-key" #p"src/public-key/"
-  "pkcs1"
-  "dsa"
-  "rsa"
-  "elgamal"
-  "elliptic-curve"
-  "curve25519"
-  "curve448"
-  "ed25519"
-  "ed448"
-  "secp256k1"
-  "secp256r1"
-  "secp384r1"
-  "secp521r1")
-
-(define-ironclad-subsystems "ironclad/aead" "aead" #p"src/aead/"
-  "eax"
-  "etm"
-  "gcm")
-
-(define-ironclad-subsystems "ironclad/kdf" "kdf" #p"src/kdf/"
-  "argon2"
-  "bcrypt"
-  "hmac"
-  "pkcs5"
-  "password-hash"
-  "scrypt")
-
-(defsystem "ironclad"
-  :class ironclad-system
-  :in-order-to ((test-op (test-op "ironclad/tests")))
-  :depends-on ("ironclad/core"
-               "ironclad/ciphers"
-               "ironclad/digests"
-               "ironclad/macs"
-               "ironclad/public-key"
-               "ironclad/aead"
-               "ironclad/kdf"))
 
 (defsystem "ironclad/core"
   :class ironclad-system
@@ -176,8 +70,7 @@
                               :components ((:file "cipher")
                                            (:file "padding")
                                            (:file "make-cipher")
-                                           (:file "modes")
-                                           (:file "keystream")))
+                                           (:file "modes")))
                              (:module "digests"
                               :serial t
                               :components ((:file "digest")))
@@ -187,9 +80,7 @@
                              (:module "prng"
                               :serial t
                               :components ((:file "prng")
-                                           (:file "os-prng")
-                                           (:file "generator")
-                                           (:file "fortuna")))
+                                           (:file "os-prng")))
                              (:file "math")
                              #+(or lispworks sbcl openmcl cmu allegro abcl ecl clisp)
                              (:file "octet-stream")
@@ -201,7 +92,125 @@
                               :components ((:file "kdf")))
                              (:module "public-key"
                               :serial t
-                              :components ((:file "public-key")))))))
+                              :components ((:file "public-key")
+                                           (:file "pkcs1")
+                                           (:file "elliptic-curve")))))))
+
+(define-ironclad-subsystems "ironclad/ciphers" "cipher" #p"src/ciphers/"
+  "aes"
+  "arcfour"
+  "aria"
+  "blowfish"
+  "camellia"
+  "cast5"
+  "chacha"
+  ("xchacha" :depends-on ("ironclad/cipher/chacha"))
+  "des"
+  "idea"
+  "kalyna"
+  ("keystream" :depends-on ("ironclad/cipher/chacha"
+                            "ironclad/cipher/salsa20"))
+  "kuznyechik"
+  "misty1"
+  "rc2"
+  "rc5"
+  "rc6"
+  "salsa20"
+  ("xsalsa20" :depends-on ("ironclad/cipher/salsa20"))
+  "seed"
+  "serpent"
+  "sm4"
+  "sosemanuk"
+  "square"
+  "tea"
+  "threefish"
+  "twofish"
+  "xor"
+  "xtea")
+
+(define-ironclad-subsystems "ironclad/digests" "digest" #p"src/digests/"
+  "adler32"
+  "blake2"
+  "blake2s"
+  "crc24"
+  "crc32"
+  "groestl"
+  "jh"
+  ("kupyna" :depends-on ("ironclad/cipher/kalyna"))
+  "md2"
+  "md4"
+  "md5"
+  "md5-lispworks-int32"
+  "ripemd-128"
+  "ripemd-160"
+  "sha1"
+  "sha256"
+  "sha3"
+  "sha512"
+  ("skein" :depends-on ("ironclad/cipher/threefish"))
+  "sm3"
+  "streebog"
+  "tiger"
+  ("tree-hash" :depends-on ("ironclad/digest/tiger"))
+  "whirlpool")
+
+(define-ironclad-subsystems "ironclad/macs" "mac" #p"src/macs/"
+  ("blake2-mac" :depends-on ("ironclad/digest/blake2"))
+  ("blake2s-mac" :depends-on ("ironclad/digest/blake2s"))
+  "cmac"
+  "hmac"
+  "gmac"
+  "poly1305"
+  "siphash"
+  ("skein-mac" :depends-on ("ironclad/cipher/threefish"
+                            "ironclad/digest/skein")))
+
+(define-ironclad-subsystems "ironclad/prngs" "prng" #p"src/prng/"
+  ("generator" :depends-on ("ironclad/cipher/aes"
+                            "ironclad/digest/sha256"))
+  ("fortuna" :depends-on ("ironclad/digest/sha256"
+                          "ironclad/prng/generator")))
+
+(define-ironclad-subsystems "ironclad/aeads" "aead" #p"src/aead/"
+  ("eax" :depends-on ("ironclad/mac/cmac"))
+  "etm"
+  ("gcm" :depends-on ("ironclad/mac/gmac")))
+
+(define-ironclad-subsystems "ironclad/kdfs" "kdf" #p"src/kdf/"
+  ("argon2" :depends-on ("ironclad/mac/blake2-mac"))
+  ("bcrypt" :depends-on ("ironclad/cipher/blowfish"
+                         "ironclad/digest/sha512"))
+  ("hmac" :depends-on ("ironclad/mac/hmac"))
+  "pkcs5"
+  ("password-hash" :depends-on ("ironclad/digest/sha256"))
+  ("scrypt" :depends-on ("ironclad/cipher/salsa20"
+                         "ironclad/digest/sha256"
+                         "ironclad/kdf/pkcs5")))
+
+(define-ironclad-subsystems "ironclad/public-keys" "public-key" #p"src/public-key/"
+  "dsa"
+  "rsa"
+  "elgamal"
+  "curve25519"
+  "curve448"
+  ("ed25519" :depends-on ("ironclad/digest/sha512"))
+  ("ed448" :depends-on ("ironclad/digest/sha3"))
+  "secp256k1"
+  "secp256r1"
+  "secp384r1"
+  "secp521r1")
+
+(defsystem "ironclad"
+  :class ironclad-system
+  :in-order-to ((test-op (test-op "ironclad/tests")))
+  :depends-on ("ironclad/core"
+               "ironclad/ciphers"
+               "ironclad/digests"
+               "ironclad/macs"
+               "ironclad/prngs"
+               "ironclad/aeads"
+               "ironclad/kdfs"
+               "ironclad/public-keys"))
 
 (macrolet ((do-silently (&body body)
              `(handler-bind ((style-warning #'muffle-warning)
