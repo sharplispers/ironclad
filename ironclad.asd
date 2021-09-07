@@ -28,7 +28,9 @@
                           :description ,(format nil "Ironclad ~a: ~a" kind component)
                           :depends-on ,(cons "ironclad/core" (getf options :depends-on))
                           :pathname ,path
-                          :components ((:file ,component))))
+                          :serial t
+                          :components ,(or (getf options :components)
+                                           `((:file ,component)))))
        (defsystem ,aggregate-system
          :class ironclad-system
          :depends-on ("ironclad/core" ,@subsystems)))))
@@ -139,8 +141,8 @@
   ("kupyna" :depends-on ("ironclad/cipher/kalyna"))
   "md2"
   "md4"
-  "md5"
-  "md5-lispworks-int32"
+  ("md5" :components ((:file "md5")
+                      (:file "md5-lispworks-int32")))
   "ripemd-128"
   "ripemd-160"
   "sha1"
@@ -166,10 +168,10 @@
                             "ironclad/digest/skein")))
 
 (define-ironclad-subsystems "ironclad/prngs" "prng" #p"src/prng/"
-  ("generator" :depends-on ("ironclad/cipher/aes"
-                            "ironclad/digest/sha256"))
-  ("fortuna" :depends-on ("ironclad/digest/sha256"
-                          "ironclad/prng/generator")))
+  ("fortuna" :depends-on ("ironclad/cipher/aes"
+                          "ironclad/digest/sha256")
+             :components ((:file "generator")
+                          (:file "fortuna"))))
 
 (define-ironclad-subsystems "ironclad/aeads" "aead" #p"src/aead/"
   ("eax" :depends-on ("ironclad/mac/cmac"))
