@@ -1,5 +1,16 @@
 -*- mode: outline -*-
 
+* Changes since version 0.55
+
+** bug fixes
+
+Fixed access to /dev/urandom in saved cores.
+
+** new features
+
+Experimental: Ironclad split in multiple systems so that users can load only
+what they need.
+
 * Version 0.55, released 2021-03-26
 
 ** bug fixes
