@@ -10,7 +10,7 @@
 (defclass ironclad-system (system)
   ()
   (:default-initargs
-   :version "0.55"
+   :version "0.56"
    :author "Nathan Froyd <froydnj@gmail.com>"
    :maintainer "Guillaume LE VAILLANT <glv@posteo.net>"
    :description "A cryptographic toolkit written in pure Common Lisp"
@@ -248,7 +248,7 @@
 
 (defsystem "ironclad/tests"
   :depends-on ("ironclad" "rt")
-  :version "0.55"
+  :version "0.56"
   :in-order-to ((test-op (load-op "ironclad/tests")))
   :perform (test-op (o s)
              (or (funcall (intern "DO-TESTS" (find-package "RTEST")))
