@@ -446,8 +446,7 @@ the content on normal form exit."
         (buffer (sha3-buffer state))
         (buffer-index (sha3-buffer-index state))
         (bit-rate (sha3-bit-rate state))
-        (output-byte-length (digest-length state))
-        output)
+        (output-byte-length (digest-length state)))
     (declare (type keccak-state keccak-state)
              (type (simple-array (unsigned-byte 8) (200)) buffer)
              (type (integer 0 199) buffer-index)
@@ -465,8 +464,14 @@ the content on normal form exit."
     (setf (sha3-buffer-index state) 0)
 
     ;; Get output
-    (setf output (keccak-state-extract-output keccak-state output-byte-length))
-    (replace digest output :start1 digest-start :end2 output-byte-length)
+    (let ((output-size 0)
+          (chunk-size (truncate bit-rate 8)))
+      (loop until (= output-size output-byte-length) do
+        (let* ((n (min (- output-byte-length output-size) chunk-size))
+               (output (keccak-state-extract-output keccak-state n)))
+          (replace digest output :start1 (+ digest-start output-size) :end2 n)
+          (incf output-size n)
+          (keccak-rounds keccak-state))))
     digest))
 
 (define-digest-updater sha3

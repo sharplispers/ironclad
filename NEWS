@@ -1,5 +1,11 @@
 -*- mode: outline -*-
 
+* Changes since version 0.56
+
+** bug fixes
+
+Fixed SHAKE128 and SHAKE256 when a big output length is requested.
+
 * Version 0.56, released 2021-09-12
 
 ** bug fixes
