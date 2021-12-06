@@ -52,8 +52,7 @@
   mode)
 
 (defmethod process-associated-data ((mode eax) data &key (start 0) end)
-  (let* ((end (or end (length data)))
-         (length (- end start)))
+  (let* ((end (or end (length data))))
     (update-mac (eax-mac-h mode) data :start start :end end)))
 
 (defmethod produce-tag ((mode eax) &key tag (tag-start 0))

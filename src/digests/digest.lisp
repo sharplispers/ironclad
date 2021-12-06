@@ -253,6 +253,8 @@
 ;;; more efficient, as well as more obvious about what you're trying to
 ;;; do.
 
+(declaim (notinline make-digest))
+
 (defmethod digest-file ((digest-name cons) pathname &rest kwargs)
   (apply #'digest-file (apply #'make-digest digest-name) pathname kwargs))
 (defmethod digest-file ((digest-name symbol) pathname &rest kwargs)

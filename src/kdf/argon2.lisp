@@ -264,6 +264,7 @@
 
 (defmethod shared-initialize ((kdf argon2) slot-names &rest initargs
                               &key block-count additional-key additional-data &allow-other-keys)
+  (declare (ignore initargs))
   (let ((no-data (make-array 0 :element-type '(unsigned-byte 8))))
     (setf (argon2-block kdf) (make-array +argon2-block-size+
                                          :element-type '(unsigned-byte 64))
