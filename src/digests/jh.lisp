@@ -341,6 +341,7 @@
 
 (defun jh-f8 (state)
   "The compression function."
+  (declare (notinline jh-buffer jh-state))
   (let ((s (jh-state state))
         (buffer (jh-buffer state))
         (b (make-array 8 :element-type '(unsigned-byte 64))))

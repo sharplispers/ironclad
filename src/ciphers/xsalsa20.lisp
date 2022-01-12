@@ -19,6 +19,7 @@
                                      &key (key nil key-p)
                                      (initialization-vector nil iv-p)
                                      &allow-other-keys)
+  (declare (ignore initargs key key-p iv-p))
   (let ((state (salsa20-state cipher))
         (buffer (make-array 64 :element-type '(unsigned-byte 8))))
     (declare (type salsa20-state state)

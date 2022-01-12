@@ -49,6 +49,7 @@
                                      &rest initargs
                                      &key (tweak nil tweak-p)
                                      &allow-other-keys)
+  (declare (ignore initargs tweak-p))
   (when tweak
     (threefish-set-tweak cipher tweak))
   cipher)
@@ -235,6 +236,7 @@
                                      &rest initargs
                                      &key (tweak nil tweak-p)
                                      &allow-other-keys)
+  (declare (ignore initargs tweak-p))
   (when tweak
     (threefish-set-tweak cipher tweak))
   cipher)
@@ -509,6 +511,7 @@
                                      &rest initargs
                                      &key (tweak nil tweak-p)
                                      &allow-other-keys)
+  (declare (ignore initargs tweak-p))
   (when tweak
     (threefish-set-tweak cipher tweak))
   cipher)

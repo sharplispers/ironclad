@@ -97,6 +97,7 @@ for a particular mode of operation but not supplied."))
 (define-condition unsupported-argon2-parameters (ironclad-error)
   ()
   (:report (lambda (condition stream)
+	     (declare (ignore condition))
              (format stream "Argon2 parameters not supported. block-count must be at least 8, key-length must be at least 4, salt must be at least 8 bytes long and iteration-count must be at least 1.")))
   (:documentation "Signaled when invalid Argon2 parameters are provided to MAKE-KDF."))
 
