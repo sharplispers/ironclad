@@ -102,10 +102,8 @@ be used to hold data read from the stream."))
 
 (defgeneric digest-sequence (digest-spec sequence &rest args &key start end digest digest-start)
   (:documentation "Return the digest of the subsequence of SEQUENCE
-specified by START and END using the algorithm DIGEST-NAME.  For CMUCL
-and SBCL, SEQUENCE can be any vector with an element-type
-of (UNSIGNED-BYTE 8); for other implementations, SEQUENCE must be a
-(SIMPLE-ARRAY (UNSIGNED-BYTE 8) (*)).
+specified by START and END using the algorithm DIGEST-SPEC.
+SEQUENCE can be any vector with an element-type of (UNSIGNED-BYTE 8).
 
 If DIGEST is provided, the digest will be placed into DIGEST starting at
 DIGEST-START.  DIGEST must be a (SIMPLE-ARRAY (UNSIGNED-BYTE 8) (*)).
