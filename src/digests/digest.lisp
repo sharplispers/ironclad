@@ -33,6 +33,8 @@
             :format-control "Unsupported stream element-type ~S for stream ~S."
             :format-arguments (list (stream-element-type stream) stream)))))
 
+(declaim (inline update-digest-from-vector))
+
 #+(or cmucl sbcl)
 (defun update-digest-from-vector (digest vector start end)
   ;; SBCL and CMUCL have with-array-data, so copying can be avoided even
@@ -61,8 +63,6 @@
                                        :start2 offset :end2 (+ offset length))
                 (update-digest state buffer :start 0 :end length)
                 (incf offset length)))))
-
-(declaim (inline update-digest-from-vector))
 
 ;;; Storing a length at the end of the hashed data is very common and
 ;;; can be a small bottleneck when generating lots of hashes over small
