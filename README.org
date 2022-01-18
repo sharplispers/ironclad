@@ -538,7 +538,7 @@ The second form comes in handy if you plan on [[*Miscellaneous][reusing the dige
 
 Returns the digest of the subsequence of /sequence/ bounded by /start/
 and /end/, according to /digest-name/. /sequence/ must be
-a ~(simple-array (unsigned-byte 8) (*))~. /digest/ and /digest-start/
+a ~(vector (unsigned-byte 8))~. /digest/ and /digest-start/
 are as in [[produce-digest][produce-digest]].
 
 
