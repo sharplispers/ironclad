@@ -39,7 +39,7 @@
 (defun update-digest-from-vector (digest vector start end)
   ;; SBCL and CMUCL have with-array-data, so copying can be avoided even
   ;; for non-simple vectors.
-  (declare (type (vector (unsigned-byte 8)))
+  (declare (type (vector (unsigned-byte 8)) vector)
            (type index start end))
   (#+cmucl lisp::with-array-data
    #+sbcl sb-kernel:with-array-data ((data vector) (real-start start) (real-end end))
