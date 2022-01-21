@@ -224,7 +224,6 @@
        (when (mismatch result expected-digest)
          (error "incremental ~A digest of ~S failed" digest-name input)))))
 
-#+(or sbcl cmucl)
 (defun digest-test/fill-pointer (digest-name octets expected-digest)
   (let* ((input (let ((x (make-array (* 2 (length octets))
                                      :fill-pointer 0
@@ -284,7 +283,6 @@
         (cons :digest-bit-test 'ignore-test)
         (cons :xof-digest-test 'ignore-test)))
 
-#+(or sbcl cmucl)
 (defparameter *digest-fill-pointer-tests*
   (list (cons :digest-test 'digest-test/fill-pointer)
         (cons :digest-bit-test 'ignore-test)

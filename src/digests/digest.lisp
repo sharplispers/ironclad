@@ -7,7 +7,8 @@
 ;;; defining digest (hash) functions
 
 (eval-when (:compile-toplevel :load-toplevel)
-(defconstant +buffer-size+ (* 128 1024))
+  (defconstant +buffer-size+ (* 128 1024))
+  (defconstant +seq-copy-buffer-size+ 512)
 ) ; EVAL-WHEN
 
 (deftype buffer-index () `(integer 0 (,+buffer-size+)))
@@ -24,14 +25,44 @@
                  finally (return digest))))
        (if buffer
            (frob buffer start (or end (length buffer)))
-           (let ((buffer (make-array +buffer-size+
-                                     :element-type '(unsigned-byte 8))))
+           (let ((buffer (make-array +buffer-size+ :element-type '(unsigned-byte 8))))
              (declare (dynamic-extent buffer))
              (frob buffer 0 +buffer-size+)))))
     (t
      (error 'ironclad-error
             :format-control "Unsupported stream element-type ~S for stream ~S."
             :format-arguments (list (stream-element-type stream) stream)))))
+
+(declaim (inline update-digest-from-vector))
+
+#+(or cmucl sbcl)
+(defun update-digest-from-vector (digest vector start end)
+  ;; SBCL and CMUCL have with-array-data, so copying can be avoided even
+  ;; for non-simple vectors.
+  (declare (type (vector (unsigned-byte 8)) vector)
+           (type index start end))
+  (#+cmucl lisp::with-array-data
+   #+sbcl sb-kernel:with-array-data ((data vector) (real-start start) (real-end end))
+   (declare (ignore real-end))
+   (update-digest digest data :start real-start :end (+ real-start (- end start)))))
+
+#-(or cmu sbcl)
+(defun update-digest-from-vector (state vector start end)
+  (declare (optimize speed)
+           (type (vector (unsigned-byte 8)) vector)
+           (type index start end))
+  (if (typep vector 'simple-octet-vector)
+      (update-digest state vector :start start :end end)
+      ;; It's a non-simple vector. Update the digest using a temporary buffer.
+      (let ((buffer (make-array +seq-copy-buffer-size+ :element-type '(unsigned-byte 8))))
+        (declare (dynamic-extent buffer))
+        (loop with offset of-type index = start
+              for length of-type index = (min +seq-copy-buffer-size+ (- end offset))
+              while (< offset end) do
+                (replace buffer vector :start1 0      :end1 length
+                                       :start2 offset :end2 (+ offset length))
+                (update-digest state buffer :start 0 :end length)
+                (incf offset length)))))
 
 ;;; Storing a length at the end of the hashed data is very common and
 ;;; can be a small bottleneck when generating lots of hashes over small
@@ -284,22 +315,11 @@
   (apply #'digest-sequence (make-digest digest-name) sequence kwargs))
 
 (defmethod digest-sequence (state sequence &key (start 0) end
-                            digest (digest-start 0))
-  #+(or cmu sbcl)
-  (locally
-      (declare (type (vector (unsigned-byte 8)) sequence) (type index start))
-    ;; respect the fill-pointer
-    (let ((end (or end (length sequence))))
-      (declare (type index end))
-      (#+cmu lisp::with-array-data
-       #+sbcl sb-kernel:with-array-data ((data sequence) (real-start start) (real-end end))
-        (declare (ignore real-end))
-        (update-digest state data
-                       :start real-start :end (+ real-start (- end start))))))
-  #-(or cmu sbcl)
-  (let ((real-end (or end (length sequence))))
-    (update-digest state sequence
-                   :start start :end (or real-end (length sequence))))
+                                             digest (digest-start 0))
+  (declare (type index start))
+  (check-type sequence (vector (unsigned-byte 8)))
+  (let ((end (or end (length sequence))))
+    (update-digest-from-vector state sequence start end))
   (produce-digest state :digest digest :digest-start digest-start))
 
 ;;; These four functions represent the common interface for digests in
@@ -317,7 +337,7 @@
            (error 'unsupported-digest :name digest-name))))
     (t
      (error 'type-error :datum digest-name :expected-type 'symbol))))
- 
+
 
 ;;; the digest-defining macro
 
