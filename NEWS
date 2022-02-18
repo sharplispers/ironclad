@@ -1,10 +1,14 @@
 -*- mode: outline -*-
 
-* Changes since version 0.56
+* Version 0.57, released 2022-02-18
 
 ** bug fixes
 
 Fixed SHAKE128 and SHAKE256 when a big output length is requested.
+
+** new features
+
+DIGEST-SEQUENCE can use non-simple arrays.
 
 * Version 0.56, released 2021-09-12
 
