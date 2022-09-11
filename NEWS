@@ -1,5 +1,11 @@
 -*- mode: outline -*-
 
+* Changes since version 0.57
+
+** new features
+
+Added 96-bit nonce support for Chacha.
+
 * Version 0.57, released 2022-02-18
 
 ** bug fixes

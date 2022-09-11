@@ -206,8 +206,8 @@ such as AES and DES can operate in several different modes:
 /initialization-vector/ should be a ~(simple-array (unsigned-byte 8) (*))~.
 The supplied IV should be the same length as the [[block-length][block-length]] of /name/.
 The Chacha and Salsa20 stream ciphers also use an initialization
-vector (nonce). It should be 8 bytes long for Chacha and Salsa20, and
-24 bytes long for XChacha and XSalsa20.
+vector (nonce). It should be 8 or 12 bytes long for Chacha, 8 bytes long
+for Salsa20, and 24 bytes long for XChacha and XSalsa20.
 
 /key/ is, of course, the key for the cipher.
 /key/ should be a ~(simple-array (unsigned-byte 8) (*))~.
