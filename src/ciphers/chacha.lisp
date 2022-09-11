@@ -74,6 +74,9 @@
           :initform (make-array 16 :element-type '(unsigned-byte 32)
                                 :initial-element 0)
           :type chacha-state)
+   (counter-size :accessor chacha-counter-size
+                 :initform 2
+                 :type (integer 1 2))
    (keystream-buffer :reader chacha-keystream-buffer
                      :initform (make-array 64 :element-type '(unsigned-byte 8))
                      :type chacha-keystream-buffer)
@@ -129,10 +132,21 @@
              :block-length 8))
     (let ((state (chacha-state cipher)))
       (declare (type chacha-state state))
-      (setf (aref state 12) 0
-            (aref state 13) 0
-            (aref state 14) (ub32ref/le initialization-vector 0)
-            (aref state 15) (ub32ref/le initialization-vector 4))))
+      (case (length initialization-vector)
+        ((12)
+         ;; 32-bit counter and 96-bit nonce of the RFC 8439 variant
+         (setf (chacha-counter-size cipher) 1)
+         (setf (aref state 12) 0
+               (aref state 13) (ub32ref/le initialization-vector 0)
+               (aref state 14) (ub32ref/le initialization-vector 4)
+               (aref state 15) (ub32ref/le initialization-vector 8)))
+        (t
+         ;; 64-bit counter and 64-bit nonce of the original algorithm
+         (setf (chacha-counter-size cipher) 2)
+         (setf (aref state 12) 0
+               (aref state 13) 0
+               (aref state 14) (ub32ref/le initialization-vector 0)
+               (aref state 15) (ub32ref/le initialization-vector 4))))))
   cipher)
 
 (defmethod schedule-key ((cipher chacha) key)
