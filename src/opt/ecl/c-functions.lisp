@@ -4,25 +4,16 @@
 
 #+(and ecl ironclad-assembly)
 (progn
-  (ffi:clines "
-#define ROTL32(v, c) \\
+  (declaim (inline x-chacha-core))
+  (defun x-chacha-core (n-rounds buffer state)
+    (ffi:clines "#define ROTL32(v, c) \\
   (((v) << (c)) | ((v) >> (32 - (c))))
 
 #define CHACHA_QUARTER_ROUND(a, b, c, d) \\
   x[a] += x[b]; x[d] = ROTL32(x[d] ^ x[a], 16); \\
   x[c] += x[d]; x[b] = ROTL32(x[b] ^ x[c], 12); \\
   x[a] += x[b]; x[d] = ROTL32(x[d] ^ x[a], 8); \\
-  x[c] += x[d]; x[b] = ROTL32(x[b] ^ x[c], 7);
-
-#define SALSA_QUARTER_ROUND(a, b, c, d) \\
-  x[a] ^= ROTL32(x[d] + x[c], 7); \\
-  x[b] ^= ROTL32(x[a] + x[d], 9); \\
-  x[c] ^= ROTL32(x[b] + x[a], 13); \\
-  x[d] ^= ROTL32(x[c] + x[b], 18);
-")
-
-  (declaim (inline x-chacha-core))
-  (defun x-chacha-core (n-rounds buffer state)
+  x[c] += x[d]; x[b] = ROTL32(x[b] ^ x[c], 7);")
     (ffi:c-inline (n-rounds buffer state)
                   (:unsigned-int t t)
                   :void
@@ -63,6 +54,14 @@ for(i = 0; i < 16; i++)
 
   (declaim (inline x-salsa-core))
   (defun x-salsa-core (n-rounds buffer state)
+    (ffi:clines "#define ROTL32(v, c) \\
+  (((v) << (c)) | ((v) >> (32 - (c))))
+
+#define SALSA_QUARTER_ROUND(a, b, c, d) \\
+  x[a] ^= ROTL32(x[d] + x[c], 7); \\
+  x[b] ^= ROTL32(x[a] + x[d], 9); \\
+  x[c] ^= ROTL32(x[b] + x[a], 13); \\
+  x[d] ^= ROTL32(x[c] + x[b], 18);")
     (ffi:c-inline (n-rounds buffer state)
                   (:unsigned-int t t)
                   :void
