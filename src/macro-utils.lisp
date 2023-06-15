@@ -57,3 +57,20 @@ Only supports atoms and function forms, no special forms."
   (loop for x from 0 below (eval (trivial-macroexpand-all limit env))
         collect `(symbol-macrolet ((,var ,x)) ,@body) into forms
         finally (return `(progn ,@forms))))
+
+(defun symbolicate (&rest things)
+  "Concatenate together the names of some strings and symbols,
+producing a symbol in the current package."
+  (flet ((stringify (x)
+           (typecase x
+             (integer (format nil "~D" x))
+             (t (string x)))))
+    (let* ((length (reduce #'+ things
+                           :key (lambda (x) (length (stringify x)))))
+           (name (make-array length :element-type 'character)))
+      (let ((index 0))
+        (dolist (thing things (values (intern name)))
+          (let* ((x (stringify thing))
+                 (len (length x)))
+            (replace name x :start1 index)
+            (incf index len)))))))

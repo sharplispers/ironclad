@@ -149,7 +149,7 @@
 ;;; in the decryptor, and once in the DEFCIPHER form.  It would be nice
 ;;; if there was one single place to put everything.
 (defmacro define-block-encryptor (algorithm blocksize &body body)
-  `(defun ,(read-from-string (format nil "~A-~A" algorithm '#:encrypt-block))
+  `(defun ,(symbolicate algorithm '#:-encrypt-block)
     (context plaintext plaintext-start ciphertext ciphertext-start)
     (declare (optimize (speed 3) (debug 0) (space 0)))
     (declare (type simple-octet-vector plaintext ciphertext)
@@ -158,7 +158,7 @@
     ,@body))
 
 (defmacro define-block-decryptor (algorithm blocksize &body body)
-  `(defun ,(read-from-string (format nil "~A-~A" algorithm '#:decrypt-block))
+  `(defun ,(symbolicate algorithm '#:-decrypt-block)
     (context ciphertext ciphertext-start plaintext plaintext-start)
     (declare (optimize (speed 3) (debug 0) (space 0)))
     (declare (type simple-octet-vector ciphertext plaintext)
@@ -167,7 +167,7 @@
     ,@body))
 
 (defmacro define-stream-cryptor (algorithm &body body)
-  `(defun ,(read-from-string (format nil "~A-~A" algorithm '#:crypt))
+  `(defun ,(symbolicate algorithm '#:-crypt)
        (context plaintext plaintext-start ciphertext ciphertext-start length)
      (declare (optimize (speed 3) (debug 0) (space 0)))
      (declare (type simple-octet-vector plaintext ciphertext))
@@ -269,7 +269,7 @@
     `(defmethod verify-key ((cipher ,name) (key vector))
       (check-type key (array (unsigned-byte 8) (*)))
       (let ((length (length key)))
-        (cond 
+        (cond
           (,(acceptable-key-lengths* key-length-spec) (copy-seq key))
           (t (error 'invalid-key-length
                     :cipher ',name

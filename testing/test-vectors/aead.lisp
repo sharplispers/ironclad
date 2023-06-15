@@ -10,7 +10,7 @@
         finally (return `(progn ,@forms)))
 
 #.(loop for mode in (crypto:list-all-authenticated-encryption-modes)
-        collect `(rtest:deftest ,(intern (format nil "~a/~a" mode '#:incremental))
+        collect `(rtest:deftest ,(crypto::symbolicate mode '#:/incremental)
                    (run-test-vector-file ',mode *authenticated-encryption-incremental-tests*)
                    t)
           into forms

@@ -56,8 +56,8 @@
                             (logxor (aref buffer (+ i offset)) x)))
             (aref checksum i) x))))
 
-(declaim (inline md2regs-digest))
-(defun md2regs-digest (regs buffer start)
+(declaim (inline md2-regs-digest))
+(defun md2-regs-digest (regs buffer start)
   (declare (type (simple-array (unsigned-byte 8) (48)) regs)
            #.(burn-baby-burn))
   (flet ((stuff-registers (buffer start)

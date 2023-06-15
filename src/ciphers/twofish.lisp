@@ -306,7 +306,7 @@
       ;; MACROLET and no #., so we go ahead and build everything at
       ;; read-time.
       #.(flet ((mod-box-element (index)
-                 (let ((rs-sym (intern (format nil "~A~D" '#:rs index))))
+                 (let ((rs-sym (symbolicate '#:rs index)))
                    `(setf (aref box (+ box-offset ,index))
                           (logxor (aref box (+ box-offset ,index))
                                   (aref +twofish-exp-to-poly+
@@ -347,216 +347,216 @@
            (s-box-1 (s-boxes index) `(s-box ,s-boxes 1 ,index))
            (s-box-2 (s-boxes index) `(s-box ,s-boxes 2 ,index))
            (s-box-3 (s-boxes index) `(s-box ,s-boxes 3 ,index)))
-(defun twofish-schedule-16-byte-key (round-keys s-boxes key box)
-  (declare (type twofish-round-keys round-keys)
-           (type twofish-s-boxes s-boxes)
-           (type (simple-octet-vector 16) key box))
-  (macrolet ((q-frob (i1 i2 d1 d2)
-               (let ((q0 (intern (format nil "+~A~A+" '#:twofish-q (ldb (byte 1 1) i1))))
-                     (q1 (intern (format nil "+~A~A+" '#:twofish-q (ldb (byte 1 0) i1)))))
-                 `(logxor (aref ,q0 (logxor (aref ,q1 ,i2) ,d1)) ,d2))))
-    (dotimes (i 256)
-      (setf (s-box-0 s-boxes i) (aref +twofish-mds0+
-                                      (q-frob 0 i (aref box 0) (aref box 4)))
-            (s-box-1 s-boxes i) (aref +twofish-mds1+
-                                      (q-frob 1 i (aref box 1) (aref box 5)))
-            (s-box-2 s-boxes i) (aref +twofish-mds2+
-                                      (q-frob 2 i (aref box 2) (aref box 6)))
-            (s-box-3 s-boxes i) (aref +twofish-mds3+
-                                      (q-frob 3 i (aref box 3) (aref box 7)))))
-    (loop for i from 0 below 40 by 2 do
-      (let ((x (logxor (aref +twofish-mds0+
-                             (q-frob 0 i (aref key 8) (aref key 0)))
-                       (aref +twofish-mds1+
-                             (q-frob 1 i (aref key 9) (aref key 1)))
-                       (aref +twofish-mds2+
-                             (q-frob 2 i (aref key 10) (aref key 2)))
-                       (aref +twofish-mds3+
-                             (q-frob 3 i (aref key 11) (aref key 3)))))
-            (y (logxor (aref +twofish-mds0+
-                             (q-frob 0 (1+ i) (aref key 12) (aref key 4)))
-                       (aref +twofish-mds1+
-                             (q-frob 1 (1+ i) (aref key 13) (aref key 5)))
-                       (aref +twofish-mds2+
-                             (q-frob 2 (1+ i) (aref key 14) (aref key 6)))
-                       (aref +twofish-mds3+
-                             (q-frob 3 (1+ i) (aref key 15) (aref key 7))))))
-        (declare (type (unsigned-byte 32) x y))
-        (setf y (rol32 y 8))
-        (setf x (mod32+ x y))
-        (setf y (mod32+ y x))
-        (setf (aref round-keys i) x
-              (aref round-keys (1+ i)) (rol32 y 9)))
-      finally (return (values round-keys s-boxes)))))
+  (defun twofish-schedule-16-byte-key (round-keys s-boxes key box)
+    (declare (type twofish-round-keys round-keys)
+             (type twofish-s-boxes s-boxes)
+             (type (simple-octet-vector 16) key box))
+    (macrolet ((q-frob (i1 i2 d1 d2)
+                 (let ((q0 (symbolicate '#:+twofish-q (ldb (byte 1 1) i1) '#:+))
+                       (q1 (symbolicate '#:+twofish-q (ldb (byte 1 0) i1) '#:+)))
+                   `(logxor (aref ,q0 (logxor (aref ,q1 ,i2) ,d1)) ,d2))))
+      (dotimes (i 256)
+        (setf (s-box-0 s-boxes i) (aref +twofish-mds0+
+                                        (q-frob 0 i (aref box 0) (aref box 4)))
+              (s-box-1 s-boxes i) (aref +twofish-mds1+
+                                        (q-frob 1 i (aref box 1) (aref box 5)))
+              (s-box-2 s-boxes i) (aref +twofish-mds2+
+                                        (q-frob 2 i (aref box 2) (aref box 6)))
+              (s-box-3 s-boxes i) (aref +twofish-mds3+
+                                        (q-frob 3 i (aref box 3) (aref box 7)))))
+      (loop for i from 0 below 40 by 2 do
+            (let ((x (logxor (aref +twofish-mds0+
+                                   (q-frob 0 i (aref key 8) (aref key 0)))
+                             (aref +twofish-mds1+
+                                   (q-frob 1 i (aref key 9) (aref key 1)))
+                             (aref +twofish-mds2+
+                                   (q-frob 2 i (aref key 10) (aref key 2)))
+                             (aref +twofish-mds3+
+                                   (q-frob 3 i (aref key 11) (aref key 3)))))
+                  (y (logxor (aref +twofish-mds0+
+                                   (q-frob 0 (1+ i) (aref key 12) (aref key 4)))
+                             (aref +twofish-mds1+
+                                   (q-frob 1 (1+ i) (aref key 13) (aref key 5)))
+                             (aref +twofish-mds2+
+                                   (q-frob 2 (1+ i) (aref key 14) (aref key 6)))
+                             (aref +twofish-mds3+
+                                   (q-frob 3 (1+ i) (aref key 15) (aref key 7))))))
+              (declare (type (unsigned-byte 32) x y))
+              (setf y (rol32 y 8))
+              (setf x (mod32+ x y))
+              (setf y (mod32+ y x))
+              (setf (aref round-keys i) x
+                    (aref round-keys (1+ i)) (rol32 y 9)))
+            finally (return (values round-keys s-boxes)))))
 
-(defun twofish-schedule-24-byte-key (round-keys s-boxes key box)
-  (declare (type twofish-round-keys round-keys)
-           (type twofish-s-boxes s-boxes)
-           (type (simple-octet-vector 24) key)
-           (type (simple-octet-vector 16) box))
-  (macrolet ((q-frob (i1 i2 d1 d2 d3)
-               (let ((q0 (intern (format nil "+~A~A+" '#:twofish-q (ldb (byte 1 2) i1))))
-                     (q1 (intern (format nil "+~A~A+" '#:twofish-q (ldb (byte 1 1) i1))))
-                     (q2 (intern (format nil "+~A~A+" '#:twofish-q (ldb (byte 1 0) i1)))))
-                 `(logxor (aref ,q0 (logxor (aref ,q1 (logxor (aref ,q2 ,i2)
-                                                              ,d1))
-                                     ,d2))
-                   ,d3))))
-    (dotimes (i 256)
-      (setf (s-box-0 s-boxes i) (aref +twofish-mds0+
-                                      (q-frob 1 i (aref box 0) (aref box 4) (aref box 8)))
-            (s-box-1 s-boxes i) (aref +twofish-mds1+
-                                      (q-frob 3 i (aref box 1) (aref box 5) (aref box 9)))
-            (s-box-2 s-boxes i) (aref +twofish-mds2+
-                                      (q-frob 4 i (aref box 2) (aref box 6) (aref box 10)))
-            (s-box-3 s-boxes i) (aref +twofish-mds3+
-                                      (q-frob 6 i (aref box 3) (aref box 7) (aref box 11)))))
-    (loop for i from 0 below 40 by 2 do
-      (let ((x (logxor (aref +twofish-mds0+
-                             (q-frob 1 i (aref key 16) (aref key 8) (aref key 0)))
-                       (aref +twofish-mds1+
-                             (q-frob 3 i (aref key 17) (aref key 9) (aref key 1)))
-                       (aref +twofish-mds2+
-                             (q-frob 4 i (aref key 18) (aref key 10) (aref key 2)))
-                       (aref +twofish-mds3+
-                             (q-frob 6 i (aref key 19) (aref key 11) (aref key 3)))))
-            (y (logxor (aref +twofish-mds0+
-                             (q-frob 1 (1+ i) (aref key 20) (aref key 12) (aref key 4)))
-                       (aref +twofish-mds1+
-                             (q-frob 3 (1+ i) (aref key 21) (aref key 13) (aref key 5)))
-                       (aref +twofish-mds2+
-                             (q-frob 4 (1+ i) (aref key 22) (aref key 14) (aref key 6)))
-                       (aref +twofish-mds3+
-                             (q-frob 6 (1+ i) (aref key 23) (aref key 15) (aref key 7))))))
-        (declare (type (unsigned-byte 32) x y))
-        (setf y (rol32 y 8))
-        (setf x (mod32+ x y))
-        (setf y (mod32+ y x))
-        (setf (aref round-keys i) x
-              (aref round-keys (1+ i)) (rol32 y 9)))
-      finally (return (values round-keys s-boxes)))))
+  (defun twofish-schedule-24-byte-key (round-keys s-boxes key box)
+    (declare (type twofish-round-keys round-keys)
+             (type twofish-s-boxes s-boxes)
+             (type (simple-octet-vector 24) key)
+             (type (simple-octet-vector 16) box))
+    (macrolet ((q-frob (i1 i2 d1 d2 d3)
+                 (let ((q0 (symbolicate '#:+twofish-q (ldb (byte 1 2) i1) '#:+))
+                       (q1 (symbolicate '#:+twofish-q (ldb (byte 1 1) i1) '#:+))
+                       (q2 (symbolicate '#:+twofish-q (ldb (byte 1 0) i1) '#:+)))
+                   `(logxor (aref ,q0 (logxor (aref ,q1 (logxor (aref ,q2 ,i2)
+                                                                ,d1))
+                                              ,d2))
+                            ,d3))))
+      (dotimes (i 256)
+        (setf (s-box-0 s-boxes i) (aref +twofish-mds0+
+                                        (q-frob 1 i (aref box 0) (aref box 4) (aref box 8)))
+              (s-box-1 s-boxes i) (aref +twofish-mds1+
+                                        (q-frob 3 i (aref box 1) (aref box 5) (aref box 9)))
+              (s-box-2 s-boxes i) (aref +twofish-mds2+
+                                        (q-frob 4 i (aref box 2) (aref box 6) (aref box 10)))
+              (s-box-3 s-boxes i) (aref +twofish-mds3+
+                                        (q-frob 6 i (aref box 3) (aref box 7) (aref box 11)))))
+      (loop for i from 0 below 40 by 2 do
+            (let ((x (logxor (aref +twofish-mds0+
+                                   (q-frob 1 i (aref key 16) (aref key 8) (aref key 0)))
+                             (aref +twofish-mds1+
+                                   (q-frob 3 i (aref key 17) (aref key 9) (aref key 1)))
+                             (aref +twofish-mds2+
+                                   (q-frob 4 i (aref key 18) (aref key 10) (aref key 2)))
+                             (aref +twofish-mds3+
+                                   (q-frob 6 i (aref key 19) (aref key 11) (aref key 3)))))
+                  (y (logxor (aref +twofish-mds0+
+                                   (q-frob 1 (1+ i) (aref key 20) (aref key 12) (aref key 4)))
+                             (aref +twofish-mds1+
+                                   (q-frob 3 (1+ i) (aref key 21) (aref key 13) (aref key 5)))
+                             (aref +twofish-mds2+
+                                   (q-frob 4 (1+ i) (aref key 22) (aref key 14) (aref key 6)))
+                             (aref +twofish-mds3+
+                                   (q-frob 6 (1+ i) (aref key 23) (aref key 15) (aref key 7))))))
+              (declare (type (unsigned-byte 32) x y))
+              (setf y (rol32 y 8))
+              (setf x (mod32+ x y))
+              (setf y (mod32+ y x))
+              (setf (aref round-keys i) x
+                    (aref round-keys (1+ i)) (rol32 y 9)))
+            finally (return (values round-keys s-boxes)))))
 
-(defun twofish-schedule-32-byte-key (round-keys s-boxes key box)
-  (declare (type twofish-round-keys round-keys)
-           (type twofish-s-boxes s-boxes)
-           (type (simple-octet-vector 32) key)
-           (type (simple-octet-vector 16) box))
-  (macrolet ((q-frob (i1 i2 d1 d2 d3 d4)
-               (let ((q0 (intern (format nil "+~A~A+" '#:twofish-q (ldb (byte 1 3) i1))))
-                     (q1 (intern (format nil "+~A~A+" '#:twofish-q (ldb (byte 1 2) i1))))
-                     (q2 (intern (format nil "+~A~A+" '#:twofish-q (ldb (byte 1 1) i1))))
-                     (q3 (intern (format nil "+~A~A+" '#:twofish-q (ldb (byte 1 0) i1)))))
-                 `(logxor (aref ,q0 (logxor (aref ,q1 (logxor (aref ,q2 (logxor (aref ,q3 ,i2) ,d1)) ,d2)) ,d3)) ,d4))))
-    (dotimes (i 256)
-      (setf (s-box-0 s-boxes i) (aref +twofish-mds0+
-                                      (q-frob #b0011 i (aref box 0) (aref box 4) (aref box 8) (aref box 12)))
-            (s-box-1 s-boxes i) (aref +twofish-mds1+
-                                      (q-frob #b0110 i (aref box 1) (aref box 5) (aref box 9) (aref box 13)))
-            (s-box-2 s-boxes i) (aref +twofish-mds2+
-                                      (q-frob #b1000 i (aref box 2) (aref box 6) (aref box 10) (aref box 14)))
-            (s-box-3 s-boxes i) (aref +twofish-mds3+
-                                      (q-frob #b1101 i (aref box 3) (aref box 7) (aref box 11) (aref box 15)))))
-    (loop for i from 0 below 40 by 2 do
-      (let ((x (logxor (aref +twofish-mds0+
-                             (q-frob #b0011 i (aref key 24) (aref key 16) (aref key 8) (aref key 0)))
-                       (aref +twofish-mds1+
-                             (q-frob #b0110 i (aref key 25) (aref key 17) (aref key 9) (aref key 1)))
-                       (aref +twofish-mds2+
-                             (q-frob #b1000 i (aref key 26) (aref key 18) (aref key 10) (aref key 2)))
-                       (aref +twofish-mds3+
-                             (q-frob #b1101 i (aref key 27) (aref key 19) (aref key 11) (aref key 3)))))
-            (y (logxor (aref +twofish-mds0+
-                             (q-frob #b0011 (1+ i) (aref key 28) (aref key 20) (aref key 12) (aref key 4)))
-                       (aref +twofish-mds1+
-                             (q-frob #b0110 (1+ i) (aref key 29) (aref key 21) (aref key 13) (aref key 5)))
-                       (aref +twofish-mds2+
-                             (q-frob #b1000 (1+ i) (aref key 30) (aref key 22) (aref key 14) (aref key 6)))
-                       (aref +twofish-mds3+
-                             (q-frob #b1101 (1+ i) (aref key 31) (aref key 23) (aref key 15) (aref key 7))))))
-        (declare (type (unsigned-byte 32) x y))
-        (setf y (rol32 y 8))
-        (setf x (mod32+ x y))
-        (setf y (mod32+ y x))
-        (setf (aref round-keys i) x
-              (aref round-keys (1+ i)) (rol32 y 9)))
-      finally (return (values round-keys s-boxes)))))
+  (defun twofish-schedule-32-byte-key (round-keys s-boxes key box)
+    (declare (type twofish-round-keys round-keys)
+             (type twofish-s-boxes s-boxes)
+             (type (simple-octet-vector 32) key)
+             (type (simple-octet-vector 16) box))
+    (macrolet ((q-frob (i1 i2 d1 d2 d3 d4)
+                 (let ((q0 (symbolicate '#:+twofish-q (ldb (byte 1 3) i1) '#:+))
+                       (q1 (symbolicate '#:+twofish-q (ldb (byte 1 2) i1) '#:+))
+                       (q2 (symbolicate '#:+twofish-q (ldb (byte 1 1) i1) '#:+))
+                       (q3 (symbolicate '#:+twofish-q (ldb (byte 1 0) i1) '#:+)))
+                   `(logxor (aref ,q0 (logxor (aref ,q1 (logxor (aref ,q2 (logxor (aref ,q3 ,i2) ,d1)) ,d2)) ,d3)) ,d4))))
+      (dotimes (i 256)
+        (setf (s-box-0 s-boxes i) (aref +twofish-mds0+
+                                        (q-frob #b0011 i (aref box 0) (aref box 4) (aref box 8) (aref box 12)))
+              (s-box-1 s-boxes i) (aref +twofish-mds1+
+                                        (q-frob #b0110 i (aref box 1) (aref box 5) (aref box 9) (aref box 13)))
+              (s-box-2 s-boxes i) (aref +twofish-mds2+
+                                        (q-frob #b1000 i (aref box 2) (aref box 6) (aref box 10) (aref box 14)))
+              (s-box-3 s-boxes i) (aref +twofish-mds3+
+                                        (q-frob #b1101 i (aref box 3) (aref box 7) (aref box 11) (aref box 15)))))
+      (loop for i from 0 below 40 by 2 do
+            (let ((x (logxor (aref +twofish-mds0+
+                                   (q-frob #b0011 i (aref key 24) (aref key 16) (aref key 8) (aref key 0)))
+                             (aref +twofish-mds1+
+                                   (q-frob #b0110 i (aref key 25) (aref key 17) (aref key 9) (aref key 1)))
+                             (aref +twofish-mds2+
+                                   (q-frob #b1000 i (aref key 26) (aref key 18) (aref key 10) (aref key 2)))
+                             (aref +twofish-mds3+
+                                   (q-frob #b1101 i (aref key 27) (aref key 19) (aref key 11) (aref key 3)))))
+                  (y (logxor (aref +twofish-mds0+
+                                   (q-frob #b0011 (1+ i) (aref key 28) (aref key 20) (aref key 12) (aref key 4)))
+                             (aref +twofish-mds1+
+                                   (q-frob #b0110 (1+ i) (aref key 29) (aref key 21) (aref key 13) (aref key 5)))
+                             (aref +twofish-mds2+
+                                   (q-frob #b1000 (1+ i) (aref key 30) (aref key 22) (aref key 14) (aref key 6)))
+                             (aref +twofish-mds3+
+                                   (q-frob #b1101 (1+ i) (aref key 31) (aref key 23) (aref key 15) (aref key 7))))))
+              (declare (type (unsigned-byte 32) x y))
+              (setf y (rol32 y 8))
+              (setf x (mod32+ x y))
+              (setf y (mod32+ y x))
+              (setf (aref round-keys i) x
+                    (aref round-keys (1+ i)) (rol32 y 9)))
+            finally (return (values round-keys s-boxes)))))
 
-(define-block-encryptor twofish 16
-  (let ((round-keys (round-keys context))
-        (s-boxes (s-boxes context)))
-    (declare (type twofish-round-keys round-keys))
-    (declare (type twofish-s-boxes s-boxes))
-    (macrolet ((encrypt-round (a b c d round)
-                 `(let ((x (logxor (s-box-0 s-boxes (first-byte ,a))
-                                  (s-box-1 s-boxes (second-byte ,a))
-                                  (s-box-2 s-boxes (third-byte ,a))
-                                  (s-box-3 s-boxes (fourth-byte ,a))))
-                       (y (logxor (s-box-0 s-boxes (fourth-byte ,b))
-                                  (s-box-1 s-boxes (first-byte ,b))
-                                  (s-box-2 s-boxes (second-byte ,b))
-                                  (s-box-3 s-boxes (third-byte ,b)))))
-                   (declare (type (unsigned-byte 32) x y))
-                   (setf x (mod32+ x y))
-                   (setf y (mod32+ y (mod32+ x (aref round-keys (+ (* ,round 2) 9)))))
-                   (setf x (mod32+ x (aref round-keys (+ (* ,round 2) 8))))
-                   (setf ,c (rol32 (logxor ,c x) 31)
-                    ,d (logxor (rol32 ,d 1) y)))))
-      (with-words ((a b c d) plaintext plaintext-start :big-endian nil)
-        (setf a (logxor a (aref round-keys 0))
-              b (logxor b (aref round-keys 1))
-              c (logxor c (aref round-keys 2))
-              d (logxor d (aref round-keys 3)))
-        #.(loop for i from 0 below 16
-                if (evenp i)
+  (define-block-encryptor twofish 16
+    (let ((round-keys (round-keys context))
+          (s-boxes (s-boxes context)))
+      (declare (type twofish-round-keys round-keys))
+      (declare (type twofish-s-boxes s-boxes))
+      (macrolet ((encrypt-round (a b c d round)
+                   `(let ((x (logxor (s-box-0 s-boxes (first-byte ,a))
+                                     (s-box-1 s-boxes (second-byte ,a))
+                                     (s-box-2 s-boxes (third-byte ,a))
+                                     (s-box-3 s-boxes (fourth-byte ,a))))
+                          (y (logxor (s-box-0 s-boxes (fourth-byte ,b))
+                                     (s-box-1 s-boxes (first-byte ,b))
+                                     (s-box-2 s-boxes (second-byte ,b))
+                                     (s-box-3 s-boxes (third-byte ,b)))))
+                      (declare (type (unsigned-byte 32) x y))
+                      (setf x (mod32+ x y))
+                      (setf y (mod32+ y (mod32+ x (aref round-keys (+ (* ,round 2) 9)))))
+                      (setf x (mod32+ x (aref round-keys (+ (* ,round 2) 8))))
+                      (setf ,c (rol32 (logxor ,c x) 31)
+                            ,d (logxor (rol32 ,d 1) y)))))
+        (with-words ((a b c d) plaintext plaintext-start :big-endian nil)
+          (setf a (logxor a (aref round-keys 0))
+                b (logxor b (aref round-keys 1))
+                c (logxor c (aref round-keys 2))
+                d (logxor d (aref round-keys 3)))
+          #.(loop for i from 0 below 16
+                  if (evenp i)
                   collect `(encrypt-round a b c d ,i) into rounds
-                else
+                  else
                   collect `(encrypt-round c d a b ,i) into rounds
-                finally (return `(progn ,@rounds)))
-        (setf c (logxor c (aref round-keys 4))
-              d (logxor d (aref round-keys 5))
-              a (logxor a (aref round-keys 6))
-              b (logxor b (aref round-keys 7)))
-        (store-words ciphertext ciphertext-start c d a b)
-        (values)))))
+                  finally (return `(progn ,@rounds)))
+          (setf c (logxor c (aref round-keys 4))
+                d (logxor d (aref round-keys 5))
+                a (logxor a (aref round-keys 6))
+                b (logxor b (aref round-keys 7)))
+          (store-words ciphertext ciphertext-start c d a b)
+          (values)))))
 
-(define-block-decryptor twofish 16
-  (let ((round-keys (round-keys context))
-        (s-boxes (s-boxes context)))
-    (declare (type twofish-round-keys round-keys))
-    (declare (type twofish-s-boxes s-boxes))
-    (macrolet ((decrypt-round (a b c d round)
-                 `(let ((x (logxor (s-box-0 s-boxes (first-byte ,a))
-                                   (s-box-1 s-boxes (second-byte ,a))
-                                   (s-box-2 s-boxes (third-byte ,a))
-                                   (s-box-3 s-boxes (fourth-byte ,a))))
-                        (y (logxor (s-box-0 s-boxes (fourth-byte ,b))
-                                   (s-box-1 s-boxes (first-byte ,b))
-                                   (s-box-2 s-boxes (second-byte ,b))
-                                   (s-box-3 s-boxes (third-byte ,b)))))
-                   (declare (type (unsigned-byte 32) x y))
-                   (setf x (mod32+ x y))
-                   (setf y (mod32+ y (mod32+ x (aref round-keys (+ (* ,round 2) 9)))))
-                   (setf x (mod32+ x (aref round-keys (+ (* ,round 2) 8))))
-                   (setf ,c (logxor (rol32 ,c 1) x)
-                    ,d (rol32 (logxor ,d y) 31)))))
-      (with-words ((c d a b) ciphertext ciphertext-start :big-endian nil)
-        (setf c (logxor c (aref round-keys 4))
-              d (logxor d (aref round-keys 5))
-              a (logxor a (aref round-keys 6))
-              b (logxor b (aref round-keys 7)))
-        #.(loop for i from 15 downto 0
-                if (evenp i)
+  (define-block-decryptor twofish 16
+    (let ((round-keys (round-keys context))
+          (s-boxes (s-boxes context)))
+      (declare (type twofish-round-keys round-keys))
+      (declare (type twofish-s-boxes s-boxes))
+      (macrolet ((decrypt-round (a b c d round)
+                   `(let ((x (logxor (s-box-0 s-boxes (first-byte ,a))
+                                     (s-box-1 s-boxes (second-byte ,a))
+                                     (s-box-2 s-boxes (third-byte ,a))
+                                     (s-box-3 s-boxes (fourth-byte ,a))))
+                          (y (logxor (s-box-0 s-boxes (fourth-byte ,b))
+                                     (s-box-1 s-boxes (first-byte ,b))
+                                     (s-box-2 s-boxes (second-byte ,b))
+                                     (s-box-3 s-boxes (third-byte ,b)))))
+                      (declare (type (unsigned-byte 32) x y))
+                      (setf x (mod32+ x y))
+                      (setf y (mod32+ y (mod32+ x (aref round-keys (+ (* ,round 2) 9)))))
+                      (setf x (mod32+ x (aref round-keys (+ (* ,round 2) 8))))
+                      (setf ,c (logxor (rol32 ,c 1) x)
+                            ,d (rol32 (logxor ,d y) 31)))))
+        (with-words ((c d a b) ciphertext ciphertext-start :big-endian nil)
+          (setf c (logxor c (aref round-keys 4))
+                d (logxor d (aref round-keys 5))
+                a (logxor a (aref round-keys 6))
+                b (logxor b (aref round-keys 7)))
+          #.(loop for i from 15 downto 0
+                  if (evenp i)
                   collect `(decrypt-round a b c d ,i) into rounds
-                else
+                  else
                   collect `(decrypt-round c d a b ,i) into rounds
-                finally (return `(progn ,@rounds)))
-        (setf a (logxor a (aref round-keys 0))
-              b (logxor b (aref round-keys 1))
-              c (logxor c (aref round-keys 2))
-              d (logxor d (aref round-keys 3)))
-        (store-words plaintext plaintext-start a b c d)
-        (values)))))
-) ; MACROLET
+                  finally (return `(progn ,@rounds)))
+          (setf a (logxor a (aref round-keys 0))
+                b (logxor b (aref round-keys 1))
+                c (logxor c (aref round-keys 2))
+                d (logxor d (aref round-keys 3)))
+          (store-words plaintext plaintext-start a b c d)
+          (values)))))
+  ) ; MACROLET
 
 (defmethod schedule-key ((cipher twofish) key)
   (multiple-value-bind (round-keys s-boxes) (twofish-key-schedule key)

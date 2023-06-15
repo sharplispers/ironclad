@@ -82,7 +82,7 @@
                   collect `(sha256-round ,i ,@(circular-list-subseq vars 0 8)) into forms
                   finally (return `(progn ,@forms))))
         #.(loop for slot in '(a b c d e f g h)
-                collect (let ((regs-accessor (intern (format nil "~A-~A" '#:sha256-regs slot))))
+                collect (let ((regs-accessor (symbolicate '#:sha256-regs- slot)))
                           `(setf (,regs-accessor regs)
                             (mod32+ (,regs-accessor regs) ,slot))) into forms
                 finally (return `(progn ,@forms)))
@@ -97,7 +97,7 @@
          (sigma1 (x)
            (declare (type (unsigned-byte 32) x))
            (logxor (rol32 x 15) (rol32 x 13) (mod32ash x -10))))
-    #+ironclad-fast-mod32-arithmetic 
+    #+ironclad-fast-mod32-arithmetic
     (declare (inline sigma0 sigma1))
     (loop for i from 16 below 64 do
           (setf (aref block i)

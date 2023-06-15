@@ -45,12 +45,12 @@
         finally (return `(progn ,@forms)))
 
 #.(loop for digest in (crypto:list-all-digests)
-        collect `(rtest:deftest ,(intern (format nil "~A/~A" digest '#:incremental))
+        collect `(rtest:deftest ,(crypto::symbolicate digest '#:/incremental)
                    (run-test-vector-file ',digest *digest-incremental-tests*) t) into forms
         finally (return `(progn ,@forms)))
 
 #.(loop for digest in (crypto:list-all-digests)
-        collect `(rtest:deftest ,(intern (format nil "~A/~A" digest '#:block-buffering))
+        collect `(rtest:deftest ,(crypto::symbolicate digest '#:/block-buffering)
                    (let* ((sequences
                             (mapcar (lambda (s) (coerce s '(simple-array (unsigned-byte 8) (*))))
                                     '(#(71 69 84) #(10) #(10) #(10) #(10)
@@ -81,19 +81,19 @@
 
 #.(if (boundp '*digest-stream-tests*)
       (loop for digest in (crypto:list-all-digests)
-         collect `(rtest:deftest ,(intern (format nil "~A/~A" digest '#:stream))
+         collect `(rtest:deftest ,(crypto::symbolicate digest '#:/stream)
                       (run-test-vector-file ',digest *digest-stream-tests*) t) into forms
          finally (return `(progn ,@forms)))
       nil)
 
 #.(loop for digest in (crypto:list-all-digests)
-        collect `(rtest:deftest ,(intern (format nil "~A/~A" digest '#:reinitialize-instance))
+        collect `(rtest:deftest ,(crypto::symbolicate digest '#:/reinitialize-instance)
                    (run-test-vector-file ',digest *digest-reinitialize-instance-tests*) t) into forms
         finally (return `(progn ,@forms)))
 
 #.(if (boundp '*digest-fill-pointer-tests*)
       (loop for digest in (crypto:list-all-digests)
-         collect `(rtest:deftest ,(intern (format nil "~A/~A" digest '#:fill-pointer))
+         collect `(rtest:deftest ,(crypto::symbolicate digest '#:/fill-pointer)
                       (run-test-vector-file ',digest *digest-fill-pointer-tests*) t) into forms
          finally (return `(progn ,@forms)))
       nil)

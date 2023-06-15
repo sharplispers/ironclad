@@ -50,7 +50,7 @@
 ;;; These functions are named according to big-endian conventions.  The
 ;;; comment is here because I always forget and need to be reminded.
 #.(loop for i from 1 to 8
-        collect (let ((name (read-from-string (format nil "~:R-~A" i '#:byte))))
+        collect (let ((name (intern (format nil  "~:@(~:R~)-~A"  i (string '#:byte)))))
                   `(progn
                     (declaim (inline ,name))
                     (declaim (ftype (function (unsigned-byte) (unsigned-byte 8)) ,name))
@@ -64,7 +64,7 @@
 
 (eval-when (:compile-toplevel :load-toplevel :execute)
 (defun ubref-fun-name (bitsize big-endian-p)
-  (read-from-string (format nil "ub~dref/~a" bitsize (if big-endian-p "be" "le"))))
+  (symbolicate '#:ub bitsize (if big-endian-p '#:ref/be '#:ref/le)))
 ) ; EVAL-WHEN
 
 (declaim (inline ub16ref/le (setf ub16ref/le)

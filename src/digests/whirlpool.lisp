@@ -25,7 +25,7 @@
 
 (defconst +pristine-whirlpool-registers+ (initial-whirlpool-regs))
 
-(defun whirlpoolregs-digest (regs buffer &optional (start 0))
+(defun whirlpool-regs-digest (regs buffer &optional (start 0))
   (declare (type whirlpool-regs regs)
            (type (integer 0 #.(- array-dimension-limit 64)) start))
   (flet ((stuff-registers (buffer start)
