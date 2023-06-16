@@ -1,6 +1,14 @@
 -*- mode: outline -*-
 
-* Version 0.57, released 2022-10-24
+* Changes since version 0.58
+
+** bug fixes
+
+Fixed optimized Chacha and Salsa functions for newer ECL.
+
+Don't use FORMAT and READ-FROM-STRING to make symbol names.
+
+* Version 0.58, released 2022-10-24
 
 ** new features
 
