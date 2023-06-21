@@ -220,11 +220,13 @@
              :32-bit
              :64-bit)
          :ironclad-fast-mod32-arithmetic
-         (when (member :x86-64 *features*)
-           (list* :ironclad-fast-mod64-arithmetic
-                  (let ((sym (find-symbol "EA" :sb-vm)))
-                    (when (and sym (fboundp sym))
-                      '(:ironclad-sb-vm-ea))))))
+         (cond ((member :x86-64 *features*)
+                (list* :ironclad-fast-mod64-arithmetic
+                       (let ((sym (find-symbol "EA" :sb-vm)))
+                         (when (and sym (fboundp sym))
+                           '(:ironclad-sb-vm-ea)))))
+               ((member :arm64 *features*)
+                '(:ironclad-fast-mod64-arithmetic))))
   #+cmu
   (list (c:backend-byte-order c:*target-backend*)
         (if (= vm:word-bits 32)
