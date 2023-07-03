@@ -17,9 +17,9 @@
   (defclass ed448-point ()
     ;; Internally, a point (x, y) is represented using the projective
     ;; coordinates (X, Y, Z), with x = X / Z and y = Y / Z.
-    ((x :initarg :x :type integer)
-     (y :initarg :y :type integer)
-     (z :initarg :z :type integer)))
+    ((x :initarg :x :reader ed448-point-x :type integer)
+     (y :initarg :y :reader ed448-point-y :type integer)
+     (z :initarg :z :reader ed448-point-z :type integer)))
   (defmethod make-load-form ((p ed448-point) &optional env)
     (declare (ignore env))
     (make-load-form-saving-slots p)))
@@ -183,6 +183,11 @@
         (if (ec-point-on-curve-p p)
             p
             (error 'invalid-curve-point :kind 'ed448))))))
+
+(defmethod ec-destructure-point ((point ed448-point))
+  (list :x (ed448-point-x point)
+        :y (ed448-point-y point)
+        :z (ed448-point-z point)))
 
 (defun ed448-hash (&rest messages)
   (declare (optimize (speed 3) (safety 0) (space 0) (debug 0)))

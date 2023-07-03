@@ -18,9 +18,9 @@
   (defclass secp384r1-point ()
     ;; Internally, a point (x, y) is represented using the Jacobian projective
     ;; coordinates (X, Y, Z), with x = X / Z^2 and y = Y / Z^3.
-    ((x :initarg :x :type integer)
-     (y :initarg :y :type integer)
-     (z :initarg :z :type integer)))
+    ((x :initarg :x :reader secp384r1-point-x :type integer)
+     (y :initarg :y :reader secp384r1-point-y :type integer)
+     (z :initarg :z :reader secp384r1-point-z :type integer)))
   (defmethod make-load-form ((p secp384r1-point) &optional env)
     (declare (ignore env))
     (make-load-form-saving-slots p)))
@@ -193,6 +193,11 @@
          (error 'invalid-curve-point :kind 'secp384r1)))
     (t
      (error 'invalid-curve-point :kind 'secp384r1))))
+
+(defmethod ec-destructure-point ((point secp384r1-point))
+  (list :x (secp384r1-point-x point)
+        :y (secp384r1-point-y point)
+        :z (secp384r1-point-z point)))
 
 (defun secp384r1-public-key (sk)
   (let ((a (ec-decode-scalar :secp384r1 sk)))

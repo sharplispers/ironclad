@@ -17,8 +17,8 @@
   (defclass curve25519-point ()
     ;; Internally, we represent a point (x, y) using only the projective
     ;; coordinate (X, Z) for x, with x = X / Z.
-    ((x :initarg :x :type integer)
-     (z :initarg :z :type integer)))
+    ((x :initarg :x :reader curve25519-point-x :type integer)
+     (z :initarg :z :reader curve25519-point-z :type integer)))
   (defmethod make-load-form ((p curve25519-point) &optional env)
     (declare (ignore env))
     (make-load-form-saving-slots p)))
@@ -106,6 +106,10 @@
   (let ((x (ldb (byte (1- +curve25519-bits+) 0)
                 (octets-to-integer octets :big-endian nil))))
     (make-instance 'curve25519-point :x x :z 1)))
+
+(defmethod ec-destructure-point ((point curve25519-point))
+  (list :x (curve25519-point-x point)
+        :z (curve25519-point-z point)))
 
 (defun curve25519-public-key (sk)
   "Compute the public key associated to the private key SK."

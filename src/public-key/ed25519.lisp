@@ -17,10 +17,10 @@
   (defclass ed25519-point ()
     ;; Internally, a point (x, y) is represented in extended homogeneous
     ;; coordinates (X, Y, Z, W), with x = X / Z, y = Y / Z and x * y = W / Z.
-    ((x :initarg :x :type integer)
-     (y :initarg :y :type integer)
-     (z :initarg :z :type integer)
-     (w :initarg :w :type integer)))
+    ((x :initarg :x :reader ed25519-point-x :type integer)
+     (y :initarg :y :reader ed25519-point-y :type integer)
+     (z :initarg :z :reader ed25519-point-z :type integer)
+     (w :initarg :w :reader ed25519-point-w :type integer)))
   (defmethod make-load-form ((p ed25519-point) &optional env)
     (declare (ignore env))
     (make-load-form-saving-slots p)))
@@ -179,6 +179,12 @@
         (if (ec-point-on-curve-p p)
             p
             (error 'invalid-curve-point :kind 'ed25519))))))
+
+(defmethod ec-destructure-point ((point ed25519-point))
+  (list :x (ed25519-point-x point)
+        :y (ed25519-point-y point)
+        :z (ed25519-point-z point)
+        :w (ed25519-point-w point)))
 
 (defun ed25519-hash (&rest messages)
   (declare (optimize (speed 3) (safety 0) (space 0) (debug 0)))

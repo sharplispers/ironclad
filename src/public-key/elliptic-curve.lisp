@@ -32,3 +32,6 @@
 
 (defgeneric ec-decode-point (kind octets)
   (:documentation "Return the point represented by the OCTETS."))
+
+(defgeneric ec-destructure-point (p)
+  (:documentation "Return a plist containing the elements of the point P"))
