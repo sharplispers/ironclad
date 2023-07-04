@@ -1385,6 +1385,118 @@ Return a secret shared by two users Alice and Bob, computed from
 Alice's private key and Bob's public key (these keys must be
 compatible, i.e. have the same group parameters).
 
+** Elliptic curve operations
+
+#+NAME: ec-make-point
+#+BEGIN_SRC lisp
+(ec-make-point kind &key &allow-other-keys) => point
+#+END_SRC
+
+Return a point of /kind/, initialized according to the specified coordinates.
+The interesting bits are in the methods that specialize on /kind/, below.
+
+#+BEGIN_EXAMPLE
+(ec-make-point :curve25519 &key x)
+(ec-make-point :curve448 &key x)
+(ec-make-point :ed25519 &key x y)
+(ec-make-point :ed448 &key x y)
+(ec-make-point :secp256k1 &key x y)
+(ec-make-point :secp256r1 &key x y)
+(ec-make-point :secp384r1 &key x y)
+(ec-make-point :secp521r1 &key x y)
+#+END_EXAMPLE
+
+The /x/ and /y/ parameters must be integers.
+
+
+#+NAME: ec-destructure-point
+#+BEGIN_SRC lisp
+(ec-destructure-point p) => plist
+#+END_SRC
+
+Return a plist containing the coordinates of the point /P/. The indicators of
+the plist match the /&key/ arguments of the [[ec-make-point][ec-make-point]] method.
+
+
+#+NAME: ec-point-on-curve
+#+BEGIN_SRC lisp
+(ec-point-on-curve p) => boolean
+#+END_SRC
+
+Return ~t~ if the point /P/ is on the curve.
+
+
+#+NAME: ec-point-equal
+#+BEGIN_SRC lisp
+(ec-point-equal p q) => boolean
+#+END_SRC
+
+Return ~t~ if /P/ and /Q/ represent the same point.
+
+
+#+NAME: ec-double
+#+BEGIN_SRC lisp
+(ec-double p) => point
+#+END_SRC
+
+Return the point 2 * /P/.
+
+
+#+NAME: ec-add
+#+BEGIN_SRC lisp
+(ec-add p q) => point
+#+END_SRC
+
+Return the point /P/ + /Q/.
+
+
+#+NAME: ec-scalar-mult
+#+BEGIN_SRC lisp
+(ec-scalar-mult p e) => point
+#+END_SRC
+
+Return the point /e/ * /P/.
+
+
+#+NAME: ec-scalar-inv
+#+BEGIN_SRC lisp
+(ec-scalar-inv kind n) => integer
+#+END_SRC
+
+Return the modular inverse of /n/.
+
+
+#+NAME: ec-encode-scalar
+#+BEGIN_SRC lisp
+(ec-encode-scalar kind n) => vector
+#+END_SRC
+
+Return an octet vector representing the integer /n/.
+
+
+#+NAME: ec-decode-scalar
+#+BEGIN_SRC lisp
+(ec-decode-scalar kind octets) => integer
+#+END_SRC
+
+Return the integer represented by the /octets/.
+
+
+#+NAME: ec-encode-point
+#+BEGIN_SRC lisp
+(ec-encode-point p) => vector
+#+END_SRC
+
+Return an octet vector representing the point /P/.
+
+
+#+NAME: ec-decode-point
+#+BEGIN_SRC lisp
+(ec-decode-point kind octets) => point
+#+END_SRC
+
+Return the point represented by the /octets/.
+
 * Pseudo-random number generation
   :PROPERTIES:
   :CUSTOM_ID: pseudo-random-number-generation

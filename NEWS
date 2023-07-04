@@ -2,6 +2,10 @@
 
 * Changes since version 0.58
 
+** new features
+
+Functions for elliptic curve operations are exported.
+
 ** bug fixes
 
 Fixed optimized Chacha and Salsa functions for newer ECL.

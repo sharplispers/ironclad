@@ -32,7 +32,7 @@ specified coordinates."))
   (:documentation "Return an octet vector representing the integer N."))
 
 (defgeneric ec-decode-scalar (kind octets)
-  (:documentation "Return the point represented by the OCTETS."))
+  (:documentation "Return the integer represented by the OCTETS."))
 
 (defgeneric ec-encode-point (p)
   (:documentation "Return an octet vector representing the point P."))
