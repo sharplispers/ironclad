@@ -144,6 +144,34 @@
       (and (zerop (mod (- (* x1 z2) (* x2 z1)) +ed25519-q+))
            (zerop (mod (- (* y1 z2) (* y2 z1)) +ed25519-q+))))))
 
+(defmethod ec-make-point ((kind (eql :ed25519)) &key x y)
+  (unless x
+    (error 'missing-point-parameter
+           :kind 'ed25519
+           :parameter 'x
+           :description "coordinate"))
+  (unless y
+    (error 'missing-point-parameter
+           :kind 'ed25519
+           :parameter 'y
+           :description "coordinate"))
+  (let* ((w (mod (* x y) +ed25519-q+))
+         (p (make-instance 'ed25519-point :x x :y y :z 1 :w w)))
+    (declare (type integer w)
+             (type ed25519-point p))
+    (if (ec-point-on-curve-p p)
+        p
+        (error 'invalid-curve-point :kind 'ed25519))))
+
+(defmethod ec-destructure-point ((p ed25519-point))
+  (with-slots (x y z) p
+    (declare (type integer x y z))
+    (let* ((invz (ec-scalar-inv :ed25519 z))
+           (x (mod (* x invz) +ed25519-q+))
+           (y (mod (* y invz) +ed25519-q+)))
+      (declare (type integer x y invz))
+      (list :x x :y y))))
+
 (defmethod ec-encode-scalar ((kind (eql :ed25519)) n)
   (integer-to-octets n :n-bits +ed25519-bits+ :big-endian nil))
 
@@ -151,18 +179,14 @@
   (octets-to-integer octets :big-endian nil))
 
 (defmethod ec-encode-point ((p ed25519-point))
-  (declare (optimize (speed 3) (safety 0) (space 0) (debug 0)))
-  (with-slots (x y z) p
-    (declare (type integer x y z))
-    (let* ((invz (ec-scalar-inv :ed25519 z))
-           (x (mod (* x invz) +ed25519-q+))
-           (y (mod (* y invz) +ed25519-q+)))
-      (declare (type integer x y invz))
-      (setf (ldb (byte 1 (- +ed25519-bits+ 1)) y) (ldb (byte 1 0) x))
-      (ec-encode-scalar :ed25519 y))))
+  (let* ((coordinates (ec-destructure-point p))
+         (x (getf coordinates :x))
+         (y (getf coordinates :y)))
+    (declare (type integer x y))
+    (setf (ldb (byte 1 (- +ed25519-bits+ 1)) y) (ldb (byte 1 0) x))
+    (ec-encode-scalar :ed25519 y)))
 
 (defmethod ec-decode-point ((kind (eql :ed25519)) octets)
-  (declare (optimize (speed 3) (safety 0) (space 0) (debug 0)))
   (let* ((y (ec-decode-scalar :ed25519 octets))
          (b (ldb (byte 1 (- +ed25519-bits+ 1)) y)))
     (declare (type integer y)
@@ -172,13 +196,7 @@
       (declare (type integer x))
       (unless (= (ldb (byte 1 0) x) b)
         (setf x (- +ed25519-q+ x)))
-      (let* ((w (mod (* x y) +ed25519-q+))
-             (p (make-instance 'ed25519-point :x x :y y :z 1 :w w)))
-        (declare (type integer w)
-                 (type ed25519-point p))
-        (if (ec-point-on-curve-p p)
-            p
-            (error 'invalid-curve-point :kind 'ed25519))))))
+      (ec-make-point :ed25519 :x x :y y))))
 
 (defun ed25519-hash (&rest messages)
   (declare (optimize (speed 3) (safety 0) (space 0) (debug 0)))

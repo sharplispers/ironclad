@@ -168,6 +168,18 @@ missing in a call to MAKE-PUBLIC-KEY or MAKE-PRIVATE-KEY."))
   (:documentation "Signaled when it is determined that a parameter is
 missing in a call to MAKE-MESSAGE."))
 
+(define-condition missing-point-parameter (ironclad-error)
+  ((kind :initarg :kind :reader kind)
+   (parameter :initarg :parameter :reader parameter)
+   (description :initarg :description :reader description))
+  (:report (lambda (condition stream)
+             (format stream "Missing ~A ~A for ~A point."
+                     (description condition)
+                     (parameter condition)
+                     (kind condition))))
+  (:documentation "Signaled when it is determined that a parameter is
+missing in a call to EC-MAKE-POINT."))
+
 (define-condition missing-signature-parameter (ironclad-error)
   ((kind :initarg :kind :reader kind)
    (parameter :initarg :parameter :reader parameter)

@@ -83,6 +83,20 @@
           (multiple-value-setq (x1 z1 x2 z2)
             (curve448-double-and-add x1 z1 x2 z2 x))))))
 
+(defmethod ec-make-point ((kind (eql :curve448)) &key x)
+  (unless x
+    (error 'missing-point-parameter
+           :kind 'curve448
+           :parameter 'x
+           :description "coordinate"))
+  (make-instance 'curve448-point :x x :z 1))
+
+(defmethod ec-destructure-point ((p curve448-point))
+  (with-slots (x z) p
+    (declare (type integer x z))
+    (let ((x (mod (* x (ec-scalar-inv :curve448 z)) +curve448-p+)))
+      (list :x x))))
+
 (defmethod ec-encode-scalar ((kind (eql :curve448)) n)
   (integer-to-octets n :n-bits +curve448-bits+ :big-endian nil))
 
@@ -95,17 +109,14 @@
     x))
 
 (defmethod ec-encode-point ((p curve448-point))
-  (declare (optimize (speed 3) (safety 0) (space 0) (debug 0)))
-  (with-slots (x z) p
-    (declare (type integer x z))
-    (let ((x1 (mod (* x (ec-scalar-inv :curve448 z)) +curve448-p+)))
-      (ec-encode-scalar :curve448 x1))))
+  (let* ((coordinates (ec-destructure-point p))
+         (x (getf coordinates :x)))
+    (ec-encode-scalar :curve448 x)))
 
 (defmethod ec-decode-point ((kind (eql :curve448)) octets)
-  (declare (optimize (speed 3) (safety 0) (space 0) (debug 0)))
   (let ((x (ldb (byte +curve448-bits+ 0)
                 (octets-to-integer octets :big-endian nil))))
-    (make-instance 'curve448-point :x x :z 1)))
+    (ec-make-point :curve448 :x x)))
 
 (defun curve448-public-key (sk)
   "Compute the public key associated to the private key SK."

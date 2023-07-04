@@ -136,14 +136,23 @@
       (declare (type integer y2 x3 z3 z6 a))
       (zerop (mod (- y2 a) +secp256k1-p+)))))
 
-(defmethod ec-encode-scalar ((kind (eql :secp256k1)) n)
-  (integer-to-octets n :n-bits +secp256k1-bits+ :big-endian t))
+(defmethod ec-make-point ((kind (eql :secp256k1)) &key x y)
+  (unless x
+    (error 'missing-point-parameter
+           :kind 'secp256k1
+           :parameter 'x
+           :description "coordinate"))
+  (unless y
+    (error 'missing-point-parameter
+           :kind 'secp256k1
+           :parameter 'y
+           :description "coordinate"))
+  (let ((p (make-instance 'secp256k1-point :x x :y y :z 1)))
+    (if (ec-point-on-curve-p p)
+        p
+        (error 'invalid-curve-point :kind 'secp256k1))))
 
-(defmethod ec-decode-scalar ((kind (eql :secp256k1)) octets)
-  (octets-to-integer octets :big-endian t))
-
-(defmethod ec-encode-point ((p secp256k1-point))
-  (declare (optimize (speed 3) (safety 0) (space 0) (debug 0)))
+(defmethod ec-destructure-point ((p secp256k1-point))
   (with-slots (x y z) p
     (declare (type integer x y z))
     (when (zerop z)
@@ -154,13 +163,24 @@
            (invz3 (mod (* invz2 invz) +secp256k1-p+))
            (x (mod (* x invz2) +secp256k1-p+))
            (y (mod (* y invz3) +secp256k1-p+)))
-      (concatenate '(simple-array (unsigned-byte 8) (*))
-                   (vector 4)
-                   (ec-encode-scalar :secp256k1 x)
-                   (ec-encode-scalar :secp256k1 y)))))
+      (list :x x :y y))))
+
+(defmethod ec-encode-scalar ((kind (eql :secp256k1)) n)
+  (integer-to-octets n :n-bits +secp256k1-bits+ :big-endian t))
+
+(defmethod ec-decode-scalar ((kind (eql :secp256k1)) octets)
+  (octets-to-integer octets :big-endian t))
+
+(defmethod ec-encode-point ((p secp256k1-point))
+  (let* ((coordinates (ec-destructure-point p))
+         (x (getf coordinates :x))
+         (y (getf coordinates :y)))
+    (concatenate '(simple-array (unsigned-byte 8) (*))
+                 (vector 4)
+                 (ec-encode-scalar :secp256k1 x)
+                 (ec-encode-scalar :secp256k1 y))))
 
 (defmethod ec-decode-point ((kind (eql :secp256k1)) octets)
-  (declare (optimize (speed 3) (safety 0) (space 0) (debug 0)))
   (case (aref octets 0)
     ((2 3)
      ;; Compressed point
@@ -170,11 +190,8 @@
                 (y-sign (- (aref octets 0) 2))
                 (y2 (mod (+ (* x x x) +secp256k1-b+) +secp256k1-p+))
                 (y (expt-mod y2 +secp256k1-i+ +secp256k1-p+))
-                (y (if (= (logand y 1) y-sign) y (- +secp256k1-p+ y)))
-                (p (make-instance 'secp256k1-point :x x :y y :z 1)))
-           (if (ec-point-on-curve-p p)
-               p
-               (error 'invalid-curve-point :kind 'secp256k1)))
+                (y (if (= (logand y 1) y-sign) y (- +secp256k1-p+ y))))
+           (ec-make-point :secp256k1 :x x :y y))
          (error 'invalid-curve-point :kind 'secp256k1)))
     ((4)
      ;; Uncompressed point
@@ -182,11 +199,8 @@
          (let* ((x-bytes (subseq octets 1 (1+ (/ +secp256k1-bits+ 8))))
                 (x (ec-decode-scalar :secp256k1 x-bytes))
                 (y-bytes (subseq octets (1+ (/ +secp256k1-bits+ 8))))
-                (y (ec-decode-scalar :secp256k1 y-bytes))
-                (p (make-instance 'secp256k1-point :x x :y y :z 1)))
-           (if (ec-point-on-curve-p p)
-               p
-               (error 'invalid-curve-point :kind 'secp256k1)))
+                (y (ec-decode-scalar :secp256k1 y-bytes)))
+           (ec-make-point :secp256k1 :x x :y y))
          (error 'invalid-curve-point :kind 'secp256k1)))
     (t
      (error 'invalid-curve-point :kind 'secp256k1))))

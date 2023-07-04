@@ -153,6 +153,30 @@
       (and (zerop (mod (- (* x1 z2) (* x2 z1)) +ed448-q+))
            (zerop (mod (- (* y1 z2) (* y2 z1)) +ed448-q+))))))
 
+(defmethod ec-make-point ((kind (eql :ed448)) &key x y)
+  (unless x
+    (error 'missing-point-parameter
+           :kind 'ed448
+           :parameter 'x
+           :description "coordinate"))
+  (unless y
+    (error 'missing-point-parameter
+           :kind 'ed448
+           :parameter 'y
+           :description "coordinate"))
+  (let ((p (make-instance 'ed448-point :x x :y y :z 1)))
+    (if (ec-point-on-curve-p p)
+        p
+        (error 'invalid-curve-point :kind 'ed448))))
+
+(defmethod ec-destructure-point ((p ed448-point))
+  (with-slots (x y z) p
+    (declare (type integer x y z))
+    (let* ((invz (ec-scalar-inv :ed448 z))
+           (x (mod (* x invz) +ed448-q+))
+           (y (mod (* y invz) +ed448-q+)))
+      (list :x x :y y))))
+
 (defmethod ec-encode-scalar ((kind (eql :ed448)) n)
   (integer-to-octets n :n-bits +ed448-bits+ :big-endian nil))
 
@@ -160,18 +184,14 @@
   (octets-to-integer octets :big-endian nil))
 
 (defmethod ec-encode-point ((p ed448-point))
-  (declare (optimize (speed 3) (safety 0) (space 0) (debug 0)))
-  (with-slots (x y z) p
-    (declare (type integer x y z))
-    (let* ((invz (ec-scalar-inv :ed448 z))
-           (x (mod (* x invz) +ed448-q+))
-           (y (mod (* y invz) +ed448-q+)))
-      (declare (type integer x y))
-      (setf (ldb (byte 1 (- +ed448-bits+ 1)) y) (ldb (byte 1 0) x))
-      (ec-encode-scalar :ed448 y))))
+  (let* ((coordinates (ec-destructure-point p))
+         (x (getf coordinates :x))
+         (y (getf coordinates :y)))
+    (declare (type integer x y))
+    (setf (ldb (byte 1 (- +ed448-bits+ 1)) y) (ldb (byte 1 0) x))
+    (ec-encode-scalar :ed448 y)))
 
 (defmethod ec-decode-point ((kind (eql :ed448)) octets)
-  (declare (optimize (speed 3) (safety 0) (space 0) (debug 0)))
   (let* ((y (ec-decode-scalar :ed448 octets))
          (b (ldb (byte 1 (- +ed448-bits+ 1)) y)))
     (setf (ldb (byte 1 (- +ed448-bits+ 1)) y) 0)
@@ -179,10 +199,7 @@
       (declare (type integer x))
       (unless (= (ldb (byte 1 0) x) b)
         (setf x (- +ed448-q+ x)))
-      (let ((p (make-instance 'ed448-point :x x :y y :z 1)))
-        (if (ec-point-on-curve-p p)
-            p
-            (error 'invalid-curve-point :kind 'ed448))))))
+      (ec-make-point :ed448 :x x :y y))))
 
 (defun ed448-hash (&rest messages)
   (declare (optimize (speed 3) (safety 0) (space 0) (debug 0)))

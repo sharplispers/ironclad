@@ -21,6 +21,13 @@
 (defgeneric ec-scalar-inv (kind n)
   (:documentation "Return the modular inverse of N."))
 
+(defgeneric ec-make-point (kind &key &allow-other-keys)
+  (:documentation "Return a point of KIND, initialized according to the
+specified coordinates."))
+
+(defgeneric ec-destructure-point (p)
+  (:documentation "Return a plist containing the coordinates of the point P."))
+
 (defgeneric ec-encode-scalar (kind n)
   (:documentation "Return an octet vector representing the integer N."))
 
