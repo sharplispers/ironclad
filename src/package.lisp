@@ -91,6 +91,24 @@
    #:secp384r1-public-key #:secp384r1-private-key
    #:secp521r1-public-key #:secp521r1-private-key
 
+   ;; EC operations
+   #:ec-point-on-curve-p #:ec-point-equal
+   #:ec-double #:ec-add #:ec-scalar-mult
+   #:ec-scalar-inv #:ec-encode-scalar
+   #:ec-decode-scalar #:ec-encode-point
+   #:ec-decode-point #:ec-destructure-point
+
+   ;; EC point classes and readers
+   #:curve25519-point #:curve25519-point-x #:curve25519-point-z
+   #:curve448-point #:curve448-point-x #:curve448-point-z
+   #:ed25519-point #:ed25519-point-x #:ed25519-point-y
+   #:ed25519-point-z #:ed25519-point-w
+   #:ed448-point #:ed448-point-x #:ed448-point-y #:ed448-point-z
+   #:secp256k1-point #:secp256k1-point-x #:secp256k1-point-y #:secp256k1-point-z
+   #:secp256r1-point #:secp256r1-point-x #:secp256r1-point-y #:secp256r1-point-z
+   #:secp384r1-point #:secp384r1-point-x #:secp384r1-point-y #:secp384r1-point-z
+   #:secp521r1-point #:secp521r1-point-x #:secp521r1-point-y #:secp521r1-point-z
+
    ;; public-key slot readers
    #:dsa-key-p #:dsa-key-q #:dsa-key-g #:dsa-key-y #:dsa-key-x
    #:elgamal-key-p #:elgamal-key-g #:elgamal-key-y #:elgamal-key-x
