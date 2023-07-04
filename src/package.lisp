@@ -78,6 +78,19 @@
    ;; public-key encryption/signature padding
    #:oaep-encode #:oaep-decode #:pss-encode #:pss-verify
 
+   ;; elliptic curve operations
+   #:ec-point-on-curve-p #:ec-point-equal
+   #:ec-double #:ec-add #:ec-scalar-mult #:ec-scalar-inv
+   #:ec-make-point #:ec-destructure-point
+   #:ec-encode-scalar #:ec-decode-scalar
+   #:ec-encode-point #:ec-decode-point
+
+   ;; elliptic curve points
+   #:curve25519-point #:curve448-point
+   #:ed25519-point #:ed448-point
+   #:secp256k1-point #:secp256r1-point
+   #:secp384r1-point #:secp521r1-point
+
    ;; public/private keys
    #:curve25519-public-key #:curve25519-private-key
    #:curve448-public-key #:curve448-private-key
