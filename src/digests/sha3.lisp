@@ -433,7 +433,7 @@ the content on normal form exit."
   (declare (type sha3 state)
            (type (simple-array (unsigned-byte 8) (*)) digest)
            (type integer digest-start)
-           (optimize (speed 3) (safety 0) (space 0) (debug 0)))
+           (optimize (speed 3) (safety 1) (space 0) (debug 0)))
   (let ((padding-type (typecase state
                         (shake128 :xof)
                         (shake256 :xof)
@@ -451,7 +451,7 @@ the content on normal form exit."
              (type (simple-array (unsigned-byte 8) (200)) buffer)
              (type (integer 0 199) buffer-index)
              (type (integer 0 1600) bit-rate)
-             (type (integer 0 64) output-byte-length))
+             (type integer output-byte-length))
 
     ;; Process remaining data after padding it
     (keccak-state-merge-input keccak-state
