@@ -244,6 +244,8 @@
     (store-words ciphertext ciphertext-start right left)))
 
 (defun initialize-blowfish-vectors (key p-array s-boxes)
+  #+lispworks
+  (declare (optimize (debug 0) (float 0) (space 0) (safety 0) (speed 3)))
   (declare (type (simple-array (unsigned-byte 8) (*)) key))
   (declare (type blowfish-p-array p-array))
   (declare (type blowfish-s-boxes s-boxes))
