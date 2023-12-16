@@ -170,7 +170,7 @@
    #:with-encrypting-stream #:with-decrypting-stream
    #:make-authenticating-stream #:with-authenticating-stream)
   ;; supported digests
-  (:export #:whirlpool #:md2 #:md4 #:md5 #:adler32 #:crc24 #:crc32
+  (:export #:whirlpool #:md2 #:md4 #:md5 #:adler32 #:crc24 #:crc32 #:crc32c
            #:tiger #:sha1 #:sha224 #:sha256 #:sha384 #:sha512
            #:tree-hash #:make-tiger-tree-hash #:ripemd-128 #:ripemd-160
            #:skein256 #:skein256/128 #:skein256/160 #:skein256/224

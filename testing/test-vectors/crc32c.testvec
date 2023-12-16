@@ -1,0 +1,7 @@
+(:digest-test #a"" #h"00000000")
+(:digest-test #a"a" #h"c1d04330")
+(:digest-test #a"abc" #h"364b3fb7")
+(:digest-test #a"message digest" #h"02bd79d0")
+(:digest-test #a"abcdefghijklmnopqrstuvwxyz" #h"9ee6ef25")
+(:digest-test #a"ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789" #h"a245d57d")
+(:digest-test #a"12345678901234567890123456789012345678901234567890123456789012345678901234567890" #h"477a6781")

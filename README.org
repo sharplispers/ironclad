@@ -394,6 +394,7 @@ by calling [[list-all-digests][list-all-digests]]. They are:
  - blake2s/224
  - crc24
  - crc32
+ - crc32c
  - groestl
  - groestl/224
  - groestl/256

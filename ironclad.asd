@@ -326,6 +326,7 @@
                                            (:test-vector-file "blake2s-224")
                                            (:test-vector-file "crc24")
                                            (:test-vector-file "crc32")
+                                           (:test-vector-file "crc32c")
                                            (:test-vector-file "groestl")
                                            (:test-vector-file "groestl-224")
                                            (:test-vector-file "groestl-256")
