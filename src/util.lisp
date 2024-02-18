@@ -43,7 +43,7 @@ hexadecimal digits into a byte array."
          (key (make-array length :element-type '(unsigned-byte 8))))
     (declare (type (simple-array (unsigned-byte 8) (*)) key))
     (flet ((char-to-digit (char)
-             (or (position char "0123456789abcdef" :test #'char-equal)
+             (or (digit-char-p char 16)
                  (error 'ironclad-error
                         :format-control "~A is not a hex digit"
                         :format-arguments (list char)))))
