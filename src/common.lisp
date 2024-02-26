@@ -555,7 +555,7 @@ uint64_t r = (n << 56)
   (ffi:c-inline (a s)
                 (:uint32-t :uint8-t)
                 :uint32-t
-                "(#0 << #1) | (#0 >> (32 - #1))"
+                "(#0 << #1) | (#0 >> (-#1 & 31))"
                 :one-liner t
                 :side-effects nil)
 
@@ -578,7 +578,7 @@ uint64_t r = (n << 56)
   (ffi:c-inline (a s)
                 (:uint32-t :uint8-t)
                 :uint32-t
-                "(#0 << (32 - #1)) | (#0 >> #1)"
+                "(#0 << (-#1 & 31)) | (#0 >> #1)"
                 :one-liner t
                 :side-effects nil)
 
@@ -720,7 +720,7 @@ uint64_t r = (n << 56)
   (ffi:c-inline (a s)
                 (:uint64-t :uint8-t)
                 :uint64-t
-                "(#0 << #1) | (#0 >> (64 - #1))"
+                "(#0 << #1) | (#0 >> (-#1 & 63))"
                 :one-liner t
                 :side-effects nil)
 
@@ -742,7 +742,7 @@ uint64_t r = (n << 56)
   (ffi:c-inline (a s)
                 (:uint64-t :uint8-t)
                 :uint64-t
-                "(#0 << (64 - #1)) | (#0 >> #1)"
+                "(#0 << (-#1 & 63)) | (#0 >> #1)"
                 :one-liner t
                 :side-effects nil)
 
