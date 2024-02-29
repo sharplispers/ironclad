@@ -1,10 +1,14 @@
 -*- mode: outline -*-
 
-* Changes since version 0.59
+* Version 0.60, released 2024-02-29
 
 ** new features
 
 Added crc32c digest.
+
+** bug fixes
+
+Fixed some undefined behavior for ECL with some compilers.
 
 * Version 0.59, released 2023-07-24
 
