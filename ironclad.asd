@@ -380,6 +380,7 @@
                                            (:file "pkcs5")
                                            (:file "argon2d")
                                            (:file "argon2i")
+                                           (:file "argon2id")
                                            (:file "bcrypt")
                                            (:file "scrypt")
                                            (:file "hmac-kdf")

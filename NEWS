@@ -1,5 +1,11 @@
 -*- mode: outline -*-
 
+* Changes since version 0.60
+
+** new features
+
+Added the Argon2id key derivation function (without parallelism).
+
 * Version 0.60, released 2024-02-29
 
 ** new features

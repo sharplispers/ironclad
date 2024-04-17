@@ -54,7 +54,7 @@
 
    ;; KDFs
    #:list-all-kdfs
-   #:pbkdf1 #:pbkdf2 #:hmac-kdf #:scrypt-kdf #:argon2i #:argon2d
+   #:pbkdf1 #:pbkdf2 #:hmac-kdf #:scrypt-kdf #:argon2i #:argon2d #:argon2id
    #:bcrypt #:bcrypt-pbkdf
    #:make-kdf #:derive-key
 

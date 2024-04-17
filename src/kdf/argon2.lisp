@@ -1,7 +1,7 @@
 ;;;; -*- mode: lisp; indent-tabs-mode: nil -*-
 ;;;; argon2.lisp -- implementation of the Argon2 key derivation function
 
-;;; Based on the Argon2i implementation present in the Monocypher
+;;; Based on the Argon2 implementation present in the Monocypher
 ;;; crypto library (http://loup-vaillant.fr/projects/monocypher/)
 
 (in-package :crypto)
@@ -25,6 +25,9 @@
   ())
 
 (defclass argon2d (argon2)
+  ())
+
+(defclass argon2id (argon2)
   ())
 
 (defconstant +argon2-block-size+ 128)
@@ -191,7 +194,9 @@
           (aref b 2) (argon2-slice-number state)
           (aref b 3) (argon2-nb-blocks state)
           (aref b 4) (argon2-nb-iterations state)
-          (aref b 5) 1
+          (aref b 5) (etypecase state
+                       (argon2i 1)
+                       (argon2id 2))
           (aref b 6) (argon2-counter state))
     (fill b 0 :start 7)
     (argon2-unary-g b)
@@ -281,7 +286,7 @@
   (when (or (< key-length 4) (< iteration-count 1) (< (length salt) 8))
     (error 'unsupported-argon2-parameters))
   (setf (argon2-nb-iterations kdf) iteration-count)
-  (let ((data-independent-p (typep kdf 'argon2i))
+  (let ((data-independent-p (or (typep kdf 'argon2i) (typep kdf 'argon2id)))
         (work-area (argon2-work-area kdf))
         (block-count (argon2-block-count kdf))
         (additional-key (argon2-additional-key kdf))
@@ -298,7 +303,10 @@
     (argon2-update-digester-32 digester block-count)
     (argon2-update-digester-32 digester iteration-count)
     (argon2-update-digester-32 digester #x13)
-    (argon2-update-digester-32 digester (if data-independent-p 1 0))
+    (argon2-update-digester-32 digester (etypecase kdf
+                                          (argon2d 0)
+                                          (argon2i 1)
+                                          (argon2id 2)))
     (argon2-update-digester-32 digester (length passphrase))
     (update-mac digester passphrase)
     (argon2-update-digester-32 digester (length salt))
@@ -330,6 +338,8 @@
       (dotimes (pass-number iteration-count)
         (let ((first-pass (zerop pass-number)))
           (dotimes (segment 4)
+            (when (and (= segment 2) (typep kdf 'argon2id))
+              (setf data-independent-p nil))
             (if data-independent-p
                 (argon2i-gidx-init kdf pass-number segment nb-blocks iteration-count)
                 (argon2d-gidx-init kdf pass-number segment nb-blocks iteration-count))

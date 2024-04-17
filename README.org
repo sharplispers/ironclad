@@ -916,7 +916,7 @@ Returns ~t~ if /name/ would be in the list returned by
   :END:
 
 Ironclad comes with a few key derivation functions:
- - Argon2 (only Argon2d and Argon2i without parallelism are implemented)
+ - Argon2 (only variants without parallelism are implemented)
  - Bcrypt
  - Bcrypt-pbkdf
  - PBKDF1
@@ -952,6 +952,7 @@ Returns a key derivation function instance.
 /kind/ denotes the key derivation function to use. They are:
  - argon2d
  - argon2i
+ - argon2id
  - bcrypt
  - bcrypt-pbkdf
  - pbkdf1

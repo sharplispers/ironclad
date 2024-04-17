@@ -50,6 +50,13 @@ argon2"
                     :block-count block-count
                     :additional-key additional-key
                     :additional-data additional-data))
+    (argon2id
+     (when (< block-count 8)
+       (error 'unsupported-argon2-parameters))
+     (make-instance 'argon2id
+                    :block-count block-count
+                    :additional-key additional-key
+                    :additional-data additional-data))
     (bcrypt
      (make-instance 'bcrypt))
     (bcrypt-pbkdf
