@@ -6,7 +6,7 @@
 #+unix
 (defparameter *os-prng-stream* nil)
 #+unix
-(defparameter *os-prng-stream-lock* (bt:make-lock))
+(defparameter *os-prng-stream-lock* (bt2:make-lock))
 
 (defclass os-prng ()
   ())
@@ -14,7 +14,7 @@
 (defmethod prng-random-data (num-bytes (prng os-prng))
   #+unix
   (let* ((seq (make-array num-bytes :element-type '(unsigned-byte 8)))
-         (n (bt:with-lock-held (*os-prng-stream-lock*)
+         (n (bt2:with-lock-held (*os-prng-stream-lock*)
               (unless (and *os-prng-stream* (open-stream-p *os-prng-stream*))
                 (setf *os-prng-stream* (open #P"/dev/urandom"
                                              #+ccl :sharing #+ccl :external
@@ -67,4 +67,4 @@
 
 (setf *prng* (make-prng :os))
 #+thread-support
-(pushnew '(*prng* . (make-prng :os)) bt:*default-special-bindings* :test #'equal)
+(pushnew '(*prng* . (make-prng :os)) bt2:*default-special-bindings* :test #'equal)
