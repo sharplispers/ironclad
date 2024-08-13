@@ -946,6 +946,7 @@ behavior."
                                (aref input-block2 input-block2-start))))))
 
 (define-compiler-macro xor-block (&whole form &environment env block-length input-block1 input-block1-start input-block2 input-block2-start output-block output-block-start)
+  (declare (ignorable env block-length input-block1 input-block1-start input-block2 input-block2-start output-block output-block-start))
   (cond
     #+(and sbcl x86-64 ironclad-assembly)
     ((and (constantp block-length env)
@@ -1011,6 +1012,7 @@ behavior."
                                           block-length
                                           input-block input-block-start
                                           output-block output-block-start)
+  (declare (ignorable env block-length input-block input-block-start output-block output-block-start))
   (cond
     #+(and sbcl x86-64 ironclad-assembly)
     ((and (constantp block-length env)
