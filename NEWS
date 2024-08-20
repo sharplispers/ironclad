@@ -1,10 +1,14 @@
 -*- mode: outline -*-
 
-* Changes since version 0.60
+* Version 0.61, released 2024-08-20
 
 ** new features
 
 Added the Argon2id key derivation function (without parallelism).
+
+** bug fixes
+
+Fix build with recent SBCL on x86-32.
 
 * Version 0.60, released 2024-02-29
 
