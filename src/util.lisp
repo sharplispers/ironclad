@@ -3,10 +3,6 @@
 
 (in-package :crypto)
 
-(declaim (inline byte-array-to-hex-string
-                 hex-string-to-byte-array
-                 ascii-string-to-byte-array))
-
 (defun byte-array-to-hex-string (vector &key (start 0) end (element-type 'base-char))
   "Return a string containing the hexadecimal representation of the
 subsequence of VECTOR between START and END.  ELEMENT-TYPE controls
@@ -17,7 +13,7 @@ the element-type of the returned string."
            (optimize (speed 3) (safety 1)))
   (let* ((end (or end (length vector)))
          (length (- end start))
-         (hexdigits #.(coerce "0123456789abcdef" 'simple-base-string)))
+         (hexdigits (load-time-value (coerce "0123456789abcdef" 'simple-base-string) t)))
     (loop with string = (ecase element-type
                           ;; so that the compiler optimization can jump in
                           (base-char (make-string (* length 2)
@@ -27,7 +23,6 @@ the element-type of the returned string."
        for i from start below end
        for j from 0 below (* length 2) by 2
        do (let ((byte (aref vector i)))
-            (declare (optimize (safety 0)))
             (setf (aref string j)
                   (aref hexdigits (ldb (byte 4 4) byte))
                   (aref string (1+ j))
@@ -72,10 +67,6 @@ STRING contains any character whose CHAR-CODE is greater than 255."
                      :format-arguments (list (char string i))))
             (setf (aref vec i) byte))
           finally (return vec))))
-
-(declaim (notinline byte-array-to-hex-string
-                    hex-string-to-byte-array
-                    ascii-string-to-byte-array))
 
 (defun constant-time-equal (data1 data2)
   "Returns T if the elements in DATA1 and DATA2 are identical, NIL otherwise.
