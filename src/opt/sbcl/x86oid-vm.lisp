@@ -14,7 +14,8 @@
                 #:simple-array-unsigned-byte-8
                 #:simple-array-unsigned-byte-32
                 #+x86-64 #:simple-array-unsigned-byte-64
-                #+x86-64 #:rax-offset #+x86-64 #:rcx-offset))
+                #+x86-64 #:rax-offset #+x86-64 #:rbx-offset
+                #+x86-64 #:rcx-offset #+x86-64 #:rdx-offset))
 
 #+(and sbcl (or x86 x86-64) ironclad-assembly)
 (in-package :ironclad-vm)
@@ -472,7 +473,9 @@
   (:policy :fast-safe)
   (:conditional :c)
   (:temporary (:sc unsigned-reg :offset rax-offset) eax)
+  (:temporary (:sc unsigned-reg :offset rbx-offset) ebx)
   (:temporary (:sc unsigned-reg :offset rcx-offset) ecx)
+  (:temporary (:sc unsigned-reg :offset rdx-offset) edx)
   (:generator 10
     (inst mov eax 1)
     (inst cpuid)
@@ -484,7 +487,9 @@
   (:policy :fast-safe)
   (:conditional :c)
   (:temporary (:sc unsigned-reg :offset rax-offset) eax)
+  (:temporary (:sc unsigned-reg :offset rbx-offset) ebx)
   (:temporary (:sc unsigned-reg :offset rcx-offset) ecx)
+  (:temporary (:sc unsigned-reg :offset rdx-offset) edx)
   (:generator 10
     (inst mov eax 1)
     (inst cpuid)
