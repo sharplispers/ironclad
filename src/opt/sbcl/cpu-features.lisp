@@ -15,8 +15,11 @@
   (declare (optimize (speed 3) (space 0) (debug 0) (safety 0)))
   #+ironclad-assembly (if aes-ni-support-known-p
                           aes-ni-supported-p
-                          (setf aes-ni-support-known-p t
-                                aes-ni-supported-p (aes-ni-support-p)))
+                          (progn
+                            (setf aes-ni-supported-p (aes-ni-support-p))
+                            (sb-thread:barrier (:write))
+                            (setf aes-ni-support-known-p t)
+                            aes-ni-supported-p))
   #-ironclad-assembly nil)
 
 #+(and sbcl x86-64)
@@ -30,6 +33,9 @@
   (declare (optimize (speed 3) (space 0) (debug 0) (safety 0)))
   #+ironclad-assembly (if pclmulqdq-support-known-p
                           pclmulqdq-supported-p
-                          (setf pclmulqdq-support-known-p t
-                                pclmulqdq-supported-p (pclmulqdq-support-p)))
+                          (progn
+                            (setf pclmulqdq-supported-p (pclmulqdq-support-p))
+                            (sb-thread:barrier (:write))
+                            (setf pclmulqdq-support-known-p t)
+                            pclmulqdq-supported-p))
   #-ironclad-assembly nil)
