@@ -404,7 +404,8 @@ uint64_t r = (n << 56)
          (ftype (function ((unsigned-byte 32) (unsigned-byte 32)) (unsigned-byte 32)) mod32+))
 
 (defun mod32+ (a b)
-  (declare (type (unsigned-byte 32) a b))
+  (declare (type (unsigned-byte 32) a b)
+           #+lispworks(optimize (debug 0) (space 0) (safety 0) (float 0) (speed 3)))
   #+(and ccl x86-64 ironclad-assembly)
   (%mod32+ a b)
 
