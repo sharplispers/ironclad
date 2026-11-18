@@ -34,9 +34,11 @@
   (make-instance 'curve25519-point :x 9 :z 1))
 
 
+#-sbcl
 (defmethod ec-scalar-inv ((kind (eql :curve25519)) n)
   (expt-mod n (- +curve25519-p+ 2) +curve25519-p+))
 
+#-sbcl
 (defun curve25519-double-and-add (x1 z1 x2 z2 x3)
   "Point doubling and addition on curve25519 curve."
   (declare (type integer x1 z1 x2 z2 x3)
@@ -62,6 +64,7 @@
     (declare (type integer t1 t2 t3 t4 t5 t6 t7 t8 t9 t10 t11 t12 t13 t14 x4 z4 x5 z5))
     (values x4 z4 x5 z5)))
 
+#-sbcl
 (defmethod ec-scalar-mult ((p curve25519-point) n)
   ;; Point multiplication on curve22519 curve using the Montgomery ladder.
   (declare (optimize (speed 3) (safety 0) (space 0) (debug 0))
@@ -91,6 +94,7 @@
            :description "coordinate"))
   (make-instance 'curve25519-point :x x :z 1))
 
+#-sbcl
 (defmethod ec-destructure-point ((p curve25519-point))
   (with-slots (x z) p
     (declare (type integer x z))

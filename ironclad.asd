@@ -193,7 +193,8 @@
   "dsa"
   "rsa"
   "elgamal"
-  "curve25519"
+  ("curve25519" :components ((:file "curve25519")
+                             (:file "curve25519-sbcl")))
   "curve448"
   ("ed25519" :depends-on ("ironclad/digest/sha512"))
   ("ed448" :depends-on ("ironclad/digest/sha3"))
